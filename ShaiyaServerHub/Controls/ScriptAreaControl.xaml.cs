@@ -135,34 +135,51 @@ namespace ShaiyaServerHub.Controls
             return status;
         }
 
-        /// <summary>Esegue tutti gli SQL dell'area in ordine di nome (00→NN) + riassunto finale.</summary>
-        public async Task RunAllSqlAsync()
+        /// <summary>Esegue SOLO gli SQL in ordine (usato dall'install PSM_Cmd).</summary>
+        public Task RunAllSqlAsync()
         {
-            if (_repo == null || _runner == null) return;
+            if (_repo == null || _runner == null) return Task.CompletedTask;
+            if (_items == null) Reload();
+            var list = _items.Where(s => s.Kind == ScriptKind.Sql)
+                             .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            return RunListAsync(list);
+        }
+
+        /// <summary>Esegue TUTTO: prima gli SQL, poi PS1/BAT (ognuno in ordine di nome).</summary>
+        public Task RunAllAsync()
+        {
+            if (_repo == null || _runner == null) return Task.CompletedTask;
             if (_items == null) Reload();
             var sql = _items.Where(s => s.Kind == ScriptKind.Sql)
-                          .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase).ToList();
-            if (sql.Count == 0) { Log("Nessuno script SQL in " + _repo.SqlDir); return; }
-            Log($"── Esecuzione {sql.Count} script SQL in ordine ──");
+                            .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase);
+            var other = _items.Where(s => s.Kind != ScriptKind.Sql)
+                              .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase);
+            return RunListAsync(sql.Concat(other).ToList());
+        }
+
+        /// <summary>Esegue una lista di script in ordine, con badge per-script + riassunto finale.</summary>
+        private async Task RunListAsync(List<ScriptItem> items)
+        {
+            if (items == null || items.Count == 0) { Log("Nessuno script da eseguire in " + _repo.Root); return; }
+            Log($"── Esecuzione {items.Count} script in ordine ──");
 
             var results = new List<KeyValuePair<string, string>>();
             await RunAsync(() =>
             {
-                foreach (var s in sql)
+                foreach (var s in items)
                 {
                     Log($"▶ {s.Name}");
-                    string status = RunOne(s);
-                    results.Add(new KeyValuePair<string, string>(s.Name, status));
+                    results.Add(new KeyValuePair<string, string>(s.Name, RunOne(s)));
                 }
             });
 
-            // Attende che TUTTI gli append a priorità Normal siano stati processati,
-            // così il riassunto compare sempre in fondo (sicurezza extra oltre l'attesa EOF).
+            // Attende che TUTTI gli append a priorità Normal siano processati:
+            // il riassunto compare sempre in fondo (sicurezza extra oltre l'attesa EOF).
             await Dispatcher.Yield(DispatcherPriority.Background);
 
             // ── Riassunto totale ──
             int p = 0, w = 0, f = 0, e = 0, i = 0;
-            Log("═════════════ RIASSUNTO TEST SUITE ═════════════");
+            Log("═════════════ RIASSUNTO ═════════════");
             foreach (var r in results)
             {
                 switch (r.Value)
@@ -180,7 +197,7 @@ namespace ShaiyaServerHub.Controls
                            : (w > 0) ? "⚠ REVISIONARE I WARNING"
                            : "✓ TUTTO OK";
             Log("VERDETTO: " + verdict);
-            Log("════════════════════════════════════════════════");
+            Log("═════════════════════════════════════");
         }
 
         // ── Log (embedded + buffer per il modale) ────────────

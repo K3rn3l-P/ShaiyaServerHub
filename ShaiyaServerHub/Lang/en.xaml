@@ -18,7 +18,7 @@
     <s:String x:Key="GbTestSuite">SERVER TEST SUITE — SECURITY</s:String>
     <s:String x:Key="BtnVerifyPsm">✓ Verify PSM_Cmd</s:String>
     <s:String x:Key="BtnInstallPsm">⬇ Install / Repair PSM_Cmd</s:String>
-    <s:String x:Key="BtnRunTestSuite">▶ Run SQL audit</s:String>
+    <s:String x:Key="BtnRunTestSuite">▶ Run all</s:String>
     <s:String x:Key="BtnOpenLog">📋 Log</s:String>
     <s:String x:Key="TipScriptLog">Open this script's log</s:String>
     <s:String x:Key="AreaLogTitle">LOG</s:String>

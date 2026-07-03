@@ -145,8 +145,8 @@ namespace ShaiyaServerHub
         // ── Test Suite ────────────────────────────────────────
         private async void BtnRunTestSuite_Click(object sender, RoutedEventArgs e)
         {
-            TestArea.Log("── Esecuzione audit SQL (test suite) ──");
-            await TestArea.RunAllSqlAsync();
+            TestArea.Log("── Esecuzione test suite (SQL + PS1/BAT) ──");
+            await TestArea.RunAllAsync();
         }
 
         // ── Scripts ───────────────────────────────────────────
