@@ -121,7 +121,7 @@ Contesto completo del canale: vedi memoria `project_psmagent_command_channel` e 
 
 ```
 dotnet build ShaiyaServerHub.sln -c Release
-# → ShaiyaServerHub\bin\Release\net48\  (exe + scripts\ functions\ testsuite\ già popolati)
+# → ShaiyaServerHub\bin\Release\ShaiyaServerHub\  (exe + scripts\ functions\ testsuite\ già popolati)
 ```
 
 **Script di default (versionati):** `ShaiyaServerHub\DefaultScripts\` con struttura
@@ -130,12 +130,13 @@ dotnet build ShaiyaServerHub.sln -c Release
 - Password reali in `ShaiyaServerHub\.env` (in `.gitignore`).
 - **Due script** (path relativi a $PSScriptRoot → repo spostabile):
   - `ShaiyaServerHub\Build-And-Copy.ps1` = fa TUTTO: `dotnet build` (Release/Debug) → copia
-    DefaultScripts in `bin\<Config>\net48\` → **inietta** password dal `.env` → copia il `.env`.
+    DefaultScripts in `bin\<Config>\ShaiyaServerHub\` → **inietta** password dal `.env` → copia il `.env`.
+    (Cartella output rinominata da `net48` a `ShaiyaServerHub` via csproj AppendTargetFrameworkToOutputPath=false + OutputPath.)
   - `build-and-copy.bat` (root repo) = lancia il ps1 (doppio click; arg opz. Debug).
 - **Niente più target MSBuild** (rimosso CopyDefaultScripts): la copia la fa solo il ps1.
   Un plain `dotnet build` NON copia più i default → usare Build-And-Copy.ps1 / il .bat.
 
-**Deploy sul server:** copiare l'INTERA cartella `net48\` (exe + cartelle script funzionanti).
+**Deploy sul server:** copiare l'INTERA cartella `bin\Release\ShaiyaServerHub\` (exe + cartelle script funzionanti).
 Le cartelle script stanno in `bin\` (rigenerate ad ogni build dai DefaultScripts). Al primo avvio
 l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe.
 

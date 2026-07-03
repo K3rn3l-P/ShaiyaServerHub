@@ -17,7 +17,7 @@ $ErrorActionPreference = 'Stop'
 $proj    = $PSScriptRoot                                   # ...\ShaiyaServerHub\ShaiyaServerHub
 $repo    = Split-Path $proj -Parent                        # ...\ShaiyaServerHub  (root repo)
 $sln     = Join-Path $repo 'ShaiyaServerHub.sln'
-$outDir  = Join-Path $proj ("bin\{0}\net48" -f $Config)
+$outDir  = Join-Path $proj ("bin\{0}\ShaiyaServerHub" -f $Config)
 $srcDir  = Join-Path $proj 'DefaultScripts'
 $envFile = Join-Path $repo '.env'
 

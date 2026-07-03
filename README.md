@@ -55,7 +55,7 @@ Due soli script — funzionano ovunque tu sposti il repo:
 
 | File | Dove | Cosa fa |
 |---|---|---|
-| **`ShaiyaServerHub\Build-And-Copy.ps1`** | dir progetto | Fa TUTTO: `dotnet build` Release/Debug → copia `DefaultScripts\` in `bin\<Config>\net48\` → **inietta le password dal `.env`** → copia il `.env`. |
+| **`ShaiyaServerHub\Build-And-Copy.ps1`** | dir progetto | Fa TUTTO: `dotnet build` Release/Debug → copia `DefaultScripts\` in `bin\<Config>\ShaiyaServerHub\` → **inietta le password dal `.env`** → copia il `.env`. |
 | **`build-and-copy.bat`** | root repo | Doppio click → lancia il ps1. `build-and-copy.bat Debug` per Debug. |
 
 ```
@@ -64,8 +64,9 @@ powershell -File ShaiyaServerHub\Build-And-Copy.ps1            # Release
 powershell -File ShaiyaServerHub\Build-And-Copy.ps1 -Config Debug
 ```
 
-Risultato: `bin\Release\net48\` = exe + cartelle script **funzionanti** (password reali) + `.env`,
-pronto per copia-incolla sul server. **Non** c'è più un target MSBuild: la copia la fa solo il ps1.
+Risultato: `bin\Release\ShaiyaServerHub\` (cartella rinominata dal csproj, non `net48`) = exe +
+cartelle script **funzionanti** (password reali) + `.env`, pronto per copia-incolla sul server.
+**Non** c'è più un target MSBuild: la copia la fa solo il ps1.
 
 > ⚠️ Senza `.env` (es. clone pulito) gli script install PSM_Cmd restano con i placeholder:
 > riempili a mano prima di eseguirli. Per aggiornare i default modifica `DefaultScripts\`

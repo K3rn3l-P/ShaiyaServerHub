@@ -14,6 +14,9 @@
     <Nullable>disable</Nullable>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AssemblyTitle>ShaiyaServerHub — by K3rn3l</AssemblyTitle>
+    <!-- Cartella output = bin\<Config>\ShaiyaServerHub (non net48) → pronta da copiare sul server. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin\$(Configuration)\ShaiyaServerHub\</OutputPath>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
