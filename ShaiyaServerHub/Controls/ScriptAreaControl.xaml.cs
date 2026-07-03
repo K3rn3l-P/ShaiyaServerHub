@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace ShaiyaServerHub.Controls
         private ScriptRepository _repo;
         private ScriptRunner _runner;
         private readonly StringBuilder _logBuffer = new StringBuilder();
+        private string _logFile;   // log proprio dell'area (es. functions\functions.log)
 
         public ScriptAreaControl() { InitializeComponent(); }
 
@@ -42,9 +44,15 @@ namespace ShaiyaServerHub.Controls
         {
             _repo = repo;
             _repo.EnsureFolders();
+            // Log proprio dell'area, nella sua cartella (es. functions\functions.log).
+            string folderName = new DirectoryInfo(_repo.Root).Name;
+            _logFile = Path.Combine(_repo.Root, folderName + ".log");
             TbHint.Text = hint;
             Reload();
         }
+
+        /// <summary>Percorso del file di log dell'area (per aprirlo/mostrarlo).</summary>
+        public string LogFilePath => _logFile;
 
         public void Reload()
         {
@@ -112,7 +120,14 @@ namespace ShaiyaServerHub.Controls
             _logBuffer.AppendLine(line);
             TbAreaLog.AppendText(line + "\n");
             TbAreaLog.ScrollToEnd();
-            App.WriteLog("AREA", $"{AreaTitle}: {msg}");
+            // Log SOLO nel file proprio dell'area (NON in hub.log, che resta pulito).
+            try
+            {
+                if (_logFile != null)
+                    File.AppendAllText(_logFile,
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}{Environment.NewLine}", Encoding.UTF8);
+            }
+            catch { }
         }
 
         public async Task RunAsync(Action action)

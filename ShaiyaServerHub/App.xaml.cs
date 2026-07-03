@@ -12,12 +12,26 @@ namespace ShaiyaServerHub
         private static readonly string LogPath =
             Path.Combine(AppContext.BaseDirectory, "hub.log");
 
+        // hub.log = SOLO programma + errori (avvio, crash, eccezioni). Niente spam di output.
         public static void WriteLog(string category, string text)
         {
             try
             {
                 string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{category}] {text}{Environment.NewLine}";
                 File.AppendAllText(LogPath, line, Encoding.UTF8);
+            }
+            catch { }
+        }
+
+        // Log dedicato per l'esecuzione headless dei task pianificati (non sporca hub.log).
+        private static readonly string TaskLogPath =
+            Path.Combine(AppContext.BaseDirectory, "hub-tasks.log");
+        public static void WriteTaskLog(string text)
+        {
+            try
+            {
+                File.AppendAllText(TaskLogPath,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}{Environment.NewLine}", Encoding.UTF8);
             }
             catch { }
         }
@@ -65,13 +79,15 @@ namespace ShaiyaServerHub
                     FullPath = scriptPath,
                     Kind = ScriptItem.KindFromExtension(scriptPath)
                 };
-                WriteLog("RUN", $"headless: {scriptPath}");
-                int rc = runner.RunScript(item, l => WriteLog("RUN", l));
-                WriteLog("RUN", $"exit {rc}");
+                WriteTaskLog($"── headless: {scriptPath} ──");
+                int rc = runner.RunScript(item, WriteTaskLog);
+                WriteTaskLog($"exit {rc}");
                 return rc;
             }
             catch (Exception ex)
             {
+                // Errore = anche in hub.log (è un errore di programma).
+                WriteTaskLog("ERRORE: " + ex.Message);
                 WriteLog("RUN-ERR", ex.ToString());
                 return -1;
             }

@@ -298,7 +298,8 @@ namespace ShaiyaServerHub
             if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(() => Log(msg))); return; }
             TbLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {msg}\n");
             TbLog.ScrollToEnd();
-            App.WriteLog("UI", msg);
+            // hub.log resta pulito: NON logghiamo ogni riga UI qui.
+            // Solo avvio (App) ed errori (RunAsync → App.WriteLog EXCEPTION) finiscono in hub.log.
         }
         private void BtnClearLog_Click(object sender, RoutedEventArgs e) => TbLog.Clear();
 
