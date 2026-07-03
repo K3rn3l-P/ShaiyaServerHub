@@ -49,7 +49,8 @@ namespace ShaiyaServerHub.Core
 
         // ── Aree note ────────────────────────────────────────
         public static string AppRoot => AppContext.BaseDirectory;
-        public static ScriptRepository Main => new ScriptRepository(AppRoot);
+        // Ogni area ha la sua cartella con dentro sql\ e ps1\ (progetto ordinato).
+        public static ScriptRepository Main => new ScriptRepository(Path.Combine(AppRoot, "scripts"));
         public static ScriptRepository Functions => new ScriptRepository(Path.Combine(AppRoot, "functions"));
         public static ScriptRepository TestSuite => new ScriptRepository(Path.Combine(AppRoot, "testsuite"));
 

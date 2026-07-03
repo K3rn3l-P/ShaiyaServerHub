@@ -27,7 +27,7 @@
 
     <!-- Scripts -->
     <s:String x:Key="GbScripts">SCRIPTS (sql\ + ps1\)</s:String>
-    <s:String x:Key="HintScripts">Drop your .sql into "sql\" and .ps1/.bat into "ps1\" next to the exe. Loaded on each launch.</s:String>
+    <s:String x:Key="HintScripts">Drop your .sql into "scripts\sql\" and .ps1/.bat into "scripts\ps1\" next to the exe. Loaded on each launch.</s:String>
     <s:String x:Key="BtnReloadScripts">↻ Reload</s:String>
     <s:String x:Key="BtnOpenFolders">📂 Open folders</s:String>
     <s:String x:Key="BtnRun">▶ Run</s:String>

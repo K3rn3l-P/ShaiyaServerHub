@@ -12,16 +12,20 @@ All'avvio l'app crea due cartelle accanto all'exe:
 
 ```
 ShaiyaServerHub.exe
-  sql\    ← metti qui i tuoi *.sql (vecchi e nuovi)
-  ps1\    ← metti qui *.ps1 / *.bat / *.cmd
+  scripts\sql\      ← *.sql della vista "Script"
+  scripts\ps1\      ← *.ps1 / *.bat della vista "Script"
+  functions\sql\    ← *.sql della vista "Funzioni" (es. PSM_Cmd 00→07)
+  functions\ps1\
+  testsuite\sql\    ← *.sql della "Test Suite" (audit 01→19)
+  testsuite\ps1\    ← check *.ps1 (10→21)
   hub.settings.xml   (config; password SQL cifrata DPAPI LocalMachine)
-  hub.log            (log persistente)
+  hub.log            (log persistente)   ·   hub-tasks.log (task headless)
 ```
 
-Ogni apertura ricarica gli script dalle cartelle → aggiungi nuovi script senza ricompilare.
+Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica gli script → aggiungi nuovi script senza ricompilare.
 
 ## Moduli
-1. **Script** — lista auto-scoperta di `sql\` e `ps1\`. `▶ Esegui` lancia subito con log live.
+1. **Script** — lista auto-scoperta di `scripts\sql\` e `scripts\ps1\`. `▶ Esegui` lancia subito con log live.
 2. **Nuovo task** — seleziona script + cadenza (DAILY/HOURLY/MINUTE/WEEKLY/ONCE) → crea uno
    Scheduled Task in `\ShaiyaServerHub\`. L'azione è `ShaiyaServerHub.exe --run "<script>"`
    (headless, auth/log centralizzati, nessuna password in chiaro nel task, gira come SYSTEM).

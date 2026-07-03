@@ -27,7 +27,7 @@
 
     <!-- Scripts -->
     <s:String x:Key="GbScripts">SCRIPT (sql\ + ps1\)</s:String>
-    <s:String x:Key="HintScripts">Metti i tuoi .sql in "sql\" e .ps1/.bat in "ps1\" accanto all'exe. Vengono caricati ad ogni avvio.</s:String>
+    <s:String x:Key="HintScripts">Metti i tuoi .sql in "scripts\sql\" e .ps1/.bat in "scripts\ps1\" accanto all'exe. Caricati ad ogni avvio.</s:String>
     <s:String x:Key="BtnReloadScripts">↻ Ricarica</s:String>
     <s:String x:Key="BtnOpenFolders">📂 Apri cartelle</s:String>
     <s:String x:Key="BtnRun">▶ Esegui</s:String>
