@@ -58,7 +58,12 @@ namespace ShaiyaServerHub.Core
         // ── PowerShell ───────────────────────────────────────
         public int RunPowerShell(string scriptPath, Action<string> log)
         {
-            string args = $"-NoProfile -ExecutionPolicy Bypass -File {Quote(scriptPath)}";
+            // I check della test suite ritornano un oggetto {Name,Status,Detail}. Con 3 proprietà
+            // PowerShell lo formatterebbe come TABELLA; forziamo Format-List così esce "Status : PASS"
+            // (riga parsabile per il badge). Gli script senza oggetto restano invariati.
+            string p = scriptPath.Replace("'", "''");
+            string args = "-NoProfile -ExecutionPolicy Bypass -Command \"& '" + p +
+                          "' | Format-List | Out-String -Width 4000\"";
             log?.Invoke($"[powershell] {Path.GetFileName(scriptPath)}");
             int rc = ProcessRunner.Run("powershell.exe", args, log, Path.GetDirectoryName(scriptPath));
             log?.Invoke(rc == 0 ? "✓ powershell OK (exit 0)" : $"✗ powershell exit {rc}");

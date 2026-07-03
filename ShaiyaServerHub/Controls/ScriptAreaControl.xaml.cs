@@ -118,13 +118,31 @@ namespace ShaiyaServerHub.Controls
             {
                 Log(line);              // log dell'area (completo)
                 sb.AppendLine(line);    // log del singolo script
+
+                // Esito da: SQL "RESULT: PASS" oppure check PowerShell "Status : PASS"
+                // (i check ps ritornano un oggetto con proprietà Status).
+                string rest = null;
                 int idx = line.IndexOf("RESULT:", StringComparison.OrdinalIgnoreCase);
                 if (idx >= 0)
                 {
-                    string rest = line.Substring(idx + 7).TrimStart();
+                    rest = line.Substring(idx + 7);
+                }
+                else
+                {
+                    string t = line.TrimStart();
+                    if (t.StartsWith("Status", StringComparison.OrdinalIgnoreCase))
+                    {
+                        int c = t.IndexOf(':');
+                        if (c >= 0) rest = t.Substring(c + 1);
+                    }
+                }
+                if (rest != null)
+                {
+                    rest = rest.TrimStart();
                     if (rest.StartsWith("FAIL", StringComparison.OrdinalIgnoreCase)) status = "FAIL";
                     else if (rest.StartsWith("WARN", StringComparison.OrdinalIgnoreCase)) status = "WARN";
                     else if (rest.StartsWith("PASS", StringComparison.OrdinalIgnoreCase)) status = "PASS";
+                    else if (rest.StartsWith("ERROR", StringComparison.OrdinalIgnoreCase)) status = "ERRORE";
                 }
             });
             if (rc != 0) status = "ERRORE";
