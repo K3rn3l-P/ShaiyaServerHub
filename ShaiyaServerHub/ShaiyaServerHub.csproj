@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>ShaiyaServerHub</RootNamespace>
+    <AssemblyName>ShaiyaServerHub</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Company>K3rn3l</Company>
+    <Product>ShaiyaServerHub</Product>
+    <Version>1.0.0</Version>
+    <Nullable>disable</Nullable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <AssemblyTitle>ShaiyaServerHub — by K3rn3l</AssemblyTitle>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Solo framework: nessuna dipendenza NuGet/DLL esterna. -->
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Security" />
+  </ItemGroup>
+
+</Project>

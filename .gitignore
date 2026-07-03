@@ -1,0 +1,28 @@
+# ── Build output ──────────────────────────────────────
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# ── Visual Studio ─────────────────────────────────────
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# ── Runtime (generati accanto all'exe, NON committare) ─
+# hub.settings.xml contiene la password SQL cifrata DPAPI → mai nel repo
+hub.settings.xml
+hub.log
+
+# ── Script utente (popolati a runtime nelle cartelle dell'app) ─
+# Gli script vivono in bin\ e vengono aggiunti dall'utente sul server.
+sql/
+ps1/
+
+# ── Varie ─────────────────────────────────────────────
+*.tmp
+Thumbs.db
+desktop.ini

@@ -1,0 +1,73 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:s="clr-namespace:System;assembly=mscorlib">
+
+    <s:String x:Key="AppSubtitle">Automazione &amp; controllo server</s:String>
+
+    <!-- Nav -->
+    <s:String x:Key="NavScripts">📜  Script</s:String>
+    <s:String x:Key="NavNewTask">＋  Nuovo task</s:String>
+    <s:String x:Key="NavTasks">🕑  Pianificati</s:String>
+    <s:String x:Key="NavServices">🖥  Servizi</s:String>
+    <s:String x:Key="NavLog">📋  Log</s:String>
+
+    <!-- Scripts -->
+    <s:String x:Key="GbScripts">SCRIPT (sql\ + ps1\)</s:String>
+    <s:String x:Key="HintScripts">Metti i tuoi .sql in "sql\" e .ps1/.bat in "ps1\" accanto all'exe. Vengono caricati ad ogni avvio.</s:String>
+    <s:String x:Key="BtnReloadScripts">↻ Ricarica</s:String>
+    <s:String x:Key="BtnOpenFolders">📂 Apri cartelle</s:String>
+    <s:String x:Key="BtnRun">▶ Esegui</s:String>
+    <s:String x:Key="BtnSchedule">🕑 Pianifica</s:String>
+
+    <!-- New task -->
+    <s:String x:Key="GbNewTask">NUOVO TASK PIANIFICATO</s:String>
+    <s:String x:Key="HintNewTask">Il task esegue lo script via Hub in modalità headless (auth/log centralizzati). Sotto account SYSTEM.</s:String>
+    <s:String x:Key="LblSelScript">Script:</s:String>
+    <s:String x:Key="LblTaskName">Nome task:</s:String>
+    <s:String x:Key="LblCadence">Cadenza:</s:String>
+    <s:String x:Key="LblEvery">Ogni (min/ore):</s:String>
+    <s:String x:Key="LblTime">Ora (HH:mm):</s:String>
+    <s:String x:Key="LblDays">Giorni:</s:String>
+    <s:String x:Key="BtnCreateTask">＋ Crea task</s:String>
+
+    <!-- Tasks -->
+    <s:String x:Key="GbTasks">TASK PIANIFICATI (\ShaiyaServerHub\)</s:String>
+    <s:String x:Key="BtnReloadTasks">↻ Ricarica</s:String>
+    <s:String x:Key="BtnEnable">Abilita</s:String>
+    <s:String x:Key="BtnDisable">Disabilita</s:String>
+    <s:String x:Key="BtnRunNow">▶ Ora</s:String>
+    <s:String x:Key="BtnRemove">✕ Rimuovi</s:String>
+
+    <!-- Services -->
+    <s:String x:Key="GbServices">STATO SERVIZI</s:String>
+    <s:String x:Key="BtnRefreshServices">↻ Aggiorna</s:String>
+    <s:String x:Key="BtnStartServices">▶ Avvia servizi</s:String>
+    <s:String x:Key="BtnStart">▶ Avvia</s:String>
+    <s:String x:Key="BtnStop">■ Stop</s:String>
+
+    <!-- Log -->
+    <s:String x:Key="GbLog">LOG</s:String>
+    <s:String x:Key="BtnClearLog">Pulisci</s:String>
+
+    <!-- Settings window -->
+    <s:String x:Key="SetTitle">Impostazioni</s:String>
+    <s:String x:Key="SetGbSql">CONNESSIONE SQL</s:String>
+    <s:String x:Key="LblServer">Server:</s:String>
+    <s:String x:Key="LblAuth">Autenticazione:</s:String>
+    <s:String x:Key="AuthWindows">Windows (-E)</s:String>
+    <s:String x:Key="AuthSql">SQL login</s:String>
+    <s:String x:Key="LblSqlUser">Utente:</s:String>
+    <s:String x:Key="LblSqlPass">Password:</s:String>
+    <s:String x:Key="LblDb">Database:</s:String>
+    <s:String x:Key="BtnTestSql">Test connessione</s:String>
+    <s:String x:Key="SetGbPaths">PERCORSI</s:String>
+    <s:String x:Key="LblBinPath">Cartella Bin server:</s:String>
+    <s:String x:Key="LblStartScript">Script avvio servizi:</s:String>
+    <s:String x:Key="BtnBrowse">Sfoglia</s:String>
+    <s:String x:Key="SetGbChannel">CANALE COMANDI (PSM_Cmd)</s:String>
+    <s:String x:Key="HintChannel">In Windows auth (sysadmin) gli script che usano usp_RunCommand (/mmake, /exp2xenable) vengono negati (-3): sysadmin non è in GmCallerProfile. Registra il login corrente con tier ECONOMY per farli funzionare.</s:String>
+    <s:String x:Key="BtnRegisterCaller">Abilita questo login nel canale comandi (ECONOMY)</s:String>
+    <s:String x:Key="BtnSave">Salva</s:String>
+    <s:String x:Key="BtnCancel">Annulla</s:String>
+
+</ResourceDictionary>
