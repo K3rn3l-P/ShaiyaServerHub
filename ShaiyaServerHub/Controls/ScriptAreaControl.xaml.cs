@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -93,7 +94,7 @@ namespace ShaiyaServerHub.Controls
             await RunAsync(() => _runner.RunScript(item, Log));
         }
 
-        /// <summary>Esegue tutti gli SQL dell'area in ordine di nome (00→NN).</summary>
+        /// <summary>Esegue tutti gli SQL dell'area in ordine di nome (00→NN) + riassunto finale.</summary>
         public async Task RunAllSqlAsync()
         {
             if (_repo == null || _runner == null) return;
@@ -101,15 +102,53 @@ namespace ShaiyaServerHub.Controls
                           .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase).ToList();
             if (sql.Count == 0) { Log("Nessuno script SQL in " + _repo.SqlDir); return; }
             Log($"── Esecuzione {sql.Count} script SQL in ordine ──");
+
+            var results = new List<KeyValuePair<string, string>>();
             await RunAsync(() =>
             {
                 foreach (var s in sql)
                 {
                     Log($"▶ {s.Name}");
-                    _runner.RunScript(s, Log);
+                    string status = null;
+                    int rc = _runner.RunScript(s, line =>
+                    {
+                        Log(line);
+                        int idx = line.IndexOf("RESULT:", StringComparison.OrdinalIgnoreCase);
+                        if (idx >= 0)
+                        {
+                            string rest = line.Substring(idx + 7).TrimStart();
+                            if (rest.StartsWith("FAIL", StringComparison.OrdinalIgnoreCase)) status = "FAIL";
+                            else if (rest.StartsWith("WARN", StringComparison.OrdinalIgnoreCase)) status = "WARN";
+                            else if (rest.StartsWith("PASS", StringComparison.OrdinalIgnoreCase)) status = "PASS";
+                        }
+                    });
+                    if (rc != 0) status = "ERRORE";
+                    else if (status == null) status = "INFO";
+                    results.Add(new KeyValuePair<string, string>(s.Name, status));
                 }
             });
-            Log("── Fine ──");
+
+            // ── Riassunto totale ──
+            int p = 0, w = 0, f = 0, e = 0, i = 0;
+            Log("═════════════ RIASSUNTO TEST SUITE ═════════════");
+            foreach (var r in results)
+            {
+                switch (r.Value)
+                {
+                    case "PASS": p++; break;
+                    case "WARN": w++; break;
+                    case "FAIL": f++; break;
+                    case "ERRORE": e++; break;
+                    default: i++; break;
+                }
+                Log($"  [{r.Value,-6}] {r.Key}");
+            }
+            Log($"TOTALE: PASS={p}  WARN={w}  FAIL={f}  ERRORE={e}  INFO={i}  (su {results.Count})");
+            string verdict = (f > 0 || e > 0) ? "❌ AZIONE RICHIESTA (FAIL/errori)"
+                           : (w > 0) ? "⚠ REVISIONARE I WARNING"
+                           : "✓ TUTTO OK";
+            Log("VERDETTO: " + verdict);
+            Log("════════════════════════════════════════════════");
         }
 
         // ── Log (embedded + buffer per il modale) ────────────
