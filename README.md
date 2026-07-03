@@ -43,12 +43,32 @@ sysadmin → NON è in profilo → DENIED.
 Fix nell'app: ⚙ Impostazioni → **"Abilita questo login nel canale comandi (ECONOMY)"** registra
 il login corrente con tier ECONOMY. In alternativa usa auth **SQL login = ShaiyaTaskAgent**.
 
+## Script di default (DefaultScripts\ + .env)
+Gli script di default del programma vivono, versionati, in
+`ShaiyaServerHub\DefaultScripts\` con la stessa struttura del runtime
+(`scripts\ functions\ testsuite\`, ognuna con `sql\`+`ps1\`).
+
+- **Nel repo** i segreti sono **placeholder** (`<<CAMBIA_PASSWORD_...>>`): niente password su GitHub.
+- Le **password reali** stanno in `ShaiyaServerHub\.env` (in `.gitignore`, mai committato).
+- **Ad ogni build** il target `CopyDefaultScripts` esegue `ShaiyaServerHub\Build-Scripts.ps1` che:
+  1. copia `DefaultScripts\**` nell'output (Release/Debug),
+  2. **inietta** le password dal `.env` nei file copiati (→ script **funzionanti**),
+  3. copia anche il `.env` nell'output (bin è in `.gitignore` → mai su GitHub).
+- Copia manuale: `copy-default-scripts.bat [cartella]` (o `Build-Scripts.ps1 -ProjectDir .. -OutDir ..`).
+
+Per aggiornare i default: modifica i file in `DefaultScripts\` (con placeholder per i segreti) e,
+se cambi una password, aggiorna il `.env`.
+
 ## Build
 ```
 dotnet build ShaiyaServerHub.sln -c Release
 ```
-Output: `ShaiyaServerHub\bin\Release\net48\ShaiyaServerHub.exe`. Copiare l'exe sul server; le
-cartelle `sql\`/`ps1\` si creano al primo avvio, poi popolarle con gli script.
+Output: `ShaiyaServerHub\bin\Release\net48\` con exe + cartelle script di default già popolate
+(password reali iniettate dal `.env`). Copiare l'intera cartella sul server. Le cartelle
+`scripts\`/`functions\`/`testsuite\` si (ri)creano al primo avvio se mancanti.
+
+> ⚠️ Senza `.env` (es. clone pulito) gli script di install PSM_Cmd restano con i placeholder:
+> vanno riempiti a mano prima di eseguirli.
 
 ## TODO (prossimo)
 - Wizard "nuovo server" (esegue in ordine gli step di `A-Best-Installation-GUIDE`).

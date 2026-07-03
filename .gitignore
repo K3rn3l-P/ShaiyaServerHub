@@ -12,15 +12,22 @@ obj/
 *.sln.docstates
 *.rsuser
 
-# ── Runtime (generati accanto all'exe, NON committare) ─
+# ── Runtime (generati accanto all'exe, mai nel repo) ──
 # hub.settings.xml contiene la password SQL cifrata DPAPI → mai nel repo
 hub.settings.xml
 hub.log
+hub-tasks.log
 
-# ── Script utente (popolati a runtime nelle cartelle dell'app) ─
-# Gli script vivono in bin\ e vengono aggiunti dall'utente sul server.
-sql/
-ps1/
+# ── Segreti (password reali) → MAI nel repo ───────────
+.env
+*.env
+
+# ── Cartelle script generate a RUNTIME se l'exe gira dalla dir del progetto ─
+# I DEFAULT versionati stanno in ShaiyaServerHub/DefaultScripts/ (quelli SÌ nel repo);
+# queste invece sono copie di lavoro locali, da ignorare.
+/ShaiyaServerHub/scripts/
+/ShaiyaServerHub/functions/
+/ShaiyaServerHub/testsuite/
 
 # ── Varie ─────────────────────────────────────────────
 *.tmp

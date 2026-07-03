@@ -117,18 +117,28 @@ Contesto completo del canale: vedi memoria `project_psmagent_command_channel` e 
 
 ---
 
-## 7. Build & deploy
+## 7. Build & deploy + Script di default
 
 ```
 dotnet build ShaiyaServerHub.sln -c Release
-# → ShaiyaServerHub\bin\Release\net48\ShaiyaServerHub.exe
+# → ShaiyaServerHub\bin\Release\net48\  (exe + scripts\ functions\ testsuite\ già popolati)
 ```
-**Deploy sul server:** copiare l'INTERA cartella `net48\` (exe + `sql\` + `ps1\`). Le cartelle
-script stanno in `bin\` → **un rebuild/clean le cancella** → ricopiare o tenere copia master fuori da bin.
-Al primo avvio l'app chiede UAC (admin). `hub.settings.xml` e `hub.log` si creano accanto all'exe.
 
-Script già copiati (2026-07-03) da `5.Script-Server AUTO\1.Task Scheduler BACKUP`:
-9 SQL in `sql\`, 11 PS1/BAT in `ps1\`.
+**Script di default (versionati):** `ShaiyaServerHub\DefaultScripts\` con struttura
+`scripts\/functions\/testsuite\` (sql\+ps1\). Sono la sorgente-di-verità dei default.
+- Nel repo i segreti sono **placeholder** (`<<CAMBIA_PASSWORD_...>>`) → niente password su GitHub.
+- Password reali in `ShaiyaServerHub\.env` (in `.gitignore`).
+- Ogni build il target **CopyDefaultScripts** lancia `Build-Scripts.ps1`: copia DefaultScripts →
+  output, **inietta** le password dal `.env` (script funzionanti), copia anche il `.env`.
+  Gotcha: passare `$(TargetDir.TrimEnd('\'))` (il backslash finale rompe il quoting Exec).
+- Copia manuale: `copy-default-scripts.bat` / `Build-Scripts.ps1`.
+
+**Deploy sul server:** copiare l'INTERA cartella `net48\` (exe + cartelle script funzionanti).
+Le cartelle script stanno in `bin\` (rigenerate ad ogni build dai DefaultScripts). Al primo avvio
+l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe.
+
+**Sicurezza:** mai committare `.env`, `hub.settings.xml`, o script con password reali. I default in
+`DefaultScripts\` DEVONO restare con placeholder. Vedi [[feedback_security_production]].
 
 ---
 
