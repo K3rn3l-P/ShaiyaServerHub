@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using ShaiyaServerHub.Core;
 
 namespace ShaiyaServerHub.Controls
@@ -127,6 +128,10 @@ namespace ShaiyaServerHub.Controls
                     results.Add(new KeyValuePair<string, string>(s.Name, status));
                 }
             });
+
+            // Attende che TUTTI gli append a priorità Normal siano stati processati,
+            // così il riassunto compare sempre in fondo (sicurezza extra oltre l'attesa EOF).
+            await Dispatcher.Yield(DispatcherPriority.Background);
 
             // ── Riassunto totale ──
             int p = 0, w = 0, f = 0, e = 0, i = 0;
