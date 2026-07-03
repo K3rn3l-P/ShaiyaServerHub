@@ -23,9 +23,9 @@ namespace ShaiyaServerHub.Core
         }
 
         // ── SQL (sqlcmd) ─────────────────────────────────────
-        // -W rimuove gli spazi di padding dalle colonne, -w allarga la riga, -s separatore.
-        // Evita l'output "spaziato" di sqlcmd sui SELECT con colonne nvarchar larghe.
-        private const string FmtArgs = " -W -w 4000 -s \"|\"";
+        // -W rimuove il padding a spazi, -w allarga la riga, -s separatore.
+        // -I attiva QUOTED_IDENTIFIER (richiesto dai metodi XML .nodes()/.value()).
+        private const string FmtArgs = " -W -w 4000 -s \"|\" -I";
 
         public int RunSql(string scriptPath, Action<string> log)
         {

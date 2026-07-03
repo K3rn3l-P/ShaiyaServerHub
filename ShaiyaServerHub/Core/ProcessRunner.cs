@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace ShaiyaServerHub.Core
 {
@@ -26,13 +27,20 @@ namespace ShaiyaServerHub.Core
             try
             {
                 using (var p = new Process { StartInfo = psi, EnableRaisingEvents = true })
+                using (var outDone = new ManualResetEventSlim(false))
+                using (var errDone = new ManualResetEventSlim(false))
                 {
-                    p.OutputDataReceived += (s, e) => { if (e.Data != null) onLine?.Invoke(e.Data); };
-                    p.ErrorDataReceived += (s, e) => { if (e.Data != null) onLine?.Invoke(e.Data); };
+                    // e.Data == null segnala EOF dello stream: attendiamo entrambi
+                    // così TUTTE le righe sono consegnate PRIMA di ritornare (niente
+                    // output che arriva dopo il riassunto).
+                    p.OutputDataReceived += (s, e) => { if (e.Data == null) outDone.Set(); else onLine?.Invoke(e.Data); };
+                    p.ErrorDataReceived += (s, e) => { if (e.Data == null) errDone.Set(); else onLine?.Invoke(e.Data); };
                     p.Start();
                     p.BeginOutputReadLine();
                     p.BeginErrorReadLine();
                     p.WaitForExit();
+                    outDone.Wait();
+                    errDone.Wait();
                     return p.ExitCode;
                 }
             }
