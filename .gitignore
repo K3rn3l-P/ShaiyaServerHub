@@ -33,3 +33,8 @@ hub-tasks.log
 *.tmp
 Thumbs.db
 desktop.ini
+
+# ── Syncthing (il repo è in una share sync) ───────────
+*.sync-conflict-*
+.stfolder
+.stversions
