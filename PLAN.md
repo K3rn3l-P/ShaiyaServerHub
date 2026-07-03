@@ -75,11 +75,18 @@ ShaiyaServerHub\
 - **Vista Script**: due sezioni separate **DATABASE—SQL** (blu) e **SISTEMA—PS1/BAT** (verde),
   badge colorato per tipo (`ScriptItem.KindBrush`/`KindBadgeBg`: SQL blu, PS1 verde, BAT arancio).
 - **Esegui** → `ScriptRunner`: SQL via `sqlcmd`, PS1 via `powershell -File`, BAT via `cmd /c`. Log live.
-- **Nuovo task** → `TaskSchedulerService.Create`: crea task in cartella `\ShaiyaServerHub\`.
-  Azione = `ShaiyaServerHub.exe --run "<scriptFullPath>"` (**headless**, App intercetta `--run` →
-  `RunHeadless` → ScriptRunner, no finestra, exit code propagato). Vantaggi: auth/log centralizzati,
-  **nessuna password in chiaro nel comando del task**, gira come SYSTEM (`/RU SYSTEM /RL HIGHEST`).
-- **Pianificati**: `schtasks /Query /FO CSV /V` filtrato su `\ShaiyaServerHub\`; Abilita/Disabilita/Rimuovi.
+- **Nuovo task** → form `NewTaskControl` (riusabile): usato sia nella vista Nuovo task sia nel
+  **modale** aperto da "▶ Pianifica" (riga script → `NewTaskWindow` con script preselezionato).
+  Logica creazione condivisa (`TaskSchedulerService.Create`) → zero duplicazione.
+  I task vivono in una **cartella dedicata** del Task Scheduler: `Task Scheduler Library\ShaiyaServerHub`
+  (cartella di primo livello, sorella di `Microsoft`; via `/TN "\ShaiyaServerHub\<nome>"`). Azione =
+  `ShaiyaServerHub.exe --run "<scriptFullPath>"` (**headless**, App intercetta `--run` → `RunHeadless` →
+  ScriptRunner, no finestra, exit code propagato). Girano come **SYSTEM** `/RU SYSTEM /RL HIGHEST`
+  (max privilegio, nessun problema permessi; ma per gli script canale-comandi SYSTEM va in GmCallerProfile).
+- **Pianificati**: `schtasks /Query /FO CSV /V` (TUTTI i task) poi **filtro** su prefisso `\ShaiyaServerHub\`.
+  GOTCHA: NON usare `/TN "\ShaiyaServerHub\"` (interrogare una cartella dà `ERROR: syntax incorrect` →
+  lista vuota anche se i task esistono). Non uscire su rc≠0 (schtasks può darlo per task di sistema rotti).
+  Abilita/Disabilita/Rimuovi via `/Change /ENABLE|/DISABLE` e `/Delete`.
 - **Servizi**: `ServiceController` (servizi Windows VERI, non processi). Start=`Start-Service`,
   Stop=`Stop-Service`, **Avvia servizi**=`StartAll` (ordine sotto). Auto-refresh timer 3s mentre la
   vista è aperta + Aggiorna manuale. Stato: verde ONLINE / rosso offline / grigio non installato.

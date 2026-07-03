@@ -26,14 +26,31 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
 
 ## Moduli
 1. **Script** — lista auto-scoperta di `scripts\sql\` e `scripts\ps1\`. `▶ Esegui` lancia subito con log live.
-2. **Nuovo task** — seleziona script + cadenza (DAILY/HOURLY/MINUTE/WEEKLY/ONCE) → crea uno
-   Scheduled Task in `\ShaiyaServerHub\`. L'azione è `ShaiyaServerHub.exe --run "<script>"`
-   (headless, auth/log centralizzati, nessuna password in chiaro nel task, gira come SYSTEM).
-3. **Task pianificati** — lista dei task `\ShaiyaServerHub\`: Abilita / Disabilita / Rimuovi.
+2. **Nuovo task** — form per pianificare uno script (cadenza DAILY/HOURLY/MINUTE/WEEKLY/ONCE).
+   Dalla riga di uno script, **▶ Pianifica** apre lo **stesso form in un modale** con lo script già
+   preselezionato (stesso codice, `NewTaskControl`). L'azione del task è `ShaiyaServerHub.exe --run "<script>"`
+   (headless, auth/log centralizzati, nessuna password in chiaro nel task).
+3. **Task pianificati** — lista dei task della cartella `\ShaiyaServerHub\`: Abilita / Disabilita / Rimuovi.
 4. **Stato servizi** — presenza processi `ps_game`, `ps_login`, `PSM_Agent`, `sqlservr`, … con
    Stop e Avvia (via script di avvio configurato).
 5. **⚙ Impostazioni** — server SQL, auth (Windows `-E` / SQL login), database, percorsi, e il
    bottone **canale comandi** (vedi sotto).
+
+## Dove finiscono i task pianificati
+I task creati dall'app vivono in una **cartella dedicata** del Task Scheduler:
+`Task Scheduler Library\ShaiyaServerHub`.
+
+- **Come trovarli**: apri *Utilità di pianificazione* (taskschd.msc) → *Libreria Utilità di pianificazione*
+  → cartella **ShaiyaServerHub** (è una cartella di primo livello, sorella di `Microsoft`, **non** dentro).
+- **Perché una cartella**: raggruppa i task dell'app (facili da trovare/rimuovere, non si mischiano ai tuoi);
+  è anche la cartella che la vista "Pianificati" interroga.
+- **Come funzionano**: identici a qualsiasi altro Scheduled Task. Girano come **NT AUTHORITY\SYSTEM**
+  a **livello massimo** (`/RU SYSTEM /RL HIGHEST`) → nessun problema di permessi (anzi, il massimo).
+  L'azione richiama l'exe con `--run "<script>"` (headless). Puoi eseguirli anche a mano dalla GUI
+  (tasto destro → *Esegui*): fanno la stessa cosa dello scatto pianificato.
+- **Nota**: girando come SYSTEM, gli script del **canale comandi** (`/mmake`, `/exp2xenable`) richiedono
+  che il login `NT AUTHORITY\SYSTEM` sia in `GmCallerProfile` (vedi sezione sotto), oppure usare auth
+  `ShaiyaTaskAgent`. Gli altri script (backup, notice, pulizia) non hanno questo requisito.
 
 ## ⚠️ Canale comandi PSM_Cmd (importante)
 Gli script che usano `usp_RunCommand` (Auto-Boss `/mmake`, Auto-EXP `/exp2xenable`) sono negati
