@@ -181,7 +181,34 @@ Script già copiati (2026-07-03) da `5.Script-Server AUTO\1.Task Scheduler BACKU
 
 ---
 
-## 11. Riferimenti
+## 11. Repository GitHub
+
+- Repo: **https://github.com/K3rn3l-P/ShaiyaServerHub** — branch `main`.
+- Git user: `K3rn3l-P`. Push via HTTPS (credential manager). `gh` CLI non su PATH bash → usare `git` diretto.
+
+### Cosa NON committare mai (già in `.gitignore`)
+| Escluso | Perché |
+|---|---|
+| `bin/` `obj/` `[Bb]in/` `[Oo]bj/` | Build output |
+| **`sql/` `ps1/`** | Script utente (vecchi/nuovi) — vivono solo sul server, aggiunti a runtime. **Non pushare** |
+| **`hub.settings.xml`** | Contiene la password SQL cifrata DPAPI → mai nel repo |
+| `hub.log` | Log runtime |
+| `.vs/` `*.user` `*.suo` | Roba Visual Studio locale |
+
+> **Regola:** gli script `.sql`/`.ps1` NON vanno nel repo. Sono doppiamente ignorati (pattern `sql/`+`ps1/`
+> e stanno dentro `bin/`). Verifica prima di ogni push: `git ls-files | grep -E '\.sql$|\.ps1$'` deve essere vuoto.
+
+### Workflow push
+```
+git add -A
+git commit -m "..."
+git push               # main tracciato su origin/main
+```
+Verifica pulizia staged: `git status --short` non deve mostrare file sotto `sql/`, `ps1/`, `bin/`, né `hub.settings.xml`.
+
+---
+
+## 12. Riferimenti
 
 - Tema/pattern UI sorgente: `C:\Users\lol\source\repo\shaiya-legacy-updater\PatchMaker`.
 - Script AUTO + canale comandi: `\\10.10.19.2\...\A-Best-Installation-GUIDE\5.Script-Server AUTO`
