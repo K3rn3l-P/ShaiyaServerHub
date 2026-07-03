@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -49,9 +50,24 @@ namespace ShaiyaServerHub.Controls
             bool useInterval = c == "MINUTE" || c == "HOURLY";
             bool useTime = c == "DAILY" || c == "WEEKLY" || c == "ONCE";
             bool useDays = c == "WEEKLY";
+            // LOGON / BOOT / SHUTDOWN: nessun parametro di orario.
             TbInterval.IsEnabled = useInterval;
             TbTime.IsEnabled = useTime;
-            TbDays.IsEnabled = useDays;
+            PanelDays.Visibility = useDays ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // Giorni selezionati → codici schtasks "MON,WED,FRI".
+        private string BuildDaysCsv()
+        {
+            var days = new List<string>();
+            if (ChkMon.IsChecked == true) days.Add("MON");
+            if (ChkTue.IsChecked == true) days.Add("TUE");
+            if (ChkWed.IsChecked == true) days.Add("WED");
+            if (ChkThu.IsChecked == true) days.Add("THU");
+            if (ChkFri.IsChecked == true) days.Add("FRI");
+            if (ChkSat.IsChecked == true) days.Add("SAT");
+            if (ChkSun.IsChecked == true) days.Add("SUN");
+            return string.Join(",", days);
         }
 
         private void Log(string msg) => LogSink?.Invoke(msg);
@@ -68,12 +84,17 @@ namespace ShaiyaServerHub.Controls
             int interval;
             if (!int.TryParse(TbInterval.Text.Trim(), out interval) || interval < 1) interval = 1;
 
+            string type = SelectedCadence();
+            string daysCsv = BuildDaysCsv();
+            if (type == "WEEKLY" && string.IsNullOrEmpty(daysCsv))
+            { Log(L.PickAtLeastOneDay); return; }
+
             var spec = new ScheduleSpec
             {
-                Type = SelectedCadence(),
+                Type = type,
                 Interval = interval,
                 Time = TbTime.Text.Trim(),
-                Days = TbDays.Text.Trim()
+                Days = daysCsv
             };
 
             BtnCreate.IsEnabled = false;

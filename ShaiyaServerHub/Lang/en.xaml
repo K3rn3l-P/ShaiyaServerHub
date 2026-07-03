@@ -42,6 +42,13 @@
     <s:String x:Key="LblEvery">Every (min/hrs):</s:String>
     <s:String x:Key="LblTime">Time (HH:mm):</s:String>
     <s:String x:Key="LblDays">Days:</s:String>
+    <s:String x:Key="DayMon">Mon</s:String>
+    <s:String x:Key="DayTue">Tue</s:String>
+    <s:String x:Key="DayWed">Wed</s:String>
+    <s:String x:Key="DayThu">Thu</s:String>
+    <s:String x:Key="DayFri">Fri</s:String>
+    <s:String x:Key="DaySat">Sat</s:String>
+    <s:String x:Key="DaySun">Sun</s:String>
     <s:String x:Key="BtnCreateTask">＋ Create task</s:String>
 
     <!-- Tasks -->
@@ -50,6 +57,7 @@
     <s:String x:Key="BtnEnable">Enable</s:String>
     <s:String x:Key="BtnDisable">Disable</s:String>
     <s:String x:Key="BtnRunNow">▶ Now</s:String>
+    <s:String x:Key="TipRunNowTask">Run this task now (test)</s:String>
     <s:String x:Key="BtnRemove">✕ Remove</s:String>
 
     <!-- Services -->

@@ -42,6 +42,13 @@
     <s:String x:Key="LblEvery">Ogni (min/ore):</s:String>
     <s:String x:Key="LblTime">Ora (HH:mm):</s:String>
     <s:String x:Key="LblDays">Giorni:</s:String>
+    <s:String x:Key="DayMon">Lun</s:String>
+    <s:String x:Key="DayTue">Mar</s:String>
+    <s:String x:Key="DayWed">Mer</s:String>
+    <s:String x:Key="DayThu">Gio</s:String>
+    <s:String x:Key="DayFri">Ven</s:String>
+    <s:String x:Key="DaySat">Sab</s:String>
+    <s:String x:Key="DaySun">Dom</s:String>
     <s:String x:Key="BtnCreateTask">＋ Crea task</s:String>
 
     <!-- Tasks -->
@@ -50,6 +57,7 @@
     <s:String x:Key="BtnEnable">Abilita</s:String>
     <s:String x:Key="BtnDisable">Disabilita</s:String>
     <s:String x:Key="BtnRunNow">▶ Ora</s:String>
+    <s:String x:Key="TipRunNowTask">Avvia subito questo task (test)</s:String>
     <s:String x:Key="BtnRemove">✕ Rimuovi</s:String>
 
     <!-- Services -->

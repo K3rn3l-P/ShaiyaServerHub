@@ -29,8 +29,13 @@ namespace ShaiyaServerHub.Core
             {
                 case "MINUTE": sc = $"/SC MINUTE /MO {Math.Max(1, spec.Interval)}"; break;
                 case "HOURLY": sc = $"/SC HOURLY /MO {Math.Max(1, spec.Interval)}"; break;
-                case "WEEKLY": sc = $"/SC WEEKLY /D {spec.Days} /ST {spec.Time}"; break;
+                case "WEEKLY": sc = $"/SC WEEKLY /D {(string.IsNullOrWhiteSpace(spec.Days) ? "MON" : spec.Days)} /ST {spec.Time}"; break;
                 case "ONCE": sc = $"/SC ONCE /ST {spec.Time}"; break;
+                case "LOGON": sc = "/SC ONLOGON"; break;               // al login utente
+                case "BOOT": sc = "/SC ONSTART"; break;                // all'avvio del sistema
+                case "SHUTDOWN":                                        // allo spegnimento/riavvio (evento 1074)
+                    sc = "/SC ONEVENT /EC System /MO \"*[System[Provider[@Name='User32'] and (EventID=1074)]]\"";
+                    break;
                 default: sc = $"/SC DAILY /ST {spec.Time}"; break;
             }
 

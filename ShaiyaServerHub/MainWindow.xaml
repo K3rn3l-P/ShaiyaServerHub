@@ -201,7 +201,11 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Button Grid.Row="0" HorizontalAlignment="Left" Content="{DynamicResource BtnReloadTasks}" Click="BtnReloadTasks_Click"/>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Button Content="{DynamicResource BtnReloadTasks}" Click="BtnReloadTasks_Click"/>
+                                <TextBlock x:Name="TbTaskStatus" VerticalAlignment="Center" Margin="12,0"
+                                           FontSize="11" FontWeight="SemiBold"/>
+                            </StackPanel>
                             <Border Grid.Row="1" Margin="0,6,0,0" CornerRadius="4" Background="#080810"
                                     BorderBrush="#18E8C881" BorderThickness="1">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -216,6 +220,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="#CCE0E0E0"
                                                                FontFamily="Consolas" FontSize="10" VerticalAlignment="Center"
@@ -224,11 +229,14 @@
                                                                FontSize="10" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="2" Text="{Binding Schedule}" Foreground="#66E0E0E0"
                                                                FontSize="10" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                    <Button Grid.Column="3" Style="{StaticResource MiniButton}"
-                                                            Content="{DynamicResource BtnEnable}" Click="BtnEnableTask_Click"/>
+                                                    <Button Grid.Column="3" Style="{StaticResource AccentButton}" Padding="8,3" FontSize="10"
+                                                            Content="{DynamicResource BtnRunNow}" Click="BtnRunNowTask_Click"
+                                                            ToolTip="{DynamicResource TipRunNowTask}"/>
                                                     <Button Grid.Column="4" Style="{StaticResource MiniButton}"
+                                                            Content="{DynamicResource BtnEnable}" Click="BtnEnableTask_Click"/>
+                                                    <Button Grid.Column="5" Style="{StaticResource MiniButton}"
                                                             Content="{DynamicResource BtnDisable}" Click="BtnDisableTask_Click"/>
-                                                    <Button Grid.Column="5" Style="{StaticResource DangerButton}"
+                                                    <Button Grid.Column="6" Style="{StaticResource DangerButton}"
                                                             Content="{DynamicResource BtnRemove}" Click="BtnRemoveTask_Click"/>
                                                 </Grid>
                                             </DataTemplate>

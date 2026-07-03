@@ -10,7 +10,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="170"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="150"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" Content="{DynamicResource LblSelScript}"/>
             <TextBox Grid.Column="1" x:Name="TbSelScript" IsReadOnly="True" FontFamily="Consolas" FontSize="10"/>
@@ -23,16 +23,18 @@
                 <ComboBoxItem Content="MINUTE"/>
                 <ComboBoxItem Content="WEEKLY"/>
                 <ComboBoxItem Content="ONCE"/>
+                <ComboBoxItem Content="LOGON"/>
+                <ComboBoxItem Content="BOOT"/>
+                <ComboBoxItem Content="SHUTDOWN"/>
             </ComboBox>
         </Grid>
+
         <Grid Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="70"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="80"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="90"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
@@ -40,11 +42,22 @@
             <TextBox Grid.Column="1" x:Name="TbInterval" Text="1"/>
             <Label Grid.Column="2" Content="{DynamicResource LblTime}"/>
             <TextBox Grid.Column="3" x:Name="TbTime" Text="04:00"/>
-            <Label Grid.Column="4" Content="{DynamicResource LblDays}"/>
-            <TextBox Grid.Column="5" x:Name="TbDays" Text="MON"/>
-            <Button Grid.Column="7" x:Name="BtnCreate" Style="{StaticResource AccentButton}"
+            <Button Grid.Column="5" x:Name="BtnCreate" Style="{StaticResource AccentButton}"
                     Content="{DynamicResource BtnCreateTask}" Click="BtnCreateTask_Click"/>
         </Grid>
+
+        <!-- Giorni (WEEKLY): multi-selezione, etichette localizzate -->
+        <StackPanel x:Name="PanelDays" Orientation="Horizontal" Margin="0,6,0,0" Visibility="Collapsed">
+            <Label Content="{DynamicResource LblDays}"/>
+            <CheckBox x:Name="ChkMon" Content="{DynamicResource DayMon}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkTue" Content="{DynamicResource DayTue}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkWed" Content="{DynamicResource DayWed}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkThu" Content="{DynamicResource DayThu}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkFri" Content="{DynamicResource DayFri}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkSat" Content="{DynamicResource DaySat}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkSun" Content="{DynamicResource DaySun}" Margin="0,0,12,0"/>
+        </StackPanel>
+
         <TextBlock Text="{DynamicResource HintNewTask}" Foreground="#35E8C881"
                    FontSize="10" Margin="4,8,4,0" TextWrapping="Wrap"/>
     </StackPanel>

@@ -36,6 +36,12 @@ namespace ShaiyaServerHub
         public static string ScriptsFound(int n) => S($"{n} script trovati in scripts\\sql e scripts\\ps1.", $"{n} scripts found in scripts\\sql and scripts\\ps1.");
         public static string NoScriptSelected => S("Seleziona prima uno script (▶ Pianifica).", "Select a script first (▶ Schedule).");
         public static string TaskCreated => S("Task creato. Ricarico lista task.", "Task created. Reloading task list.");
+        public static string TaskEnabled(string n) => S($"✓ Abilitato: {n}", $"✓ Enabled: {n}");
+        public static string TaskDisabled(string n) => S($"✓ Disabilitato: {n}", $"✓ Disabled: {n}");
+        public static string TaskRun(string n) => S($"▶ Avviato (test): {n}", $"▶ Started (test): {n}");
+        public static string TaskRemoved(string n) => S($"✓ Rimosso: {n}", $"✓ Removed: {n}");
+        public static string TaskActionErr(string n, int rc) => S($"✗ Operazione fallita: {n} (exit {rc})", $"✗ Action failed: {n} (exit {rc})");
+        public static string PickAtLeastOneDay => S("Seleziona almeno un giorno per WEEKLY.", "Select at least one day for WEEKLY.");
         public static string ConfirmRemoveTask(string n) => S($"Rimuovere il task '{n}'?", $"Remove task '{n}'?");
         public static string ConfirmStop(string n) => S($"Terminare il processo '{n}'?", $"Kill process '{n}'?");
         public static string RunningScript(string n) => S($"── Esecuzione: {n} ──", $"── Running: {n} ──");

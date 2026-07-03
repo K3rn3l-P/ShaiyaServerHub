@@ -201,15 +201,27 @@ namespace ShaiyaServerHub
         {
             var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
             if (t == null) return;
-            await RunAsync(() => TaskSchedulerService.SetEnabled(t.FullName, true, Log));
+            int rc = -1;
+            await RunAsync(() => rc = TaskSchedulerService.SetEnabled(t.FullName, true, Log));
+            SetTaskStatus(rc == 0 ? L.TaskEnabled(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
             ReloadTasks();
         }
         private async void BtnDisableTask_Click(object sender, RoutedEventArgs e)
         {
             var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
             if (t == null) return;
-            await RunAsync(() => TaskSchedulerService.SetEnabled(t.FullName, false, Log));
+            int rc = -1;
+            await RunAsync(() => rc = TaskSchedulerService.SetEnabled(t.FullName, false, Log));
+            SetTaskStatus(rc == 0 ? L.TaskDisabled(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
             ReloadTasks();
+        }
+        private async void BtnRunNowTask_Click(object sender, RoutedEventArgs e)
+        {
+            var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
+            if (t == null) return;
+            int rc = -1;
+            await RunAsync(() => rc = TaskSchedulerService.RunNow(t.FullName, Log));
+            SetTaskStatus(rc == 0 ? L.TaskRun(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
         }
         private async void BtnRemoveTask_Click(object sender, RoutedEventArgs e)
         {
@@ -217,8 +229,18 @@ namespace ShaiyaServerHub
             if (t == null) return;
             if (MessageBox.Show(L.ConfirmRemoveTask(t.Name), "ShaiyaServerHub",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            await RunAsync(() => TaskSchedulerService.Delete(t.FullName, Log));
+            int rc = -1;
+            await RunAsync(() => rc = TaskSchedulerService.Delete(t.FullName, Log));
+            SetTaskStatus(rc == 0 ? L.TaskRemoved(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
             ReloadTasks();
+        }
+
+        // Messaggio esito operazioni task, mostrato in cima a Pianificati (verde/rosso).
+        private void SetTaskStatus(string text, bool ok)
+        {
+            TbTaskStatus.Text = text;
+            TbTaskStatus.Foreground = new SolidColorBrush(ok
+                ? Color.FromRgb(0x4D, 0xC8, 0x70) : Color.FromRgb(0xF4, 0x6A, 0x6A));
         }
 
         // ── Services ──────────────────────────────────────────
