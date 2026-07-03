@@ -203,6 +203,8 @@
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal">
                                 <Button Content="{DynamicResource BtnReloadTasks}" Click="BtnReloadTasks_Click"/>
+                                <Button Content="{DynamicResource BtnOpenTaskSched}" Click="BtnOpenTaskSched_Click"
+                                        ToolTip="{DynamicResource TipOpenTaskSched}"/>
                                 <TextBlock x:Name="TbTaskStatus" VerticalAlignment="Center" Margin="12,0"
                                            FontSize="11" FontWeight="SemiBold"/>
                             </StackPanel>
@@ -221,6 +223,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="#CCE0E0E0"
                                                                FontFamily="Consolas" FontSize="10" VerticalAlignment="Center"
@@ -233,10 +236,13 @@
                                                             Content="{DynamicResource BtnRunNow}" Click="BtnRunNowTask_Click"
                                                             ToolTip="{DynamicResource TipRunNowTask}"/>
                                                     <Button Grid.Column="4" Style="{StaticResource MiniButton}"
-                                                            Content="{DynamicResource BtnEnable}" Click="BtnEnableTask_Click"/>
+                                                            Content="{DynamicResource BtnEditTask}" Click="BtnEditTask_Click"
+                                                            ToolTip="{DynamicResource TipEditTask}"/>
                                                     <Button Grid.Column="5" Style="{StaticResource MiniButton}"
+                                                            Content="{DynamicResource BtnEnable}" Click="BtnEnableTask_Click"/>
+                                                    <Button Grid.Column="6" Style="{StaticResource MiniButton}"
                                                             Content="{DynamicResource BtnDisable}" Click="BtnDisableTask_Click"/>
-                                                    <Button Grid.Column="6" Style="{StaticResource DangerButton}"
+                                                    <Button Grid.Column="7" Style="{StaticResource DangerButton}"
                                                             Content="{DynamicResource BtnRemove}" Click="BtnRemoveTask_Click"/>
                                                 </Grid>
                                             </DataTemplate>

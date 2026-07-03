@@ -29,11 +29,13 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
 2. **Nuovo task** — form per pianificare uno script. Trigger supportati:
    DAILY / HOURLY / MINUTE / **WEEKLY (multi-giorno)** / ONCE / **LOGON** (al login) /
    **BOOT** (all'avvio) / **SHUTDOWN** (allo spegnimento, evento 1074). Per WEEKLY selezioni più
-   giorni con checkbox localizzate (Lun…Dom). Dalla riga di uno script, **▶ Pianifica** apre lo
-   **stesso form in un modale** (stesso codice, `NewTaskControl`). Azione del task:
-   `ShaiyaServerHub.exe --run "<script>"` (headless, auth/log centralizzati).
-3. **Task pianificati** — lista dei task della cartella `\ShaiyaServerHub\`: **▶ Ora** (avvia subito
-   per test), Abilita / Disabilita / Rimuovi. Ogni operazione mostra l'esito (verde/rosso) in cima al pannello.
+   giorni con checkbox localizzate (Lun…Dom). Sezione **Azione** (come Task Scheduler): **Programma/script**,
+   **Argomenti**, **Avvia in** (prefillati con `ShaiyaServerHub.exe --run "<script>"` ma modificabili).
+   Dalla riga di uno script, **▶ Pianifica** apre lo stesso form in un **modale** (`NewTaskControl` condiviso).
+3. **Task pianificati** — lista dei task di `\ShaiyaServerHub\`: **▶ Ora** (avvia subito, test),
+   **✎ Modifica** (modale precompilato dai valori attuali del task, letti da `schtasks /Query /XML`),
+   Abilita / Disabilita / Rimuovi, e **🪟 Task Scheduler** (apre la GUI di Windows per modifiche avanzate).
+   Ogni operazione mostra l'esito (verde/rosso) in cima al pannello.
 4. **Stato servizi** — presenza processi `ps_game`, `ps_login`, `PSM_Agent`, `sqlservr`, … con
    Stop e Avvia (via script di avvio configurato).
 5. **⚙ Impostazioni** — server SQL, auth (Windows `-E` / SQL login), database, percorsi, e il

@@ -59,6 +59,13 @@
     <s:String x:Key="BtnRunNow">▶ Ora</s:String>
     <s:String x:Key="TipRunNowTask">Avvia subito questo task (test)</s:String>
     <s:String x:Key="BtnRemove">✕ Rimuovi</s:String>
+    <s:String x:Key="BtnEditTask">✎ Modifica</s:String>
+    <s:String x:Key="TipEditTask">Modifica questo task</s:String>
+    <s:String x:Key="BtnOpenTaskSched">🪟 Task Scheduler</s:String>
+    <s:String x:Key="TipOpenTaskSched">Apri Utilità di pianificazione di Windows</s:String>
+    <s:String x:Key="LblProgram">Programma/script:</s:String>
+    <s:String x:Key="LblArguments">Argomenti:</s:String>
+    <s:String x:Key="LblStartIn">Avvia in:</s:String>
 
     <!-- Services -->
     <s:String x:Key="GbServices">STATO SERVIZI</s:String>

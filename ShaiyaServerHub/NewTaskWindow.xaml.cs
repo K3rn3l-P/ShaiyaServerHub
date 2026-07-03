@@ -15,6 +15,17 @@ namespace ShaiyaServerHub
             Form.Created += () => { DialogResult = true; Close(); };
         }
 
+        /// <summary>Modale in modalità EDIT: precompila dai valori del task esistente.</summary>
+        public NewTaskWindow(ShaiyaServerHub.Core.TaskDefinition def, Action<string> logSink)
+        {
+            InitializeComponent();
+            TbHeader.Text = L.EditTaskTitle;
+            Title = "ShaiyaServerHub — " + L.EditTaskTitle;
+            Form.LogSink = logSink;
+            Form.LoadForEdit(def);
+            Form.Created += () => { DialogResult = true; Close(); };
+        }
+
         private void BtnCancel_Click(object sender, RoutedEventArgs e) { DialogResult = false; Close(); }
         private void BtnClose_Click(object sender, MouseButtonEventArgs e) { DialogResult = false; Close(); }
         private void DragWindow(object sender, MouseButtonEventArgs e) { try { DragMove(); } catch { } }

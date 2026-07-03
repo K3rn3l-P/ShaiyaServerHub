@@ -16,13 +16,19 @@ namespace ShaiyaServerHub.Core
     {
         public const string Folder = "ShaiyaServerHub";
 
-        private static string ExePath => Process.GetCurrentProcess().MainModule.FileName;
+        public static string ExePath => Process.GetCurrentProcess().MainModule.FileName;
+        public static string ExeDir => Path.GetDirectoryName(ExePath);
 
-        // ── Create ───────────────────────────────────────────
-        public static int Create(string taskName, string scriptFullPath, ScheduleSpec spec, Action<string> log)
+        // ── Create (azione custom: program + arguments + start-in) ──
+        public static int Create(string taskName, ScheduleSpec spec,
+                                 string program, string arguments, string workingDir, Action<string> log)
         {
-            string tn = $"\\{Folder}\\{Sanitize(taskName)}";
-            string tr = $"\\\"{ExePath}\\\" --run \\\"{scriptFullPath}\\\"";
+            string shortName = Sanitize(taskName);
+            string tn = $"\\{Folder}\\{shortName}";
+
+            // /TR = "programma" argomenti (quote per gestire path con spazi).
+            string tr = $"\\\"{program}\\\"";
+            if (!string.IsNullOrWhiteSpace(arguments)) tr += " " + arguments;
 
             string sc;
             switch ((spec.Type ?? "DAILY").ToUpperInvariant())
@@ -40,10 +46,32 @@ namespace ShaiyaServerHub.Core
             }
 
             string args = $"/Create /TN \"{tn}\" /TR \"{tr}\" {sc} /RU SYSTEM /RL HIGHEST /F";
-            log?.Invoke($"[schtasks] creo task '{tn}' → {scriptFullPath}");
+            log?.Invoke($"[schtasks] creo task '{tn}'");
             int rc = ProcessRunner.Run("schtasks.exe", args, log);
             log?.Invoke(rc == 0 ? "✓ task creato" : $"✗ schtasks exit {rc}");
+
+            // "Start in" (WorkingDirectory) non è impostabile via schtasks → PowerShell.
+            if (rc == 0 && !string.IsNullOrWhiteSpace(workingDir))
+                SetWorkingDir(shortName, workingDir, log);
             return rc;
+        }
+
+        private static void SetWorkingDir(string shortName, string dir, Action<string> log)
+        {
+            string ps = $"$t = Get-ScheduledTask -TaskPath '\\{Folder}\\' -TaskName '{shortName.Replace("'", "''")}'; " +
+                        $"$t.Actions[0].WorkingDirectory = '{dir.Replace("'", "''")}'; " +
+                        "$t | Set-ScheduledTask | Out-Null";
+            int rc = ProcessRunner.Run("powershell.exe",
+                "-NoProfile -ExecutionPolicy Bypass -Command \"" + ps + "\"", log);
+            log?.Invoke(rc == 0 ? "✓ Start-in impostata" : "⚠ Start-in non impostata (exit " + rc + ")");
+        }
+
+        /// <summary>XML completo del task (per il modale Edit).</summary>
+        public static string GetXml(string fullName)
+        {
+            string xml;
+            ProcessRunner.RunCapture("schtasks.exe", $"/Query /TN \"{fullName}\" /XML", out xml);
+            return xml;
         }
 
         // ── Enable / Disable / Delete ────────────────────────

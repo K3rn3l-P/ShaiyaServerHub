@@ -58,6 +58,29 @@
             <CheckBox x:Name="ChkSun" Content="{DynamicResource DaySun}" Margin="0,0,12,0"/>
         </StackPanel>
 
+        <!-- Azione (come Task Scheduler: Programma/script, Argomenti, Avvia in) -->
+        <Border Margin="0,8,0,0" CornerRadius="4" Background="#0A0A10" BorderBrush="#18E8C881" BorderThickness="1" Padding="8,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Content="{DynamicResource LblProgram}"/>
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="TbProgram" FontFamily="Consolas" FontSize="10"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="{DynamicResource BtnBrowse}" Click="BtnBrowseProgram_Click"/>
+                <Label Grid.Row="1" Grid.Column="0" Content="{DynamicResource LblArguments}"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TbArguments" FontFamily="Consolas" FontSize="10"/>
+                <Label Grid.Row="2" Grid.Column="0" Content="{DynamicResource LblStartIn}"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TbStartIn" FontFamily="Consolas" FontSize="10"/>
+            </Grid>
+        </Border>
+
         <TextBlock Text="{DynamicResource HintNewTask}" Foreground="#35E8C881"
                    FontSize="10" Margin="4,8,4,0" TextWrapping="Wrap"/>
     </StackPanel>

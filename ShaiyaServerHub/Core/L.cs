@@ -42,6 +42,10 @@ namespace ShaiyaServerHub
         public static string TaskRemoved(string n) => S($"✓ Rimosso: {n}", $"✓ Removed: {n}");
         public static string TaskActionErr(string n, int rc) => S($"✗ Operazione fallita: {n} (exit {rc})", $"✗ Action failed: {n} (exit {rc})");
         public static string PickAtLeastOneDay => S("Seleziona almeno un giorno per WEEKLY.", "Select at least one day for WEEKLY.");
+        public static string NeedTaskName => S("Inserisci il nome del task.", "Enter the task name.");
+        public static string NeedProgram => S("Inserisci il programma/script (azione).", "Enter the program/script (action).");
+        public static string EditTaskTitle => S("Modifica task", "Edit task");
+        public static string TaskUpdated(string n) => S($"✓ Task aggiornato: {n}", $"✓ Task updated: {n}");
         public static string ConfirmRemoveTask(string n) => S($"Rimuovere il task '{n}'?", $"Remove task '{n}'?");
         public static string ConfirmStop(string n) => S($"Terminare il processo '{n}'?", $"Kill process '{n}'?");
         public static string RunningScript(string n) => S($"── Esecuzione: {n} ──", $"── Running: {n} ──");

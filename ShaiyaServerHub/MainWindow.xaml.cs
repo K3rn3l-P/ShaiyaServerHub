@@ -235,6 +235,28 @@ namespace ShaiyaServerHub
             ReloadTasks();
         }
 
+        private async void BtnEditTask_Click(object sender, RoutedEventArgs e)
+        {
+            var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
+            if (t == null) return;
+            string xml = null;
+            await RunAsync(() => xml = TaskSchedulerService.GetXml(t.FullName));
+            if (string.IsNullOrWhiteSpace(xml)) { SetTaskStatus(L.TaskActionErr(t.Name, -1), false); return; }
+            var def = TaskXml.Parse(xml, t.Name);
+            var win = new NewTaskWindow(def, Log) { Owner = this };
+            if (win.ShowDialog() == true)
+            {
+                SetTaskStatus(L.TaskUpdated(t.Name), true);
+                ReloadTasks();
+            }
+        }
+
+        private void BtnOpenTaskSched_Click(object sender, RoutedEventArgs e)
+        {
+            try { Process.Start("taskschd.msc"); }
+            catch (Exception ex) { Log(L.Err(ex.Message)); }
+        }
+
         // Messaggio esito operazioni task, mostrato in cima a Pianificati (verde/rosso).
         private void SetTaskStatus(string text, bool ok)
         {

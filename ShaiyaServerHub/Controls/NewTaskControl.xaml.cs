@@ -26,13 +26,60 @@ namespace ShaiyaServerHub.Controls
             UpdateCadenceInputs();
         }
 
-        /// <summary>Preseleziona lo script da pianificare + nome di default.</summary>
+        /// <summary>Nuovo task da uno script: nome + azione di default (exe --run "script").</summary>
         public void SetScript(string fullPath)
         {
             TbSelScript.Text = fullPath;
             TbSelScript.ToolTip = fullPath;
             if (string.IsNullOrWhiteSpace(TbTaskName.Text))
                 TbTaskName.Text = Path.GetFileNameWithoutExtension(fullPath);
+            // Azione di default: il Hub esegue lo script in headless.
+            TbProgram.Text = TaskSchedulerService.ExePath;
+            TbArguments.Text = $"--run \"{fullPath}\"";
+            TbStartIn.Text = TaskSchedulerService.ExeDir;
+        }
+
+        /// <summary>Modale Edit: precompila tutto dai valori del task esistente.</summary>
+        public void LoadForEdit(TaskDefinition def)
+        {
+            TbTaskName.Text = def.Name;
+            TbTaskName.IsReadOnly = true;              // il nome identifica il task → non modificabile in edit
+            TbSelScript.Text = "(modifica task esistente)";
+            TbProgram.Text = def.Program;
+            TbArguments.Text = def.Arguments;
+            TbStartIn.Text = def.WorkingDir;
+
+            SelectCadence(def.Schedule.Type);
+            TbInterval.Text = Math.Max(1, def.Schedule.Interval).ToString();
+            if (!string.IsNullOrWhiteSpace(def.Schedule.Time)) TbTime.Text = def.Schedule.Time;
+            SetDaysFromCsv(def.Schedule.Days);
+            UpdateCadenceInputs();
+        }
+
+        private void SelectCadence(string type)
+        {
+            type = (type ?? "DAILY").ToUpperInvariant();
+            foreach (var obj in CbCadence.Items)
+                if (obj is ComboBoxItem it && (it.Content as string) == type)
+                { CbCadence.SelectedItem = it; return; }
+        }
+
+        private void SetDaysFromCsv(string csv)
+        {
+            var set = new List<string>((csv ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+            ChkMon.IsChecked = set.Contains("MON");
+            ChkTue.IsChecked = set.Contains("TUE");
+            ChkWed.IsChecked = set.Contains("WED");
+            ChkThu.IsChecked = set.Contains("THU");
+            ChkFri.IsChecked = set.Contains("FRI");
+            ChkSat.IsChecked = set.Contains("SAT");
+            ChkSun.IsChecked = set.Contains("SUN");
+        }
+
+        private void BtnBrowseProgram_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Eseguibili/script|*.exe;*.bat;*.cmd;*.ps1|Tutti|*.*" };
+            if (dlg.ShowDialog() == true) TbProgram.Text = dlg.FileName;
         }
 
         private string SelectedCadence()
@@ -74,12 +121,10 @@ namespace ShaiyaServerHub.Controls
 
         private async void BtnCreateTask_Click(object sender, RoutedEventArgs e)
         {
-            string script = TbSelScript.Text.Trim();
-            if (string.IsNullOrWhiteSpace(script) || !File.Exists(script))
-            { Log(L.NoScriptSelected); return; }
-
             string name = TbTaskName.Text.Trim();
-            if (string.IsNullOrWhiteSpace(name)) name = Path.GetFileNameWithoutExtension(script);
+            string program = TbProgram.Text.Trim();
+            if (string.IsNullOrWhiteSpace(name)) { Log(L.NeedTaskName); return; }
+            if (string.IsNullOrWhiteSpace(program)) { Log(L.NeedProgram); return; }
 
             int interval;
             if (!int.TryParse(TbInterval.Text.Trim(), out interval) || interval < 1) interval = 1;
@@ -89,19 +134,15 @@ namespace ShaiyaServerHub.Controls
             if (type == "WEEKLY" && string.IsNullOrEmpty(daysCsv))
             { Log(L.PickAtLeastOneDay); return; }
 
-            var spec = new ScheduleSpec
-            {
-                Type = type,
-                Interval = interval,
-                Time = TbTime.Text.Trim(),
-                Days = daysCsv
-            };
+            var spec = new ScheduleSpec { Type = type, Interval = interval, Time = TbTime.Text.Trim(), Days = daysCsv };
+            string arguments = TbArguments.Text;         // può essere vuoto
+            string workingDir = TbStartIn.Text.Trim();
 
             BtnCreate.IsEnabled = false;
             try
             {
                 int rc = -1;
-                await Task.Run(() => { rc = TaskSchedulerService.Create(name, script, spec, Log); });
+                await Task.Run(() => { rc = TaskSchedulerService.Create(name, spec, program, arguments, workingDir, Log); });
                 if (rc == 0)
                 {
                     Log(L.TaskCreated);

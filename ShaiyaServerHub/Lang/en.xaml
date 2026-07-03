@@ -59,6 +59,13 @@
     <s:String x:Key="BtnRunNow">▶ Now</s:String>
     <s:String x:Key="TipRunNowTask">Run this task now (test)</s:String>
     <s:String x:Key="BtnRemove">✕ Remove</s:String>
+    <s:String x:Key="BtnEditTask">✎ Edit</s:String>
+    <s:String x:Key="TipEditTask">Edit this task</s:String>
+    <s:String x:Key="BtnOpenTaskSched">🪟 Task Scheduler</s:String>
+    <s:String x:Key="TipOpenTaskSched">Open Windows Task Scheduler</s:String>
+    <s:String x:Key="LblProgram">Program/script:</s:String>
+    <s:String x:Key="LblArguments">Arguments:</s:String>
+    <s:String x:Key="LblStartIn">Start in:</s:String>
 
     <!-- Services -->
     <s:String x:Key="GbServices">SERVICES STATUS</s:String>

@@ -21,7 +21,7 @@
             <Grid Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal" MouseLeftButtonDown="DragWindow" HorizontalAlignment="Left">
                     <TextBlock Text="🕑" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBlock Text="{DynamicResource GbNewTask}" Foreground="#E8C881"
+                    <TextBlock x:Name="TbHeader" Text="{DynamicResource GbNewTask}" Foreground="#E8C881"
                                FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
                 </StackPanel>
                 <Border HorizontalAlignment="Right" CornerRadius="3" Padding="10,3" Cursor="Hand"
