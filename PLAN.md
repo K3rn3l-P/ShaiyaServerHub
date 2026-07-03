@@ -128,10 +128,12 @@ dotnet build ShaiyaServerHub.sln -c Release
 `scripts\/functions\/testsuite\` (sql\+ps1\). Sono la sorgente-di-verità dei default.
 - Nel repo i segreti sono **placeholder** (`<<CAMBIA_PASSWORD_...>>`) → niente password su GitHub.
 - Password reali in `ShaiyaServerHub\.env` (in `.gitignore`).
-- Ogni build il target **CopyDefaultScripts** lancia `Build-Scripts.ps1`: copia DefaultScripts →
-  output, **inietta** le password dal `.env` (script funzionanti), copia anche il `.env`.
-  Gotcha: passare `$(TargetDir.TrimEnd('\'))` (il backslash finale rompe il quoting Exec).
-- Copia manuale: `copy-default-scripts.bat` / `Build-Scripts.ps1`.
+- **Due script** (path relativi a $PSScriptRoot → repo spostabile):
+  - `ShaiyaServerHub\Build-And-Copy.ps1` = fa TUTTO: `dotnet build` (Release/Debug) → copia
+    DefaultScripts in `bin\<Config>\net48\` → **inietta** password dal `.env` → copia il `.env`.
+  - `build-and-copy.bat` (root repo) = lancia il ps1 (doppio click; arg opz. Debug).
+- **Niente più target MSBuild** (rimosso CopyDefaultScripts): la copia la fa solo il ps1.
+  Un plain `dotnet build` NON copia più i default → usare Build-And-Copy.ps1 / il .bat.
 
 **Deploy sul server:** copiare l'INTERA cartella `net48\` (exe + cartelle script funzionanti).
 Le cartelle script stanno in `bin\` (rigenerate ad ogni build dai DefaultScripts). Al primo avvio
