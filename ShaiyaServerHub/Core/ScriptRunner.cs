@@ -23,9 +23,13 @@ namespace ShaiyaServerHub.Core
         }
 
         // ── SQL (sqlcmd) ─────────────────────────────────────
+        // -W rimuove gli spazi di padding dalle colonne, -w allarga la riga, -s separatore.
+        // Evita l'output "spaziato" di sqlcmd sui SELECT con colonne nvarchar larghe.
+        private const string FmtArgs = " -W -w 4000 -s \"|\"";
+
         public int RunSql(string scriptPath, Action<string> log)
         {
-            string args = BuildSqlcmdAuth() +
+            string args = BuildSqlcmdAuth() + FmtArgs +
                           $" -d {Quote(_settings.DefaultDatabase)} -b -i {Quote(scriptPath)}";
             log?.Invoke($"[sqlcmd] {Path.GetFileName(scriptPath)}  (server={_settings.SqlServer}, auth={_settings.SqlAuthMode})");
             int rc = ProcessRunner.Run("sqlcmd", args, log);
@@ -36,7 +40,7 @@ namespace ShaiyaServerHub.Core
         /// <summary>Esegue una query inline (-Q) e restituisce l'output.</summary>
         public int RunSqlQuery(string tsql, out string output, Action<string> log = null)
         {
-            string args = BuildSqlcmdAuth() +
+            string args = BuildSqlcmdAuth() + FmtArgs +
                           $" -d {Quote(_settings.DefaultDatabase)} -b -Q {Quote(tsql)}";
             int rc = ProcessRunner.RunCapture("sqlcmd", args, out output);
             if (log != null) foreach (var l in output.Split('\n')) log(l.TrimEnd());

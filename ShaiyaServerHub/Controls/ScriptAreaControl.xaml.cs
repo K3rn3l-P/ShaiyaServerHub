@@ -115,6 +115,8 @@ namespace ShaiyaServerHub.Controls
         // ── Log (embedded + buffer per il modale) ────────────
         public void Log(string msg)
         {
+            // Salta le righe vuote/di solo spazi (sqlcmd le emette tra i result set).
+            if (string.IsNullOrWhiteSpace(msg)) return;
             if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(() => Log(msg))); return; }
             string line = $"[{DateTime.Now:HH:mm:ss}] {msg}";
             _logBuffer.AppendLine(line);
