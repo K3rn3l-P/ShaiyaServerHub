@@ -6,32 +6,33 @@ using System.Linq;
 namespace ShaiyaServerHub.Core
 {
     /// <summary>
-    /// Scopre gli script nelle cartelle sql\ e ps1\ accanto all'exe.
-    /// Le cartelle vengono create all'avvio se mancanti: l'utente ci mette
-    /// dentro gli script vecchi e nuovi, ricaricati ad ogni apertura / Reload.
+    /// Scopre gli script in &lt;Root&gt;\sql e &lt;Root&gt;\ps1. Ogni "area" del programma
+    /// (principale, funzioni, test suite) ha la sua istanza con le proprie cartelle,
+    /// create all'avvio: l'utente ci mette gli script (vecchi e nuovi), ricaricati
+    /// ad ogni apertura / Reload — senza ricompilare il programma.
     /// </summary>
-    public static class ScriptRepository
+    public class ScriptRepository
     {
-        public static string Root => AppContext.BaseDirectory;
-        public static string SqlDir => Path.Combine(Root, "sql");
-        public static string Ps1Dir => Path.Combine(Root, "ps1");
+        public string Root { get; }
+        public ScriptRepository(string root) { Root = root; }
 
-        public static void EnsureFolders()
+        public string SqlDir => Path.Combine(Root, "sql");
+        public string Ps1Dir => Path.Combine(Root, "ps1");
+
+        public void EnsureFolders()
         {
             Directory.CreateDirectory(SqlDir);
             Directory.CreateDirectory(Ps1Dir);
         }
 
-        public static List<ScriptItem> Discover()
+        public List<ScriptItem> Discover()
         {
             EnsureFolders();
             var list = new List<ScriptItem>();
 
-            // sql\ : *.sql
             foreach (var f in SafeEnum(SqlDir, "*.sql"))
                 list.Add(new ScriptItem { FullPath = f, Kind = ScriptKind.Sql });
 
-            // ps1\ : *.ps1, *.bat, *.cmd (script "di sistema" li teniamo qui)
             foreach (var f in SafeEnum(Ps1Dir, "*.ps1")
                               .Concat(SafeEnum(Ps1Dir, "*.bat"))
                               .Concat(SafeEnum(Ps1Dir, "*.cmd")))
@@ -42,11 +43,22 @@ namespace ShaiyaServerHub.Core
 
         private static IEnumerable<string> SafeEnum(string dir, string pattern)
         {
-            try
-            {
-                return Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories);
-            }
+            try { return Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories); }
             catch { return Enumerable.Empty<string>(); }
+        }
+
+        // ── Aree note ────────────────────────────────────────
+        public static string AppRoot => AppContext.BaseDirectory;
+        public static ScriptRepository Main => new ScriptRepository(AppRoot);
+        public static ScriptRepository Functions => new ScriptRepository(Path.Combine(AppRoot, "functions"));
+        public static ScriptRepository TestSuite => new ScriptRepository(Path.Combine(AppRoot, "testsuite"));
+
+        /// <summary>Crea tutte le cartelle script (principale + aree) all'avvio.</summary>
+        public static void EnsureAll()
+        {
+            Main.EnsureFolders();
+            Functions.EnsureFolders();
+            TestSuite.EnsureFolders();
         }
     }
 }

@@ -33,6 +33,15 @@ namespace ShaiyaServerHub
             ReloadTasks();
             RefreshServices();
             UpdateCadenceInputs();
+
+            // Aree riutilizzabili (cartelle proprie functions\ e testsuite\).
+            FuncArea.AreaTitle = "Funzioni";
+            FuncArea.Runner = _runner;
+            FuncArea.Init(ScriptRepository.Functions, L.HintFunctions);
+            TestArea.AreaTitle = "Test Suite";
+            TestArea.Runner = _runner;
+            TestArea.Init(ScriptRepository.TestSuite, L.HintTestSuite);
+
             ShowView("scripts");
 
             // Auto-refresh servizi ogni 3s (solo mentre la vista Servizi è aperta).
@@ -56,6 +65,8 @@ namespace ShaiyaServerHub
             PanelNewTask.Visibility = view == "newtask" ? Visibility.Visible : Visibility.Collapsed;
             PanelTasks.Visibility = view == "tasks" ? Visibility.Visible : Visibility.Collapsed;
             PanelServices.Visibility = view == "services" ? Visibility.Visible : Visibility.Collapsed;
+            PanelFunctions.Visibility = view == "functions" ? Visibility.Visible : Visibility.Collapsed;
+            PanelTestSuite.Visibility = view == "testsuite" ? Visibility.Visible : Visibility.Collapsed;
             PanelLog.Visibility = view == "log" ? Visibility.Visible : Visibility.Collapsed;
         }
 
@@ -102,15 +113,48 @@ namespace ShaiyaServerHub
             {
                 _settings.Save();
                 _runner = new ScriptRunner(_settings);
+                FuncArea.Runner = _runner;
+                TestArea.Runner = _runner;
                 Log(L.SettingsSaved);
             }
+        }
+
+        // ── Funzioni: PSM_Cmd ─────────────────────────────────
+        private async void BtnVerifyPsmCmd_Click(object sender, RoutedEventArgs e)
+        {
+            FuncArea.Log("── Verifica PSM_Cmd ──");
+            await FuncArea.RunAsync(() =>
+            {
+                bool ok = CommandChannel.VerifyPsmCmd(FuncArea.Runner, FuncArea.Log);
+                FuncArea.Log(ok
+                    ? "✓ PSM_Cmd ATTIVO e funzionante."
+                    : "✗ PSM_Cmd NON attivo/incompleto → usa 'Installa/Ripara' (metti gli script 00→07 in functions\\sql).");
+            });
+        }
+
+        private async void BtnInstallPsmCmd_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show(L.ConfirmInstallPsm, "ShaiyaServerHub",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            FuncArea.Log("── Installa/Ripara PSM_Cmd ──");
+            FuncArea.Log("Prerequisiti: PSMagent.signed.dll in C:\\ShaiyaServer\\PSM_Client, login sysadmin, password aggiornate in 01/04.");
+            await FuncArea.RunAllSqlAsync();
+            FuncArea.Log("Suggerito: ora premi 'Verifica PSM_Cmd' per confermare.");
+        }
+
+        // ── Test Suite ────────────────────────────────────────
+        private async void BtnRunTestSuite_Click(object sender, RoutedEventArgs e)
+        {
+            TestArea.Log("── Esecuzione audit SQL (test suite) ──");
+            await TestArea.RunAllSqlAsync();
         }
 
         // ── Scripts ───────────────────────────────────────────
         private void BtnReloadScripts_Click(object sender, RoutedEventArgs e) => ReloadScripts();
         private void ReloadScripts()
         {
-            var list = ScriptRepository.Discover();
+            var repo = ScriptRepository.Main;
+            var list = repo.Discover();
             ScriptsSqlList.ItemsSource = list.Where(s => s.Kind == ScriptKind.Sql).ToList();
             ScriptsPsList.ItemsSource = list.Where(s => s.Kind != ScriptKind.Sql).ToList();
             Log(L.ScriptsFound(list.Count));
@@ -118,9 +162,10 @@ namespace ShaiyaServerHub
 
         private void BtnOpenFolders_Click(object sender, RoutedEventArgs e)
         {
-            ScriptRepository.EnsureFolders();
-            try { Process.Start("explorer.exe", ScriptRepository.SqlDir); } catch { }
-            try { Process.Start("explorer.exe", ScriptRepository.Ps1Dir); } catch { }
+            var repo = ScriptRepository.Main;
+            repo.EnsureFolders();
+            try { Process.Start("explorer.exe", repo.SqlDir); } catch { }
+            try { Process.Start("explorer.exe", repo.Ps1Dir); } catch { }
         }
 
         private async void BtnRunScript_Click(object sender, RoutedEventArgs e)

@@ -1,6 +1,7 @@
 <Window x:Class="ShaiyaServerHub.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:ShaiyaServerHub.Controls"
         Title="ShaiyaServerHub" Icon="icon.ico"
         Width="960" Height="640" MinWidth="820" MinHeight="520"
         WindowStartupLocation="CenterScreen"
@@ -121,6 +122,10 @@
                                      Tag="tasks"    Content="{DynamicResource NavTasks}"    Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavServices" Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="services" Content="{DynamicResource NavServices}" Checked="Nav_Checked"/>
+                        <RadioButton x:Name="NavFunctions" Style="{StaticResource NavItem}" GroupName="nav"
+                                     Tag="functions" Content="{DynamicResource NavFunctions}" Checked="Nav_Checked"/>
+                        <RadioButton x:Name="NavTestSuite" Style="{StaticResource NavItem}" GroupName="nav"
+                                     Tag="testsuite" Content="{DynamicResource NavTestSuite}" Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavLog"      Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="log"      Content="{DynamicResource NavLog}"      Checked="Nav_Checked"/>
                     </StackPanel>
@@ -322,6 +327,31 @@
                                 </ScrollViewer>
                             </Border>
                         </Grid>
+                    </GroupBox>
+
+                    <!-- Funzioni -->
+                    <GroupBox x:Name="PanelFunctions" Header="{DynamicResource GbFunctions}" Visibility="Collapsed">
+                        <controls:ScriptAreaControl x:Name="FuncArea">
+                            <controls:ScriptAreaControl.Actions>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource AccentButton}"
+                                            Content="{DynamicResource BtnVerifyPsm}" Click="BtnVerifyPsmCmd_Click"/>
+                                    <Button Content="{DynamicResource BtnInstallPsm}" Click="BtnInstallPsmCmd_Click"/>
+                                </StackPanel>
+                            </controls:ScriptAreaControl.Actions>
+                        </controls:ScriptAreaControl>
+                    </GroupBox>
+
+                    <!-- Test Suite -->
+                    <GroupBox x:Name="PanelTestSuite" Header="{DynamicResource GbTestSuite}" Visibility="Collapsed">
+                        <controls:ScriptAreaControl x:Name="TestArea">
+                            <controls:ScriptAreaControl.Actions>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource AccentButton}"
+                                            Content="{DynamicResource BtnRunTestSuite}" Click="BtnRunTestSuite_Click"/>
+                                </StackPanel>
+                            </controls:ScriptAreaControl.Actions>
+                        </controls:ScriptAreaControl>
                     </GroupBox>
 
                     <!-- Log -->

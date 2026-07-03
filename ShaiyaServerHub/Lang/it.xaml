@@ -9,7 +9,20 @@
     <s:String x:Key="NavNewTask">＋  Nuovo task</s:String>
     <s:String x:Key="NavTasks">🕑  Pianificati</s:String>
     <s:String x:Key="NavServices">🖥  Servizi</s:String>
+    <s:String x:Key="NavFunctions">🛠  Funzioni</s:String>
+    <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
+
+    <!-- Funzioni / Test Suite -->
+    <s:String x:Key="GbFunctions">FUNZIONI</s:String>
+    <s:String x:Key="GbTestSuite">SERVER TEST SUITE — SICUREZZA</s:String>
+    <s:String x:Key="BtnVerifyPsm">✓ Verifica PSM_Cmd</s:String>
+    <s:String x:Key="BtnInstallPsm">⬇ Installa / Ripara PSM_Cmd</s:String>
+    <s:String x:Key="BtnRunTestSuite">▶ Esegui audit SQL</s:String>
+    <s:String x:Key="BtnOpenLog">📋 Log</s:String>
+    <s:String x:Key="AreaLogTitle">LOG</s:String>
+    <s:String x:Key="BtnCopy">Copia</s:String>
+    <s:String x:Key="BtnCloseWin">Chiudi</s:String>
 
     <!-- Scripts -->
     <s:String x:Key="GbScripts">SCRIPT (sql\ + ps1\)</s:String>

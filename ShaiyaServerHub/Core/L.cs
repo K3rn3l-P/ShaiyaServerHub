@@ -45,6 +45,9 @@ namespace ShaiyaServerHub
         public static string SqlTesting => S("test in corso…", "testing…");
         public static string SqlTestOk => S("✓ Connessione riuscita", "✓ Connected");
         public static string SqlTestFail(int rc) => S($"✗ Connessione fallita (exit {rc}, vedi Log)", $"✗ Connection failed (exit {rc}, see Log)");
+        public static string HintFunctions => S("Verifica/installa PSM_Cmd. Script personalizzati in functions\\sql e functions\\ps1.", "Verify/install PSM_Cmd. Custom scripts in functions\\sql and functions\\ps1.");
+        public static string HintTestSuite => S("Esegui i controlli di sicurezza. Metti gli script audit in testsuite\\sql e testsuite\\ps1.", "Run security checks. Put audit scripts in testsuite\\sql and testsuite\\ps1.");
+        public static string ConfirmInstallPsm => S("Installare/riparare PSM_Cmd eseguendo TUTTI gli script SQL in functions\\sql in ordine?\n\nRichiede: DLL firmata in posizione, login sysadmin, password già aggiornate negli script.", "Install/repair PSM_Cmd by running ALL SQL scripts in functions\\sql in order?\n\nRequires: signed DLL in place, sysadmin login, passwords already updated in scripts.");
         public static string RegisterOk => S("✓ Login abilitato nel canale comandi", "✓ Login enabled in command channel");
         public static string RegisterFail(int rc) => S($"✗ Registrazione fallita (exit {rc}, vedi Log)", $"✗ Registration failed (exit {rc}, see Log)");
     }

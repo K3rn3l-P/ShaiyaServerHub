@@ -24,7 +24,7 @@ namespace ShaiyaServerHub
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            ScriptRepository.EnsureFolders();
+            ScriptRepository.EnsureAll();
 
             // ── Modalità headless per i task pianificati: --run "<scriptPath>" ──
             int idx = Array.FindIndex(e.Args, a => a.Equals("--run", StringComparison.OrdinalIgnoreCase));
