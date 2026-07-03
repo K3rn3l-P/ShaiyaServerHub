@@ -21,6 +21,7 @@ namespace ShaiyaServerHub.Controls
     {
         private ScriptRepository _repo;
         private ScriptRunner _runner;
+        private List<ScriptItem> _items;   // stessa lista bindata (per aggiornare i badge)
         private readonly StringBuilder _logBuffer = new StringBuilder();
         private string _logFile;   // log proprio dell'area (es. functions\functions.log)
 
@@ -59,7 +60,8 @@ namespace ShaiyaServerHub.Controls
         public void Reload()
         {
             if (_repo == null) return;
-            ScriptsList.ItemsSource = _repo.Discover();
+            _items = _repo.Discover();
+            ScriptsList.ItemsSource = _items;
         }
 
         // ── Toolbar ──────────────────────────────────────────
@@ -79,6 +81,15 @@ namespace ShaiyaServerHub.Controls
             win.ShowDialog();
         }
 
+        // Badge esito cliccabile → apre il log del singolo script.
+        private void BtnScriptStatus_Click(object sender, RoutedEventArgs e)
+        {
+            var item = ((FrameworkElement)sender).DataContext as ScriptItem;
+            if (item == null) return;
+            string title = item.Name + (string.IsNullOrEmpty(item.RunStatus) ? "" : "  —  " + item.RunStatus);
+            new LogWindow(title, item.LastLog ?? "") { Owner = Window.GetWindow(this) }.ShowDialog();
+        }
+
         private void BtnClearLog_Click(object sender, RoutedEventArgs e)
         {
             _logBuffer.Clear();
@@ -92,14 +103,44 @@ namespace ShaiyaServerHub.Controls
             if (item == null) return;
             if (_runner == null) { Log("Runner non inizializzato."); return; }
             Log($"── Esecuzione: {item.Name} ──");
-            await RunAsync(() => _runner.RunScript(item, Log));
+            await RunAsync(() => RunOne(item));
+        }
+
+        /// <summary>
+        /// Esegue uno script, cattura il SUO log e imposta l'esito sul badge cliccabile.
+        /// Ritorna lo status (PASS/WARN/FAIL/ERRORE/INFO).
+        /// </summary>
+        private string RunOne(ScriptItem item)
+        {
+            var sb = new StringBuilder();
+            string status = null;
+            int rc = _runner.RunScript(item, line =>
+            {
+                Log(line);              // log dell'area (completo)
+                sb.AppendLine(line);    // log del singolo script
+                int idx = line.IndexOf("RESULT:", StringComparison.OrdinalIgnoreCase);
+                if (idx >= 0)
+                {
+                    string rest = line.Substring(idx + 7).TrimStart();
+                    if (rest.StartsWith("FAIL", StringComparison.OrdinalIgnoreCase)) status = "FAIL";
+                    else if (rest.StartsWith("WARN", StringComparison.OrdinalIgnoreCase)) status = "WARN";
+                    else if (rest.StartsWith("PASS", StringComparison.OrdinalIgnoreCase)) status = "PASS";
+                }
+            });
+            if (rc != 0) status = "ERRORE";
+            else if (status == null) status = "INFO";
+
+            string log = sb.ToString();
+            Dispatcher.Invoke(() => { item.LastLog = log; item.RunStatus = status; });
+            return status;
         }
 
         /// <summary>Esegue tutti gli SQL dell'area in ordine di nome (00→NN) + riassunto finale.</summary>
         public async Task RunAllSqlAsync()
         {
             if (_repo == null || _runner == null) return;
-            var sql = _repo.Discover().Where(s => s.Kind == ScriptKind.Sql)
+            if (_items == null) Reload();
+            var sql = _items.Where(s => s.Kind == ScriptKind.Sql)
                           .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase).ToList();
             if (sql.Count == 0) { Log("Nessuno script SQL in " + _repo.SqlDir); return; }
             Log($"── Esecuzione {sql.Count} script SQL in ordine ──");
@@ -110,21 +151,7 @@ namespace ShaiyaServerHub.Controls
                 foreach (var s in sql)
                 {
                     Log($"▶ {s.Name}");
-                    string status = null;
-                    int rc = _runner.RunScript(s, line =>
-                    {
-                        Log(line);
-                        int idx = line.IndexOf("RESULT:", StringComparison.OrdinalIgnoreCase);
-                        if (idx >= 0)
-                        {
-                            string rest = line.Substring(idx + 7).TrimStart();
-                            if (rest.StartsWith("FAIL", StringComparison.OrdinalIgnoreCase)) status = "FAIL";
-                            else if (rest.StartsWith("WARN", StringComparison.OrdinalIgnoreCase)) status = "WARN";
-                            else if (rest.StartsWith("PASS", StringComparison.OrdinalIgnoreCase)) status = "PASS";
-                        }
-                    });
-                    if (rc != 0) status = "ERRORE";
-                    else if (status == null) status = "INFO";
+                    string status = RunOne(s);
                     results.Add(new KeyValuePair<string, string>(s.Name, status));
                 }
             });

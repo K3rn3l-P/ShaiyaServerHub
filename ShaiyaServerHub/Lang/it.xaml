@@ -20,6 +20,7 @@
     <s:String x:Key="BtnInstallPsm">⬇ Installa / Ripara PSM_Cmd</s:String>
     <s:String x:Key="BtnRunTestSuite">▶ Esegui audit SQL</s:String>
     <s:String x:Key="BtnOpenLog">📋 Log</s:String>
+    <s:String x:Key="TipScriptLog">Apri il log di questo script</s:String>
     <s:String x:Key="AreaLogTitle">LOG</s:String>
     <s:String x:Key="BtnCopy">Copia</s:String>
     <s:String x:Key="BtnCloseWin">Chiudi</s:String>
