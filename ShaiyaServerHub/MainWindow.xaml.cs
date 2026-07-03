@@ -32,7 +32,10 @@ namespace ShaiyaServerHub
             ReloadScripts();
             ReloadTasks();
             RefreshServices();
-            UpdateCadenceInputs();
+
+            // Form "Nuovo task" riutilizzabile: log verso la UI + ricarica su creazione.
+            NewTaskCtrl.LogSink = Log;
+            NewTaskCtrl.Created += () => { ReloadTasks(); SelectTasks(); };
 
             // Aree riutilizzabili (cartelle proprie functions\ e testsuite\).
             FuncArea.AreaTitle = "Funzioni";
@@ -181,57 +184,13 @@ namespace ShaiyaServerHub
         {
             var item = ((FrameworkElement)sender).DataContext as ScriptItem;
             if (item == null) return;
-            TbSelScript.Text = item.FullPath;
-            TbSelScript.ToolTip = item.FullPath;
-            if (string.IsNullOrWhiteSpace(TbTaskName.Text))
-                TbTaskName.Text = Path.GetFileNameWithoutExtension(item.Name);
-        }
-
-        // ── New task ──────────────────────────────────────────
-        private void CbCadence_Changed(object sender, SelectionChangedEventArgs e) => UpdateCadenceInputs();
-
-        private string SelectedCadence()
-        {
-            var it = CbCadence?.SelectedItem as ComboBoxItem;
-            return (it?.Content as string) ?? "DAILY";
-        }
-
-        private void UpdateCadenceInputs()
-        {
-            if (TbInterval == null) return; // durante InitializeComponent
-            string c = SelectedCadence();
-            bool useInterval = c == "MINUTE" || c == "HOURLY";
-            bool useTime = c == "DAILY" || c == "WEEKLY" || c == "ONCE";
-            bool useDays = c == "WEEKLY";
-            TbInterval.IsEnabled = useInterval;
-            TbTime.IsEnabled = useTime;
-            TbDays.IsEnabled = useDays;
-        }
-
-        private async void BtnCreateTask_Click(object sender, RoutedEventArgs e)
-        {
-            string script = TbSelScript.Text.Trim();
-            if (string.IsNullOrWhiteSpace(script) || !File.Exists(script))
-            { Log(L.NoScriptSelected); return; }
-
-            string name = TbTaskName.Text.Trim();
-            if (string.IsNullOrWhiteSpace(name)) name = Path.GetFileNameWithoutExtension(script);
-
-            int interval = 1;
-            int.TryParse(TbInterval.Text.Trim(), out interval);
-
-            var spec = new ScheduleSpec
+            // Apre il modale "Nuovo task pianificato" con lo script preselezionato.
+            var win = new NewTaskWindow(item.FullPath, Log) { Owner = this };
+            if (win.ShowDialog() == true)
             {
-                Type = SelectedCadence(),
-                Interval = interval,
-                Time = TbTime.Text.Trim(),
-                Days = TbDays.Text.Trim()
-            };
-
-            await RunAsync(() => TaskSchedulerService.Create(name, script, spec, Log));
-            Log(L.TaskCreated);
-            ReloadTasks();
-            SelectTasks();
+                ReloadTasks();
+                SelectTasks();
+            }
         }
 
         // ── Tasks ─────────────────────────────────────────────

@@ -1,0 +1,51 @@
+<UserControl x:Class="ShaiyaServerHub.Controls.NewTaskControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
+    <StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="170"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="120"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="{DynamicResource LblSelScript}"/>
+            <TextBox Grid.Column="1" x:Name="TbSelScript" IsReadOnly="True" FontFamily="Consolas" FontSize="10"/>
+            <Label Grid.Column="2" Content="{DynamicResource LblTaskName}"/>
+            <TextBox Grid.Column="3" x:Name="TbTaskName"/>
+            <Label Grid.Column="4" Content="{DynamicResource LblCadence}"/>
+            <ComboBox Grid.Column="5" x:Name="CbCadence" SelectionChanged="CbCadence_Changed">
+                <ComboBoxItem Content="DAILY" IsSelected="True"/>
+                <ComboBoxItem Content="HOURLY"/>
+                <ComboBoxItem Content="MINUTE"/>
+                <ComboBoxItem Content="WEEKLY"/>
+                <ComboBoxItem Content="ONCE"/>
+            </ComboBox>
+        </Grid>
+        <Grid Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="{DynamicResource LblEvery}"/>
+            <TextBox Grid.Column="1" x:Name="TbInterval" Text="1"/>
+            <Label Grid.Column="2" Content="{DynamicResource LblTime}"/>
+            <TextBox Grid.Column="3" x:Name="TbTime" Text="04:00"/>
+            <Label Grid.Column="4" Content="{DynamicResource LblDays}"/>
+            <TextBox Grid.Column="5" x:Name="TbDays" Text="MON"/>
+            <Button Grid.Column="7" x:Name="BtnCreate" Style="{StaticResource AccentButton}"
+                    Content="{DynamicResource BtnCreateTask}" Click="BtnCreateTask_Click"/>
+        </Grid>
+        <TextBlock Text="{DynamicResource HintNewTask}" Foreground="#35E8C881"
+                   FontSize="10" Margin="4,8,4,0" TextWrapping="Wrap"/>
+    </StackPanel>
+</UserControl>

@@ -68,10 +68,12 @@ namespace ShaiyaServerHub.Core
         {
             var result = new List<ScheduledTaskInfo>();
             string csv;
-            // /FO CSV /V su tutta la cartella del Hub
-            int rc = ProcessRunner.RunCapture("schtasks.exe",
-                $"/Query /TN \"\\{Folder}\\\" /FO CSV /V", out csv);
-            if (rc != 0 || string.IsNullOrWhiteSpace(csv)) return result;
+            // Enumera TUTTI i task e filtra per cartella \ShaiyaServerHub\.
+            // (Non si può interrogare una cartella con /TN "\ShaiyaServerHub\" → ERROR syntax.)
+            // NB: non usciamo su rc != 0 — schtasks può dare rc≠0 per un task di sistema
+            //     rotto ma l'output resta parsabile per i nostri.
+            ProcessRunner.RunCapture("schtasks.exe", "/Query /FO CSV /V", out csv);
+            if (string.IsNullOrWhiteSpace(csv)) return result;
 
             string[] lines = csv.Replace("\r", "").Split('\n');
             if (lines.Length < 2) return result;

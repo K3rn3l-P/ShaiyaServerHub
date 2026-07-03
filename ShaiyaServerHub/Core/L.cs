@@ -33,7 +33,7 @@ namespace ShaiyaServerHub
 
         // ── Stringhe usate dal codice ────────────────────────
         public static string Startup => S("ShaiyaServerHub avviato.", "ShaiyaServerHub started.");
-        public static string ScriptsFound(int n) => S($"{n} script trovati in sql\\ e ps1\\.", $"{n} scripts found in sql\\ and ps1\\.");
+        public static string ScriptsFound(int n) => S($"{n} script trovati in scripts\\sql e scripts\\ps1.", $"{n} scripts found in scripts\\sql and scripts\\ps1.");
         public static string NoScriptSelected => S("Seleziona prima uno script (▶ Pianifica).", "Select a script first (▶ Schedule).");
         public static string TaskCreated => S("Task creato. Ricarico lista task.", "Task created. Reloading task list.");
         public static string ConfirmRemoveTask(string n) => S($"Rimuovere il task '{n}'?", $"Remove task '{n}'?");
