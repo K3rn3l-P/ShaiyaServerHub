@@ -29,9 +29,11 @@ namespace ShaiyaServerHub.Core
             string shortName = Sanitize(taskName);
             string tn = $"\\{Folder}\\{shortName}";
 
-            // /TR = "programma" argomenti (quote per gestire path con spazi).
-            string tr = $"\\\"{program}\\\"";
-            if (!string.IsNullOrWhiteSpace(arguments)) tr += " " + arguments;
+            // /TR = SOLO il programma (token sicuro). Gli argomenti NON vanno qui:
+            // le virgolette annidate di "--run \"script\"" (o del vecchio wrapper cmd)
+            // collassano nel /TR "..." e schtasks fraintende (Invalid argument '--run').
+            // L'azione vera (Execute+Arguments+WorkingDir) è impostata sotto via PowerShell.
+            string tr = $"\\\"{TaskLogging.StripQuotes(program)}\\\"";
 
             string sc;
             switch ((spec.Type ?? "DAILY").ToUpperInvariant())
@@ -66,9 +68,10 @@ namespace ShaiyaServerHub.Core
             if (!string.IsNullOrWhiteSpace(wrapLogFile))
                 // Riscrive l'azione (Execute+Argument+WorkingDirectory) con redirect su log.
                 SetWrappedAction(shortName, program, arguments, workingDir, wrapLogFile, log);
-            else if (!string.IsNullOrWhiteSpace(workingDir))
-                // "Start in" (WorkingDirectory) non è impostabile via schtasks → PowerShell.
-                SetWorkingDir(shortName, workingDir, log);
+            else
+                // Imposta SEMPRE l'azione vera via PowerShell (quoting robusto):
+                // Execute=programma, Arguments=argomenti, WorkingDirectory=Start-in.
+                SetAction(shortName, program, arguments, workingDir, log);
 
             // Trigger aggiuntivi (oltre al principale creato da schtasks) → appesi via PowerShell.
             var extras = extraTriggers?.Where(t => t != null).ToList();
@@ -160,14 +163,23 @@ namespace ShaiyaServerHub.Core
             log?.Invoke(rc == 0 ? "✓ log su file abilitato (log\\)" : "⚠ log su file non impostato (exit " + rc + ")");
         }
 
-        private static void SetWorkingDir(string shortName, string dir, Action<string> log)
+        // Imposta l'azione reale del task (Execute + Arguments + WorkingDirectory) via PowerShell.
+        // -EncodedCommand: gli argomenti possono contenere virgolette (es. --run "path", --log "path")
+        // che NON sopravviverebbero a un /TR di schtasks né a -Command.
+        private static void SetAction(string shortName, string program, string arguments,
+                                      string workingDir, Action<string> log)
         {
-            string ps = $"$t = Get-ScheduledTask -TaskPath '\\{Folder}\\' -TaskName '{shortName.Replace("'", "''")}'; " +
-                        $"$t.Actions[0].WorkingDirectory = '{dir.Replace("'", "''")}'; " +
-                        "$t | Set-ScheduledTask | Out-Null";
-            int rc = ProcessRunner.Run("powershell.exe",
-                "-NoProfile -ExecutionPolicy Bypass -Command \"" + ps + "\"", log);
-            log?.Invoke(rc == 0 ? "✓ Start-in impostata" : "⚠ Start-in non impostata (exit " + rc + ")");
+            string exec = TaskLogging.StripQuotes(program).Replace("'", "''");
+            string argPart = string.IsNullOrWhiteSpace(arguments) ? "" :
+                             $" -Argument '{arguments.Trim().Replace("'", "''")}'";
+            string wd = string.IsNullOrWhiteSpace(workingDir) ? "" :
+                        $" -WorkingDirectory '{workingDir.Replace("'", "''")}'";
+            string ps =
+                $"$a = New-ScheduledTaskAction -Execute '{exec}'{argPart}{wd}; " +
+                $"$t = Get-ScheduledTask -TaskPath '\\{Folder}\\' -TaskName '{shortName.Replace("'", "''")}'; " +
+                "$t.Actions = @($a); $t | Set-ScheduledTask | Out-Null";
+            int rc = ProcessRunner.RunPowerShellEncoded(ps, log);
+            log?.Invoke(rc == 0 ? "✓ azione impostata" : "⚠ azione non impostata (exit " + rc + ")");
         }
 
         /// <summary>XML completo del task (per il modale Edit).</summary>

@@ -10,6 +10,37 @@ namespace ShaiyaServerHub.Core
 
         public bool IsDisabled =>
             (Status ?? "").IndexOf("Disab", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+        // ── Log per-task (bottone "Log" in Pianificati) ──
+        /// <summary>Esito dell'ultimo run dal log (impostato da ReloadTasks).</summary>
+        public TaskLogState LogState { get; set; } = TaskLogState.None;
+
+        /// <summary>True se esiste un log per questo task (bottone abilitato).</summary>
+        public bool HasLog => LogState != TaskLogState.None;
+
+        private static readonly System.Windows.Media.Brush Green =
+            Freeze(System.Windows.Media.Color.FromRgb(0x1E, 0x7A, 0x46));  // ultimo run OK
+        private static readonly System.Windows.Media.Brush Red =
+            Freeze(System.Windows.Media.Color.FromRgb(0x8A, 0x2A, 0x2A));  // ultimo run in errore
+        private static readonly System.Windows.Media.Brush Gray =
+            Freeze(System.Windows.Media.Color.FromRgb(0x2A, 0x2A, 0x33));  // nessun log
+
+        /// <summary>Sfondo del bottone Log: verde=OK, rosso=errore, grigio=nessun log.</summary>
+        public System.Windows.Media.Brush LogBrush =>
+            LogState == TaskLogState.Ok ? Green : (LogState == TaskLogState.Error ? Red : Gray);
+
+        /// <summary>Tooltip del bottone Log.</summary>
+        public string LogTip =>
+            LogState == TaskLogState.Ok ? "Ultimo run: OK — clic per vedere il log" :
+            LogState == TaskLogState.Error ? "Ultimo run: ERRORE — clic per vedere il log" :
+            "Nessun log per questo task";
+
+        private static System.Windows.Media.Brush Freeze(System.Windows.Media.Color c)
+        {
+            var b = new System.Windows.Media.SolidColorBrush(c);
+            b.Freeze();
+            return b;
+        }
     }
 
     /// <summary>Cadenza per creare un nuovo task.</summary>

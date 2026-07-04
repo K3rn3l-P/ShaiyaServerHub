@@ -84,5 +84,6 @@ namespace ShaiyaServerHub
         public static string EvGenStateScanning => S("(rilevo il testo di stato dal server…)", "(detecting state text from server…)");
         public static string EvGenStateUnknown => S("stato non rilevato negli eventi → uso 'qualsiasi cambio'", "state not found in events → using 'any change'");
         public static string LogDirWarn(string dir) => S($"⚠ Cartella log non creabile: {dir}", $"⚠ Cannot create log folder: {dir}");
+        public static string NoTaskLog(string n) => S($"Nessun log per '{n}' (abilita 'Genera log' in modifica, poi esegui).", $"No log for '{n}' (enable 'Write log' in edit, then run).");
     }
 }

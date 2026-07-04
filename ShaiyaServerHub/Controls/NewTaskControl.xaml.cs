@@ -48,6 +48,7 @@ namespace ShaiyaServerHub.Controls
             TbProgram.Text = def.Program;
             TbArguments.Text = def.Arguments;
             TbStartIn.Text = def.WorkingDir;
+            ChkGenLog.IsChecked = def.GenLog;   // auto-rilevato dal parse (wrapper cmd / -o / --log)
 
             var triggers = def.Triggers ?? new List<ScheduleSpec>();
             PrimaryCadence.SetSpec(triggers.Count > 0 ? triggers[0] : new ScheduleSpec());
@@ -133,6 +134,8 @@ namespace ShaiyaServerHub.Controls
                     Log(L.LogDirWarn(Path.GetDirectoryName(logFile)));
                 if (TaskLogging.IsSqlcmd(program))
                     arguments = TaskLogging.AppendSqlcmdOutput(arguments, logFile);  // -o inline
+                else if (TaskLogging.IsHubRun(program, arguments))
+                    arguments = TaskLogging.AppendHubLog(arguments, logFile);        // --log inline (self-log, no redirect)
                 else
                     wrapLogFile = logFile;                                            // wrapper cmd post-creazione
             }

@@ -238,7 +238,22 @@ namespace ShaiyaServerHub
 
         // ── Tasks ─────────────────────────────────────────────
         private void BtnReloadTasks_Click(object sender, RoutedEventArgs e) => ReloadTasks();
-        private void ReloadTasks() => TasksList.ItemsSource = TaskSchedulerService.List();
+        private void ReloadTasks()
+        {
+            var tasks = TaskSchedulerService.List();
+            // Colore bottone Log = esito ultimo run letto dal log per-task.
+            foreach (var t in tasks) t.LogState = TaskLogReader.LastRunState(t.Name);
+            TasksList.ItemsSource = tasks;
+        }
+
+        private void BtnTaskLog_Click(object sender, RoutedEventArgs e)
+        {
+            var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
+            if (t == null) return;
+            string text = TaskLogReader.Read(t.Name, out string _);
+            if (text == null) { SetTaskStatus(L.NoTaskLog(t.Name), false); return; }
+            new LogWindow($"Log · {t.Name}", text) { Owner = this }.ShowDialog();
+        }
 
         private async void BtnEnableTask_Click(object sender, RoutedEventArgs e)
         {
@@ -262,9 +277,21 @@ namespace ShaiyaServerHub
         {
             var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
             if (t == null) return;
+            DateTime before = TaskLogReader.LastWrite(t.Name);   // mtime log prima del run
             int rc = -1;
             await RunAsync(() => rc = TaskSchedulerService.RunNow(t.FullName, Log));
             SetTaskStatus(rc == 0 ? L.TaskRun(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
+            if (rc != 0) return;
+            // schtasks /Run è async: attendo che il log si aggiorni (max ~8s), poi ricarico → colore fresco.
+            await Task.Run(() =>
+            {
+                for (int i = 0; i < 32; i++)
+                {
+                    if (TaskLogReader.LastWrite(t.Name) > before) break;
+                    System.Threading.Thread.Sleep(250);
+                }
+            });
+            ReloadTasks();
         }
         private async void BtnRemoveTask_Click(object sender, RoutedEventArgs e)
         {

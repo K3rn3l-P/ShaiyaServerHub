@@ -25,6 +25,16 @@ namespace ShaiyaServerHub.Core
                     def.Program = (string)exec.Element(NS + "Command") ?? "";
                     def.Arguments = (string)exec.Element(NS + "Arguments") ?? "";
                     def.WorkingDir = (string)exec.Element(NS + "WorkingDirectory") ?? "";
+
+                    // Auto-rilevamento logging: riporta l'azione alla forma pulita e memorizza GenLog,
+                    // così l'Edit mostra Program/Arguments originali e ri-spunta "Genera log".
+                    string pr = def.Program, ar = def.Arguments;
+                    if (TaskLogging.TryStripLogging(ref pr, ref ar))
+                    {
+                        def.Program = pr;
+                        def.Arguments = ar;
+                        def.GenLog = true;
+                    }
                 }
 
                 var trg = root.Element(NS + "Triggers");

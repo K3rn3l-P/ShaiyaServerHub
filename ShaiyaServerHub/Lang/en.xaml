@@ -56,7 +56,7 @@
     <s:String x:Key="DaySun">Sun</s:String>
     <s:String x:Key="BtnCreateTask">＋ Create task</s:String>
     <s:String x:Key="ChkGenLog">Write log (log\&lt;name&gt;.log)</s:String>
-    <s:String x:Key="TipGenLog">Creates a log\ folder next to the task and writes each run's output there. sqlcmd → -o; other programs → redirect via cmd.</s:String>
+    <s:String x:Key="TipGenLog">Creates a log\ folder next to the task and writes each run's output there. Hub --run action → --log; sqlcmd → -o; other programs → redirect via cmd.</s:String>
     <s:String x:Key="BtnGuide">❓ Guide</s:String>
     <s:String x:Key="TipGuide">Explains server restart and event triggers (with copyable examples)</s:String>
     <s:String x:Key="LblPrimaryTrigger">PRIMARY TRIGGER</s:String>
@@ -78,6 +78,7 @@
     <s:String x:Key="BtnRemove">✕ Remove</s:String>
     <s:String x:Key="BtnEditTask">✎ Edit</s:String>
     <s:String x:Key="TipEditTask">Edit this task</s:String>
+    <s:String x:Key="BtnTaskLog">📄 Log</s:String>
     <s:String x:Key="BtnOpenTaskSched">🪟 Task Scheduler</s:String>
     <s:String x:Key="TipOpenTaskSched">Open Windows Task Scheduler</s:String>
     <s:String x:Key="LblProgram">Program/script:</s:String>

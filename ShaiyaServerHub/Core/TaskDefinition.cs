@@ -10,6 +10,9 @@ namespace ShaiyaServerHub.Core
         public string Arguments { get; set; } = "";     // <Arguments>
         public string WorkingDir { get; set; } = "";    // <WorkingDirectory> (Start in)
 
+        /// <summary>True se il task aveva il logging attivo (auto-rilevato in Edit: wrapper cmd / -o / --log).</summary>
+        public bool GenLog { get; set; }
+
         /// <summary>Tutti i trigger del task (0..n). Il primo è il "principale".</summary>
         public List<ScheduleSpec> Triggers { get; set; } = new List<ScheduleSpec>();
 

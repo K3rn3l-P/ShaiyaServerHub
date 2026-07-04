@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:ShaiyaServerHub.Controls"
         Title="ShaiyaServerHub" Icon="icon.ico"
-        Width="960" Height="640" MinWidth="820" MinHeight="520"
+        Width="1040" Height="660" MinWidth="900" MinHeight="520"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="CanMinimize"
@@ -230,6 +230,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="#CCE0E0E0"
                                                                FontFamily="Consolas" FontSize="10" VerticalAlignment="Center"
@@ -241,14 +242,18 @@
                                                     <Button Grid.Column="3" Style="{StaticResource AccentButton}" Padding="8,3" FontSize="10"
                                                             Content="{DynamicResource BtnRunNow}" Click="BtnRunNowTask_Click"
                                                             ToolTip="{DynamicResource TipRunNowTask}"/>
-                                                    <Button Grid.Column="4" Style="{StaticResource MiniButton}"
+                                                    <Button Grid.Column="4" Style="{StaticResource MiniButton}" Foreground="#EEF0F0F0"
+                                                            Background="{Binding LogBrush}" IsEnabled="{Binding HasLog}"
+                                                            Content="{DynamicResource BtnTaskLog}" Click="BtnTaskLog_Click"
+                                                            ToolTip="{Binding LogTip}"/>
+                                                    <Button Grid.Column="5" Style="{StaticResource MiniButton}"
                                                             Content="{DynamicResource BtnEditTask}" Click="BtnEditTask_Click"
                                                             ToolTip="{DynamicResource TipEditTask}"/>
-                                                    <Button Grid.Column="5" Style="{StaticResource MiniButton}"
-                                                            Content="{DynamicResource BtnEnable}" Click="BtnEnableTask_Click"/>
                                                     <Button Grid.Column="6" Style="{StaticResource MiniButton}"
+                                                            Content="{DynamicResource BtnEnable}" Click="BtnEnableTask_Click"/>
+                                                    <Button Grid.Column="7" Style="{StaticResource MiniButton}"
                                                             Content="{DynamicResource BtnDisable}" Click="BtnDisableTask_Click"/>
-                                                    <Button Grid.Column="7" Style="{StaticResource DangerButton}"
+                                                    <Button Grid.Column="8" Style="{StaticResource DangerButton}"
                                                             Content="{DynamicResource BtnRemove}" Click="BtnRemoveTask_Click"/>
                                                 </Grid>
                                             </DataTemplate>

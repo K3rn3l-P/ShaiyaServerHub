@@ -36,6 +36,19 @@ namespace ShaiyaServerHub
             catch { }
         }
 
+        // Log dedicato per-task (opzione "Genera log"): stesso formato di hub-tasks.log,
+        // ma su un file scelto dal task (--log "<path>"). Best effort, non solleva.
+        private static void WritePerTaskLog(string path, string text)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.AppendAllText(path,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}{Environment.NewLine}", Encoding.UTF8);
+            }
+            catch { }
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             ScriptRepository.EnsureAll();
@@ -44,7 +57,10 @@ namespace ShaiyaServerHub
             int idx = Array.FindIndex(e.Args, a => a.Equals("--run", StringComparison.OrdinalIgnoreCase));
             if (idx >= 0 && idx + 1 < e.Args.Length)
             {
-                int rc = RunHeadless(e.Args[idx + 1]);
+                // --log "<path>" opzionale → log per-task oltre a hub-tasks.log.
+                int lidx = Array.FindIndex(e.Args, a => a.Equals("--log", StringComparison.OrdinalIgnoreCase));
+                string taskLogFile = (lidx >= 0 && lidx + 1 < e.Args.Length) ? e.Args[lidx + 1] : null;
+                int rc = RunHeadless(e.Args[idx + 1], taskLogFile);
                 Shutdown(rc);
                 return;
             }
@@ -68,8 +84,13 @@ namespace ShaiyaServerHub
         }
 
         /// <summary>Esecuzione senza UI (invocata dal Task Scheduler).</summary>
-        private int RunHeadless(string scriptPath)
+        /// <param name="taskLogFile">Se valorizzato, ogni riga va anche su questo log per-task.</param>
+        private int RunHeadless(string scriptPath, string taskLogFile = null)
         {
+            // Sink: hub-tasks.log sempre; log per-task in aggiunta se richiesto.
+            Action<string> sink = string.IsNullOrWhiteSpace(taskLogFile)
+                ? (Action<string>)WriteTaskLog
+                : t => { WriteTaskLog(t); WritePerTaskLog(taskLogFile, t); };
             try
             {
                 var settings = HubSettings.Load();
@@ -79,15 +100,15 @@ namespace ShaiyaServerHub
                     FullPath = scriptPath,
                     Kind = ScriptItem.KindFromExtension(scriptPath)
                 };
-                WriteTaskLog($"── headless: {scriptPath} ──");
-                int rc = runner.RunScript(item, WriteTaskLog);
-                WriteTaskLog($"exit {rc}");
+                sink($"── headless: {scriptPath} ──");
+                int rc = runner.RunScript(item, sink);
+                sink($"exit {rc}");
                 return rc;
             }
             catch (Exception ex)
             {
                 // Errore = anche in hub.log (è un errore di programma).
-                WriteTaskLog("ERRORE: " + ex.Message);
+                sink("ERRORE: " + ex.Message);
                 WriteLog("RUN-ERR", ex.ToString());
                 return -1;
             }
