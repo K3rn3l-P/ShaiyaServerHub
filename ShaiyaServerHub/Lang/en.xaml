@@ -32,6 +32,11 @@
     <s:String x:Key="BtnOpenFolders">📂 Open folders</s:String>
     <s:String x:Key="BtnRun">▶ Run</s:String>
     <s:String x:Key="BtnSchedule">🕑 Schedule</s:String>
+    <s:String x:Key="BtnEditFile">✎ Edit</s:String>
+    <s:String x:Key="TipEditFile">Open this file in the editor</s:String>
+    <s:String x:Key="BtnNewFile">＋ New file</s:String>
+    <s:String x:Key="TipNewFile">Create a new .sql / .ps1 / .bat file and open it in the editor</s:String>
+    <s:String x:Key="BtnSaveFile">💾 Save</s:String>
 
     <!-- New task -->
     <s:String x:Key="GbNewTask">NEW SCHEDULED TASK</s:String>
@@ -50,6 +55,18 @@
     <s:String x:Key="DaySat">Sat</s:String>
     <s:String x:Key="DaySun">Sun</s:String>
     <s:String x:Key="BtnCreateTask">＋ Create task</s:String>
+    <s:String x:Key="ChkGenLog">Write log (log\&lt;name&gt;.log)</s:String>
+    <s:String x:Key="TipGenLog">Creates a log\ folder next to the task and writes each run's output there. sqlcmd → -o; other programs → redirect via cmd.</s:String>
+    <s:String x:Key="BtnGuide">❓ Guide</s:String>
+    <s:String x:Key="TipGuide">Explains server restart and event triggers (with copyable examples)</s:String>
+    <s:String x:Key="LblPrimaryTrigger">PRIMARY TRIGGER</s:String>
+    <s:String x:Key="LblExtraTriggers">ADDITIONAL TRIGGERS (optional)</s:String>
+    <s:String x:Key="BtnAddTrigger">＋ Add trigger</s:String>
+    <s:String x:Key="TipAddTrigger">Add another trigger to this task (e.g. also on event)</s:String>
+    <s:String x:Key="TrigDlgTitle">Add trigger</s:String>
+    <s:String x:Key="TrigDlgAdd">＋ Add</s:String>
+    <s:String x:Key="BtnEventGen">🧩 Event generator</s:String>
+    <s:String x:Key="TipEventGen">Create a trigger that fires when a service changes state (pick from the list)</s:String>
 
     <!-- Tasks -->
     <s:String x:Key="GbTasks">SCHEDULED TASKS (\ShaiyaServerHub\)</s:String>
@@ -98,5 +115,32 @@
     <s:String x:Key="BtnRegisterCaller">Enable this login in the command channel (ECONOMY)</s:String>
     <s:String x:Key="BtnSave">Save</s:String>
     <s:String x:Key="BtnCancel">Cancel</s:String>
+
+    <!-- Guide (explanation only) -->
+    <s:String x:Key="GuideTitle">Guide — special task functions</s:String>
+    <s:String x:Key="GuideIntro">Two tools in the "New task" form: ❓ Guide (this, explains) and 🧩 Event generator (builds the trigger). Below: copyable examples and how the generator works.</s:String>
+    <s:String x:Key="GuideShutdownHdr">1) Server restart / shutdown</s:String>
+    <s:String x:Key="GuideShutdownDesc">To restart/shutdown the server via a task: put "shutdown" in Program and one of these in Arguments. Suggested cadence DAILY or ONCE. (Copy with the buttons.)</s:String>
+    <s:String x:Key="GuideEventHdr">2) What an "on event" trigger is</s:String>
+    <s:String x:Key="GuideEventDesc">Windows writes an event whenever a service changes state: ID 7036 of the "Service Control Manager". param1 = service name (e.g. "Shaiya Game Server"), param2 = state (LOCALIZED: on Italian Windows "in esecuzione"/"arrestato"). A task can fire on that event. Example XML filter:</s:String>
+    <s:String x:Key="GuideGenHowHdr">3) How 🧩 Event generator works</s:String>
+    <s:String x:Key="GuideGenStep1">• Step 1 — Search the service (e.g. type "ps_game") and pick it from the list. No EventID to know: it is always 7036.</s:String>
+    <s:String x:Key="GuideGenStep2">• Step 2 — Choose WHEN to fire: "Any change" (start or stop), "Only when it STARTS" or "Only when it STOPS".</s:String>
+    <s:String x:Key="GuideGenStep3">• Step 3 — "Generated filter" updates itself showing the trigger XML. Press "✓ Use in task".</s:String>
+    <s:String x:Key="GuideGenStep4">• Step 4 — The form sets cadence to EVENT with channel and XPath prefilled. Fill Program/Arguments (the action) and create the task.</s:String>
+    <s:String x:Key="GuideGenStateNote">Note: "started/stopped" use the REAL server state text (param2 is localized); the generator detects it from events. If not found, it falls back to "any change".</s:String>
+    <s:String x:Key="GuideFindHdr">4) Find the EventID / service name by hand</s:String>
+    <s:String x:Key="GuideFindDesc">The generator does all this already. To inspect events by hand, in PowerShell on the server:</s:String>
+    <s:String x:Key="LblState">State:</s:String>
+    <s:String x:Key="LblChannel">Channel (log):</s:String>
+    <s:String x:Key="BtnUseInTask">✓ Use in task</s:String>
+    <s:String x:Key="GuideGenerated">Generated filter (preview):</s:String>
+    <!-- Event trigger generator -->
+    <s:String x:Key="EvGenTitle">Generate event trigger</s:String>
+    <s:String x:Key="EvGenIntro">Fire the task when a server service changes state (event 7036). Pick the service from the list and when to fire — the filter builds itself.</s:String>
+    <s:String x:Key="EvGenStep1">1) Search and pick the service</s:String>
+    <s:String x:Key="EvGenSearch">Search:</s:String>
+    <s:String x:Key="EvGenReload">🔄 Reload</s:String>
+    <s:String x:Key="EvGenStep2">2) When to fire the task</s:String>
 
 </ResourceDictionary>

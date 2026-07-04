@@ -26,12 +26,23 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
 
 ## Moduli
 1. **Script** — lista auto-scoperta di `scripts\sql\` e `scripts\ps1\`. `▶ Esegui` lancia subito con log live.
-2. **Nuovo task** — form per pianificare uno script. Trigger supportati:
+   **✎ Modifica** apre il file nell'**editor** integrato (modale, salva con `💾`/Ctrl+S, preserva la codifica);
+   **＋ Nuovo file** crea un `.sql`/`.ps1`/`.bat` e lo apre subito. (Editor disponibile anche in Funzioni e Test Suite.)
+2. **Nuovo task** — form per pianificare uno script. **Più trigger per task** (opzionali): un **trigger
+   principale** + una lista di **trigger aggiuntivi** (**＋ Aggiungi trigger**, ✎ modifica, ✕ rimuovi) —
+   es. DAILY 10:00 **e anche** su evento. Vale sia per task nuovi che per l'Edit di task esistenti (vecchi
+   inclusi: tutti i loro trigger vengono caricati). Trigger supportati per ciascuno:
    DAILY / HOURLY / MINUTE / **WEEKLY (multi-giorno)** / ONCE / **LOGON** (al login) /
-   **BOOT** (all'avvio) / **SHUTDOWN** (allo spegnimento, evento 1074). Per WEEKLY selezioni più
-   giorni con checkbox localizzate (Lun…Dom). Sezione **Azione** (come Task Scheduler): **Programma/script**,
-   **Argomenti**, **Avvia in** (prefillati con `ShaiyaServerHub.exe --run "<script>"` ma modificabili).
-   Dalla riga di uno script, **▶ Pianifica** apre lo stesso form in un **modale** (`NewTaskControl` condiviso).
+   **BOOT** (all'avvio) / **SHUTDOWN** (allo spegnimento, evento 1074) / **EVENT** (trigger su evento
+   del log di Windows: canale + filtro XPath). Per WEEKLY selezioni più giorni con checkbox localizzate
+   (Lun…Dom). Sezione **Azione** (come Task Scheduler): **Programma/script**, **Argomenti**, **Avvia in**
+   (prefillati con `ShaiyaServerHub.exe --run "<script>"` ma modificabili). Opzioni: **☑ Genera log**
+   (crea `log\<nome>.log` accanto al task — sqlcmd via `-o`, altri programmi via wrapper `cmd` con redirect),
+   **❓ Guida** (modale: spiega riavvio server `shutdown /r /f /t 0` e i trigger su evento, con snippet
+   copiabili) e **🧩 Genera evento** (modale generatore: **cerchi il servizio dalla lista** — es. `ps_game` —
+   scegli *quando* scattare _qualsiasi cambio / avvio / arresto_, il filtro XPath si genera da solo e "Usa
+   nel task" imposta la cadenza **EVENT**). Dalla riga di uno script, **▶ Pianifica** apre lo stesso form in
+   un **modale** (`NewTaskControl` condiviso).
 3. **Task pianificati** — lista dei task di `\ShaiyaServerHub\`: **▶ Ora** (avvia subito, test),
    **✎ Modifica** (modale precompilato dai valori attuali del task, letti da `schtasks /Query /XML`),
    Abilita / Disabilita / Rimuovi, e **🪟 Task Scheduler** (apre la GUI di Windows per modifiche avanzate).
@@ -96,4 +107,5 @@ cartelle script **funzionanti** (password reali) + `.env`, pronto per copia-inco
 
 ## TODO (prossimo)
 - Wizard "nuovo server" (esegue in ordine gli step di `A-Best-Installation-GUIDE`).
-- Editor cadenza avanzato + import automatico degli script dalla cartella NAS.
+- Import automatico degli script dalla cartella NAS.
+- Editor: syntax highlighting SQL/PS + preview del comando schtasks generato.

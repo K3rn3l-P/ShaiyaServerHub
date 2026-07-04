@@ -1,65 +1,63 @@
 <UserControl x:Class="ShaiyaServerHub.Controls.NewTaskControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:ShaiyaServerHub.Controls"
              FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
     <StackPanel>
+        <!-- Script + nome task -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="170"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="200"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" Content="{DynamicResource LblSelScript}"/>
             <TextBox Grid.Column="1" x:Name="TbSelScript" IsReadOnly="True" FontFamily="Consolas" FontSize="10"/>
             <Label Grid.Column="2" Content="{DynamicResource LblTaskName}"/>
             <TextBox Grid.Column="3" x:Name="TbTaskName"/>
-            <Label Grid.Column="4" Content="{DynamicResource LblCadence}"/>
-            <ComboBox Grid.Column="5" x:Name="CbCadence" SelectionChanged="CbCadence_Changed">
-                <ComboBoxItem Content="DAILY" IsSelected="True"/>
-                <ComboBoxItem Content="HOURLY"/>
-                <ComboBoxItem Content="MINUTE"/>
-                <ComboBoxItem Content="WEEKLY"/>
-                <ComboBoxItem Content="ONCE"/>
-                <ComboBoxItem Content="LOGON"/>
-                <ComboBoxItem Content="BOOT"/>
-                <ComboBoxItem Content="SHUTDOWN"/>
-            </ComboBox>
         </Grid>
 
-        <Grid Margin="0,6,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="70"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="80"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="{DynamicResource LblEvery}"/>
-            <TextBox Grid.Column="1" x:Name="TbInterval" Text="1"/>
-            <Label Grid.Column="2" Content="{DynamicResource LblTime}"/>
-            <TextBox Grid.Column="3" x:Name="TbTime" Text="04:00"/>
-            <Button Grid.Column="5" x:Name="BtnCreate" Style="{StaticResource AccentButton}"
-                    Content="{DynamicResource BtnCreateTask}" Click="BtnCreateTask_Click"/>
-        </Grid>
+        <!-- Trigger principale -->
+        <TextBlock Text="{DynamicResource LblPrimaryTrigger}" Foreground="#7BE8C881"
+                   FontSize="10" FontWeight="Bold" Margin="4,10,0,2"/>
+        <controls:CadencePicker x:Name="PrimaryCadence"/>
 
-        <!-- Giorni (WEEKLY): multi-selezione, etichette localizzate -->
-        <StackPanel x:Name="PanelDays" Orientation="Horizontal" Margin="0,6,0,0" Visibility="Collapsed">
-            <Label Content="{DynamicResource LblDays}"/>
-            <CheckBox x:Name="ChkMon" Content="{DynamicResource DayMon}" Margin="0,0,12,0"/>
-            <CheckBox x:Name="ChkTue" Content="{DynamicResource DayTue}" Margin="0,0,12,0"/>
-            <CheckBox x:Name="ChkWed" Content="{DynamicResource DayWed}" Margin="0,0,12,0"/>
-            <CheckBox x:Name="ChkThu" Content="{DynamicResource DayThu}" Margin="0,0,12,0"/>
-            <CheckBox x:Name="ChkFri" Content="{DynamicResource DayFri}" Margin="0,0,12,0"/>
-            <CheckBox x:Name="ChkSat" Content="{DynamicResource DaySat}" Margin="0,0,12,0"/>
-            <CheckBox x:Name="ChkSun" Content="{DynamicResource DaySun}" Margin="0,0,12,0"/>
-        </StackPanel>
+        <!-- Trigger aggiuntivi (opzionali) -->
+        <Grid Margin="4,10,2,0">
+            <TextBlock Text="{DynamicResource LblExtraTriggers}" Foreground="#7BE8C881"
+                       FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Button HorizontalAlignment="Right" Content="{DynamicResource BtnAddTrigger}"
+                    ToolTip="{DynamicResource TipAddTrigger}" Click="BtnAddTrigger_Click"/>
+        </Grid>
+        <Border x:Name="ExtraBox" Margin="2,4,2,0" CornerRadius="4" Background="#080810"
+                BorderBrush="#182A8FFF" BorderThickness="1" Visibility="Collapsed">
+            <ItemsControl x:Name="ExtraTriggersList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="8,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="🕑" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Label}" Foreground="#CCE0E0E0"
+                                       FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <Button Grid.Column="2" Style="{StaticResource MiniButton}"
+                                    Content="{DynamicResource BtnEditFile}" Click="BtnEditTrigger_Click"/>
+                            <Button Grid.Column="3" Style="{StaticResource DangerButton}"
+                                    Content="✕" Click="BtnRemoveTrigger_Click"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
 
         <!-- Azione (come Task Scheduler: Programma/script, Argomenti, Avvia in) -->
-        <Border Margin="0,8,0,0" CornerRadius="4" Background="#0A0A10" BorderBrush="#18E8C881" BorderThickness="1" Padding="8,6">
+        <Border Margin="0,10,0,0" CornerRadius="4" Background="#0A0A10" BorderBrush="#18E8C881" BorderThickness="1" Padding="8,6">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -80,6 +78,17 @@
                 <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TbStartIn" FontFamily="Consolas" FontSize="10"/>
             </Grid>
         </Border>
+
+        <!-- Opzioni: log su file + guida + crea -->
+        <Grid Margin="2,8,2,0">
+            <CheckBox x:Name="ChkGenLog" Content="{DynamicResource ChkGenLog}"
+                      ToolTip="{DynamicResource TipGenLog}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="{DynamicResource BtnGuide}" ToolTip="{DynamicResource TipGuide}" Click="BtnGuide_Click"/>
+                <Button x:Name="BtnCreate" Style="{StaticResource AccentButton}"
+                        Content="{DynamicResource BtnCreateTask}" Click="BtnCreateTask_Click"/>
+            </StackPanel>
+        </Grid>
 
         <TextBlock Text="{DynamicResource HintNewTask}" Foreground="#35E8C881"
                    FontSize="10" Margin="4,8,4,0" TextWrapping="Wrap"/>

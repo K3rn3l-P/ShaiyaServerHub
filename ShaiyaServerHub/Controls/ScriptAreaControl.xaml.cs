@@ -96,6 +96,35 @@ namespace ShaiyaServerHub.Controls
             TbAreaLog.Clear();
         }
 
+        // ── Editor file (modifica veloce / nuovo file nell'area) ──
+        private void BtnEditAreaScript_Click(object sender, RoutedEventArgs e)
+        {
+            var item = ((FrameworkElement)sender).DataContext as ScriptItem;
+            if (item == null) return;
+            var win = new EditorWindow(item.FullPath) { Owner = Window.GetWindow(this) };
+            if (win.ShowDialog() == true) Reload();
+        }
+
+        private void BtnNewAreaFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (_repo == null) return;
+            _repo.EnsureFolders();
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = L.NewFilePrompt,
+                InitialDirectory = _repo.SqlDir,
+                Filter = "SQL (*.sql)|*.sql|PowerShell (*.ps1)|*.ps1|Batch (*.bat)|*.bat|Tutti|*.*",
+                FilterIndex = 1,
+                OverwritePrompt = false
+            };
+            if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+            string path = dlg.FileName;
+            try { if (!File.Exists(path)) File.WriteAllText(path, "", Encoding.UTF8); }
+            catch (Exception ex) { Log(L.Err(ex.Message)); return; }
+            var win = new EditorWindow(path) { Owner = Window.GetWindow(this) };
+            if (win.ShowDialog() == true) Reload();
+        }
+
         // ── Esecuzione script ────────────────────────────────
         private async void BtnRunAreaScript_Click(object sender, RoutedEventArgs e)
         {

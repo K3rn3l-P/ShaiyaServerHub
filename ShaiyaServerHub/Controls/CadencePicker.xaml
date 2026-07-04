@@ -1,0 +1,74 @@
+<UserControl x:Class="ShaiyaServerHub.Controls.CadencePicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
+    <StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="64"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="{DynamicResource LblCadence}"/>
+            <ComboBox Grid.Column="1" x:Name="CbCadence" SelectionChanged="CbCadence_Changed">
+                <ComboBoxItem Content="DAILY" IsSelected="True"/>
+                <ComboBoxItem Content="HOURLY"/>
+                <ComboBoxItem Content="MINUTE"/>
+                <ComboBoxItem Content="WEEKLY"/>
+                <ComboBoxItem Content="ONCE"/>
+                <ComboBoxItem Content="LOGON"/>
+                <ComboBoxItem Content="BOOT"/>
+                <ComboBoxItem Content="SHUTDOWN"/>
+                <ComboBoxItem Content="EVENT"/>
+            </ComboBox>
+            <Label Grid.Column="2" Content="{DynamicResource LblEvery}"/>
+            <TextBox Grid.Column="3" x:Name="TbInterval" Text="1"/>
+            <Label Grid.Column="4" Content="{DynamicResource LblTime}"/>
+            <TextBox Grid.Column="5" x:Name="TbTime" Text="04:00"/>
+            <Button Grid.Column="7" x:Name="BtnEventGen" Style="{StaticResource AccentButton}"
+                    Content="{DynamicResource BtnEventGen}" ToolTip="{DynamicResource TipEventGen}"
+                    Click="BtnEventGen_Click" Visibility="Collapsed"/>
+        </Grid>
+
+        <!-- Giorni (WEEKLY) -->
+        <StackPanel x:Name="PanelDays" Orientation="Horizontal" Margin="0,6,0,0" Visibility="Collapsed">
+            <Label Content="{DynamicResource LblDays}"/>
+            <CheckBox x:Name="ChkMon" Content="{DynamicResource DayMon}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkTue" Content="{DynamicResource DayTue}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkWed" Content="{DynamicResource DayWed}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkThu" Content="{DynamicResource DayThu}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkFri" Content="{DynamicResource DayFri}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkSat" Content="{DynamicResource DaySat}" Margin="0,0,12,0"/>
+            <CheckBox x:Name="ChkSun" Content="{DynamicResource DaySun}" Margin="0,0,12,0"/>
+        </StackPanel>
+
+        <!-- EVENT: canale + filtro XPath -->
+        <Border x:Name="PanelEvent" Margin="0,6,0,0" CornerRadius="4" Background="#0A0A10"
+                BorderBrush="#182A8FFF" BorderThickness="1" Padding="8,6" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Content="{DynamicResource LblChannel}"/>
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="TbEventChannel" Text="System" FontFamily="Consolas" FontSize="10"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource TipEventGen}" Foreground="#5552A8FF"
+                           FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis"/>
+                <Label Grid.Row="1" Grid.Column="0" Content="XPath:"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TbEventXPath"
+                         FontFamily="Consolas" FontSize="10" TextWrapping="Wrap" AcceptsReturn="True"
+                         MinHeight="42" VerticalContentAlignment="Top"/>
+            </Grid>
+        </Border>
+    </StackPanel>
+</UserControl>

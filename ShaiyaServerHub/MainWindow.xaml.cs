@@ -193,6 +193,49 @@ namespace ShaiyaServerHub
             }
         }
 
+        // ── Editor file (modifica veloce script) ──────────────
+        private void BtnEditScript_Click(object sender, RoutedEventArgs e)
+        {
+            var item = ((FrameworkElement)sender).DataContext as ScriptItem;
+            if (item == null) return;
+            if (OpenEditor(item.FullPath)) ReloadScripts();
+        }
+
+        private void BtnNewScript_Click(object sender, RoutedEventArgs e)
+        {
+            var repo = ScriptRepository.Main;
+            if (CreateAndEditNewFile(repo)) ReloadScripts();
+        }
+
+        /// <summary>Apre l'editor su un file; ritorna true se è stato salvato.</summary>
+        private bool OpenEditor(string fullPath)
+        {
+            var win = new EditorWindow(fullPath) { Owner = this };
+            return win.ShowDialog() == true;
+        }
+
+        /// <summary>SaveFileDialog nella cartella dell'area → crea il file vuoto → apre l'editor.</summary>
+        private bool CreateAndEditNewFile(ScriptRepository repo)
+        {
+            repo.EnsureFolders();
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = L.NewFilePrompt,
+                InitialDirectory = repo.SqlDir,
+                Filter = "SQL (*.sql)|*.sql|PowerShell (*.ps1)|*.ps1|Batch (*.bat)|*.bat|Tutti|*.*",
+                FilterIndex = 1,
+                OverwritePrompt = false
+            };
+            if (dlg.ShowDialog(this) != true) return false;
+            string path = dlg.FileName;
+            try
+            {
+                if (!File.Exists(path)) File.WriteAllText(path, "", System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex) { Log(L.Err(ex.Message)); return false; }
+            return OpenEditor(path);
+        }
+
         // ── Tasks ─────────────────────────────────────────────
         private void BtnReloadTasks_Click(object sender, RoutedEventArgs e) => ReloadTasks();
         private void ReloadTasks() => TasksList.ItemsSource = TaskSchedulerService.List();

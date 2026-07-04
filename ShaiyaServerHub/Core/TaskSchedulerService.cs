@@ -20,8 +20,11 @@ namespace ShaiyaServerHub.Core
         public static string ExeDir => Path.GetDirectoryName(ExePath);
 
         // ── Create (azione custom: program + arguments + start-in) ──
+        // wrapLogFile != null → dopo la creazione l'azione viene riscritta in
+        // cmd.exe /c ""prog" args > "log" 2>&1" via PowerShell (quoting robusto).
         public static int Create(string taskName, ScheduleSpec spec,
-                                 string program, string arguments, string workingDir, Action<string> log)
+                                 string program, string arguments, string workingDir, Action<string> log,
+                                 string wrapLogFile = null, IEnumerable<ScheduleSpec> extraTriggers = null)
         {
             string shortName = Sanitize(taskName);
             string tn = $"\\{Folder}\\{shortName}";
@@ -42,6 +45,13 @@ namespace ShaiyaServerHub.Core
                 case "SHUTDOWN":                                        // allo spegnimento/riavvio (evento 1074)
                     sc = "/SC ONEVENT /EC System /MO \"*[System[Provider[@Name='User32'] and (EventID=1074)]]\"";
                     break;
+                case "EVENT":                                           // trigger su evento custom (canale + XPath)
+                    {
+                        string ch = string.IsNullOrWhiteSpace(spec.EventChannel) ? "System" : spec.EventChannel;
+                        string xp = (spec.EventXPath ?? "").Replace("\"", "\\\"");
+                        sc = $"/SC ONEVENT /EC {ch} /MO \"{xp}\"";
+                    }
+                    break;
                 default: sc = $"/SC DAILY /ST {spec.Time}"; break;
             }
 
@@ -49,11 +59,98 @@ namespace ShaiyaServerHub.Core
             log?.Invoke($"[schtasks] creo task '{tn}'");
             int rc = ProcessRunner.Run("schtasks.exe", args, log);
             log?.Invoke(rc == 0 ? "✓ task creato" : $"✗ schtasks exit {rc}");
+            if (rc != 0) return rc;
 
-            // "Start in" (WorkingDirectory) non è impostabile via schtasks → PowerShell.
-            if (rc == 0 && !string.IsNullOrWhiteSpace(workingDir))
+            if (!string.IsNullOrWhiteSpace(wrapLogFile))
+                // Riscrive l'azione (Execute+Argument+WorkingDirectory) con redirect su log.
+                SetWrappedAction(shortName, program, arguments, workingDir, wrapLogFile, log);
+            else if (!string.IsNullOrWhiteSpace(workingDir))
+                // "Start in" (WorkingDirectory) non è impostabile via schtasks → PowerShell.
                 SetWorkingDir(shortName, workingDir, log);
+
+            // Trigger aggiuntivi (oltre al principale creato da schtasks) → appesi via PowerShell.
+            var extras = extraTriggers?.Where(t => t != null).ToList();
+            if (extras != null && extras.Count > 0)
+                AddExtraTriggers(shortName, extras, log);
             return rc;
+        }
+
+        /// <summary>
+        /// Appende trigger extra a un task esistente (Set-ScheduledTask). I trigger a tempo usano
+        /// New-ScheduledTaskTrigger; quelli su evento un MSFT_TaskEventTrigger (CIM). Testato.
+        /// </summary>
+        public static void AddExtraTriggers(string shortName, IEnumerable<ScheduleSpec> specs, Action<string> log)
+        {
+            var list = specs?.Where(s => s != null).ToList();
+            if (list == null || list.Count == 0) return;
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("function New-EvtTrig($sub){ ");
+            sb.Append("$c = Get-CimClass -Namespace Root/Microsoft/Windows/TaskScheduler -ClassName MSFT_TaskEventTrigger; ");
+            sb.Append("$e = New-CimInstance -CimClass $c -ClientOnly; $e.Enabled = $true; $e.Subscription = $sub; $e }; ");
+            sb.Append($"$t = Get-ScheduledTask -TaskPath '\\{Folder}\\' -TaskName '{shortName.Replace("'", "''")}'; ");
+            foreach (var s in list)
+            {
+                string expr = BuildTriggerPsExpr(s);
+                if (expr != null) sb.Append($"$t.Triggers += {expr}; ");
+            }
+            sb.Append("$t | Set-ScheduledTask | Out-Null");
+
+            int rc = ProcessRunner.RunPowerShellEncoded(sb.ToString(), log);
+            log?.Invoke(rc == 0 ? $"✓ {list.Count} trigger aggiuntivi impostati" : $"⚠ trigger aggiuntivi non impostati (exit {rc})");
+        }
+
+        // Espressione PowerShell che valuta a un oggetto trigger, per un dato ScheduleSpec.
+        private static string BuildTriggerPsExpr(ScheduleSpec s)
+        {
+            int mo = Math.Max(1, s.Interval);
+            switch ((s.Type ?? "DAILY").ToUpperInvariant())
+            {
+                case "MINUTE": return $"(New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes {mo}))";
+                case "HOURLY": return $"(New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours {mo}))";
+                case "WEEKLY": return $"(New-ScheduledTaskTrigger -Weekly -DaysOfWeek {DaysToPs(s.Days)} -At '{s.Time}')";
+                case "ONCE": return $"(New-ScheduledTaskTrigger -Once -At '{s.Time}')";
+                case "LOGON": return "(New-ScheduledTaskTrigger -AtLogOn)";
+                case "BOOT": return "(New-ScheduledTaskTrigger -AtStartup)";
+                case "SHUTDOWN":
+                    return "(New-EvtTrig '" + EventTriggerBuilder
+                        .BuildQueryListXml("System", EventTriggerBuilder.ShutdownXPath).Replace("'", "''") + "')";
+                case "EVENT":
+                    string ch = string.IsNullOrWhiteSpace(s.EventChannel) ? "System" : s.EventChannel;
+                    string sub = EventTriggerBuilder.BuildQueryListXml(ch, s.EventXPath ?? "");
+                    return "(New-EvtTrig '" + sub.Replace("'", "''") + "')";
+                default: return $"(New-ScheduledTaskTrigger -Daily -At '{s.Time}')";
+            }
+        }
+
+        // "MON,WED" → "Monday,Wednesday" (per New-ScheduledTaskTrigger -DaysOfWeek).
+        private static string DaysToPs(string csv)
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "MON", "Monday" }, { "TUE", "Tuesday" }, { "WED", "Wednesday" }, { "THU", "Thursday" },
+                { "FRI", "Friday" }, { "SAT", "Saturday" }, { "SUN", "Sunday" }
+            };
+            var days = (csv ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(d => map.TryGetValue(d.Trim(), out var v) ? v : null)
+                .Where(v => v != null).ToList();
+            return days.Count > 0 ? string.Join(",", days) : "Monday";
+        }
+
+        // Riscrive l'azione come cmd wrapper con redirect su file di log (quoting via PowerShell).
+        private static void SetWrappedAction(string shortName, string program, string arguments,
+                                             string workingDir, string logFile, Action<string> log)
+        {
+            string argument = TaskLogging.BuildCmdWrapperArgument(program, arguments, logFile);
+            string wd = string.IsNullOrWhiteSpace(workingDir) ? "" :
+                        $" -WorkingDirectory '{workingDir.Replace("'", "''")}'";
+            string ps =
+                $"$a = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '{argument.Replace("'", "''")}'{wd}; " +
+                $"$t = Get-ScheduledTask -TaskPath '\\{Folder}\\' -TaskName '{shortName.Replace("'", "''")}'; " +
+                "$t.Actions = @($a); $t | Set-ScheduledTask | Out-Null";
+            // -EncodedCommand: le virgolette annidate del wrapper cmd NON sopravvivono a -Command.
+            int rc = ProcessRunner.RunPowerShellEncoded(ps, log);
+            log?.Invoke(rc == 0 ? "✓ log su file abilitato (log\\)" : "⚠ log su file non impostato (exit " + rc + ")");
         }
 
         private static void SetWorkingDir(string shortName, string dir, Action<string> log)

@@ -11,6 +11,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" CornerRadius="3" Background="{Binding KindBadgeBg}"
                         Padding="5,1" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -21,9 +22,12 @@
                            FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" Margin="6,0,0,0"/>
                 <Button Grid.Column="2" Style="{StaticResource MiniButton}"
+                        Content="{DynamicResource BtnEditFile}" Click="BtnEditAreaScript_Click"
+                        ToolTip="{DynamicResource TipEditFile}"/>
+                <Button Grid.Column="3" Style="{StaticResource MiniButton}"
                         Content="{DynamicResource BtnRun}" Click="BtnRunAreaScript_Click"/>
                 <!-- Badge esito cliccabile: apre il log di questo singolo script -->
-                <Button Grid.Column="3" MinWidth="62" Style="{StaticResource MiniButton}"
+                <Button Grid.Column="4" MinWidth="62" Style="{StaticResource MiniButton}"
                         Content="{Binding RunStatusLabel}"
                         Background="{Binding RunStatusBg}"
                         BorderBrush="{Binding RunStatusFg}"
@@ -50,6 +54,8 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,6,0,0">
             <Button Content="{DynamicResource BtnReloadScripts}" Click="BtnReload_Click"/>
             <Button Content="{DynamicResource BtnOpenFolders}" Click="BtnOpenFolders_Click"/>
+            <Button Content="{DynamicResource BtnNewFile}" Click="BtnNewAreaFile_Click"
+                    ToolTip="{DynamicResource TipNewFile}"/>
             <Button Content="{DynamicResource BtnOpenLog}" Click="BtnOpenLog_Click"/>
             <TextBlock x:Name="TbHint" Foreground="#35E8C881" FontSize="10"
                        VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap"/>

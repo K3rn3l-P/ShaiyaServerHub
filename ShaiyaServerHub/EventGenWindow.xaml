@@ -1,0 +1,139 @@
+<Window x:Class="ShaiyaServerHub.EventGenWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Genera trigger evento" Icon="icon.ico"
+        Width="680" Height="620" MinWidth="520" MinHeight="440"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
+
+    <Window.Resources>
+        <Style x:Key="StepHdr" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E8C881"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,10,0,4"/>
+        </Style>
+        <!-- ListBox scuro coerente col tema -->
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#06060A"/>
+            <Setter Property="BorderBrush" Value="#28E8C881"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#CCE0E0E0"/>
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#12E8C881"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2AE8C881"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="8" BorderBrush="#4DE8C881" BorderThickness="1" ClipToBounds="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#0D0D10" Offset="0"/>
+                <GradientStop Color="#070709" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>   <!-- header -->
+                <RowDefinition Height="Auto"/>   <!-- intro -->
+                <RowDefinition Height="Auto"/>   <!-- step1 hdr -->
+                <RowDefinition Height="Auto"/>   <!-- search row -->
+                <RowDefinition Height="*"/>      <!-- service list -->
+                <RowDefinition Height="Auto"/>   <!-- step2 hdr -->
+                <RowDefinition Height="Auto"/>   <!-- state -->
+                <RowDefinition Height="Auto"/>   <!-- preview label -->
+                <RowDefinition Height="Auto"/>   <!-- preview -->
+                <RowDefinition Height="Auto"/>   <!-- footer -->
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal" MouseLeftButtonDown="DragWindow" HorizontalAlignment="Left">
+                    <TextBlock Text="🧩" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="{DynamicResource EvGenTitle}" Foreground="#E8C881"
+                               FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Border HorizontalAlignment="Right" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                        Background="Transparent" MouseLeftButtonUp="BtnClose_Click">
+                    <TextBlock Text="✕" FontSize="12" Foreground="#60E8C881" IsHitTestVisible="False"/>
+                </Border>
+            </Grid>
+
+            <TextBlock Grid.Row="1" Text="{DynamicResource EvGenIntro}" Foreground="#99E0E0E0"
+                       FontSize="11" TextWrapping="Wrap"/>
+
+            <!-- Step 1: servizio -->
+            <TextBlock Grid.Row="2" Style="{StaticResource StepHdr}" Text="{DynamicResource EvGenStep1}"/>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Content="{DynamicResource EvGenSearch}"/>
+                <TextBox Grid.Column="1" x:Name="TbSearch" TextChanged="TbSearch_TextChanged"/>
+                <Button Grid.Column="2" x:Name="BtnReload" Content="{DynamicResource EvGenReload}" Click="BtnReload_Click"/>
+            </Grid>
+            <Border Grid.Row="4" Margin="0,6,0,0" CornerRadius="4" BorderBrush="#18E8C881" BorderThickness="1">
+                <ListBox x:Name="LbServices" BorderThickness="0"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         SelectionChanged="LbServices_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Display}" FontFamily="Consolas" FontSize="11"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+
+            <!-- Step 2: stato -->
+            <TextBlock Grid.Row="5" Style="{StaticResource StepHdr}" Text="{DynamicResource EvGenStep2}"/>
+            <StackPanel Grid.Row="6" Orientation="Horizontal">
+                <Label Content="{DynamicResource LblState}"/>
+                <ComboBox x:Name="CbState" Width="240" SelectionChanged="CbState_SelectionChanged"/>
+                <TextBlock x:Name="TbStateNote" VerticalAlignment="Center" Margin="10,0,0,0"
+                           FontSize="10" Foreground="#E8B24D" TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <!-- Preview -->
+            <TextBlock Grid.Row="7" Text="{DynamicResource GuideGenerated}" Foreground="#88E0E0E0"
+                       FontSize="10" Margin="2,10,0,2"/>
+            <Border Grid.Row="8" CornerRadius="4" Background="#06060A" BorderBrush="#182A8FFF" BorderThickness="1">
+                <TextBox x:Name="TbGenerated" IsReadOnly="True" MinHeight="64" MaxHeight="120"
+                         VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"
+                         FontFamily="Consolas" FontSize="11" Background="Transparent"
+                         Foreground="#AAD8E0C8" BorderThickness="0" Padding="6,4"/>
+            </Border>
+
+            <!-- Footer -->
+            <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                <TextBlock x:Name="TbStatus" VerticalAlignment="Center" Margin="0,0,10,0"
+                           FontSize="11" Foreground="#7BE8C881"/>
+                <Button Content="{DynamicResource BtnCancel}" Click="BtnCancel_Click" MinWidth="90"/>
+                <Button Style="{StaticResource AccentButton}" Content="{DynamicResource BtnUseInTask}"
+                        Click="BtnUse_Click" MinWidth="130"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

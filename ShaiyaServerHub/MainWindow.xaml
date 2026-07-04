@@ -18,6 +18,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" CornerRadius="3" Background="{Binding KindBadgeBg}"
                         Padding="5,1" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -28,8 +29,11 @@
                            FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" Margin="6,0,0,0"/>
                 <Button Grid.Column="2" Style="{StaticResource MiniButton}"
-                        Content="{DynamicResource BtnRun}" Click="BtnRunScript_Click"/>
+                        Content="{DynamicResource BtnEditFile}" Click="BtnEditScript_Click"
+                        ToolTip="{DynamicResource TipEditFile}"/>
                 <Button Grid.Column="3" Style="{StaticResource MiniButton}"
+                        Content="{DynamicResource BtnRun}" Click="BtnRunScript_Click"/>
+                <Button Grid.Column="4" Style="{StaticResource MiniButton}"
                         Content="{DynamicResource BtnSchedule}" Click="BtnScheduleScript_Click"/>
             </Grid>
         </DataTemplate>
@@ -147,6 +151,8 @@
                             <StackPanel Grid.Row="0" Orientation="Horizontal">
                                 <Button Content="{DynamicResource BtnReloadScripts}" Click="BtnReloadScripts_Click"/>
                                 <Button Content="{DynamicResource BtnOpenFolders}" Click="BtnOpenFolders_Click"/>
+                                <Button Content="{DynamicResource BtnNewFile}" Click="BtnNewScript_Click"
+                                        ToolTip="{DynamicResource TipNewFile}"/>
                                 <TextBlock Text="{DynamicResource HintScripts}" Foreground="#35E8C881"
                                            FontSize="10" VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap"/>
                             </StackPanel>

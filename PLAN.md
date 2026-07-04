@@ -2,7 +2,7 @@
 
 > Console locale di automazione e controllo del server Shaiya. **by K3rn3l**.
 > Documento per riprendere il progetto e pianificare nuove implementazioni.
-> Ultimo aggiornamento: 2026-07-03.
+> Ultimo aggiornamento: 2026-07-03 (editor file + log task opzionale + trigger EVENT/guida XPath).
 
 ---
 
@@ -44,7 +44,16 @@ ShaiyaServerHub\
     app.manifest                (requireAdministrator)
     icon.ico                    (copiata da PatchMaker)
     App.xaml / App.xaml.cs      (avvio UI + modalità headless --run + log globale + crash handler)
-    MainWindow.xaml / .cs       (nav laterale + 5 viste + template riga script condiviso)
+    MainWindow.xaml / .cs       (nav laterale + viste + template riga script condiviso + editor/nuovo file)
+    EditorWindow.xaml / .cs     (editor file modale sql/ps1/bat: apri/modifica/salva, preserva codifica, Ctrl+S)
+    GuideWindow.xaml / .cs      (guida SOLO spiegazione: riavvio server + trigger evento + come usare il generatore)
+    EventGenWindow.xaml / .cs   (generatore trigger evento: cerca/scegli servizio da lista → filtro XPath live)
+    NewTaskWindow.xaml / .cs    (modale che ospita NewTaskControl — Nuovo task / Edit)
+    TriggerDialog.xaml / .cs    (modale "aggiungi/modifica trigger": ospita un CadencePicker → ScheduleSpec)
+    Controls\
+      NewTaskControl.xaml/.cs   (form task riusabile: trigger principale + lista trigger extra, azione, ☑ log, ❓ guida)
+      CadencePicker.xaml/.cs    (selettore cadenza/trigger riusabile: combo+orario/giorni/EVENT+🧩 genera evento)
+      ScriptAreaControl.xaml/.cs(area script riusabile Funzioni/Test Suite + editor/nuovo file per riga)
     SettingsWindow.xaml / .cs   (⚙ config SQL/percorsi/canale comandi)
     L.cs                        (localizzazione: switch dizionari + stringhe di codice)
     Styles\AppStyles.xaml       (tema: GroupBox/Button/TextBox/ComboBox/RadioButton/NavItem/ScrollBar globale)
@@ -55,8 +64,12 @@ ShaiyaServerHub\
       ScriptRepository.cs       (scopre sql\ e ps1\ accanto all'exe; le crea all'avvio)
       ProcessRunner.cs          (Process con stdout/stderr live → callback)
       ScriptRunner.cs           (sqlcmd / powershell / cmd)
-      ScheduledTaskInfo.cs      (modello task + ScheduleSpec)
-      TaskSchedulerService.cs   (wrapper schtasks: Create/List/Enable/Disable/Delete/RunNow)
+      ScheduledTaskInfo.cs      (modello task + ScheduleSpec: cadenza + EventChannel/EventXPath)
+      TaskSchedulerService.cs   (wrapper schtasks: Create/List/Enable/Disable/Delete/RunNow + EVENT + wrapper log)
+      TaskLogging.cs            (log opzionale task: sqlcmd -o / wrapper cmd redirect; path log\<nome>.log)
+      TaskXml.cs                (parse XML task per Edit: cadenza, EVENT via Subscription/QueryList)
+      EventTriggerBuilder.cs    (XPath/QueryList per trigger evento + scan servizi da eventi 7036 SCM)
+      ProcessRunner.cs          (Process live; RunPowerShellEncoded per quoting robusto via -EncodedCommand)
       ServiceMonitor.cs         (ServiceController: Query/Start/Stop/StartAll)
       CommandChannel.cs         (registra login in PSM_Cmd.GmCallerProfile tier ECONOMY)
   (a runtime, accanto all'exe:)
@@ -83,6 +96,25 @@ ShaiyaServerHub\
   `ShaiyaServerHub.exe --run "<scriptFullPath>"` (**headless**, App intercetta `--run` → `RunHeadless` →
   ScriptRunner, no finestra, exit code propagato). Girano come **SYSTEM** `/RU SYSTEM /RL HIGHEST`
   (max privilegio, nessun problema permessi; ma per gli script canale-comandi SYSTEM va in GmCallerProfile).
+- **Editor file** (`EditorWindow`): da ogni riga script (**✎ Modifica**) o toolbar (**＋ Nuovo file**, con
+  `SaveFileDialog`) si apre/crea un file e lo si modifica. Salva con `💾`/**Ctrl+S**, **preserva la codifica**
+  originale (rileva BOM UTF-8/UTF-16, default UTF-8 senza BOM), normalizza EOL a CRLF, conferma se ci sono
+  modifiche non salvate. Al salvataggio l'host ricarica la lista. Disponibile in Script, Funzioni, Test Suite.
+- **Task — opzioni extra** (`NewTaskControl`):
+  - **Cadenza EVENT**: trigger su evento del log Windows via `schtasks /SC ONEVENT /EC <canale> /MO "<XPath>"`.
+    Il pannello EVENT ha canale (default `System`) + filtro XPath (a mano o dalla Guida).
+  - **☑ Genera log** (`TaskLogging`): crea `log\<nomeTask>.log` accanto al task. **sqlcmd** → aggiunge
+    `-o "log"` (args semplici, editabili). **Altri programmi** → azione **riscritta dopo la creazione** in
+    `cmd.exe /c ""prog" args > "log" 2>&1"` via PowerShell `Set-ScheduledTask` (**GOTCHA quoting**, §10).
+  - **❓ Guida** (`GuideWindow`, SOLO spiegazione modale): snippet copiabili (riavvio `shutdown /r /f /t 0`,
+    stop `/s /f /t 0`, esempio evento 7036) + spiegazione passo-passo di come usare il generatore.
+  - **🧩 Genera evento** (`EventGenWindow`): generatore semplice. Passo 1 = **cerca/scegli il servizio da una
+    lista** (`Get-Service`, es. `ps_game`); Passo 2 = **quando** (qualsiasi cambio / avvio / arresto). Il filtro
+    XPath (evento 7036 implicito, `param1`=DisplayName) si aggiorna live; "✓ Usa nel task" imposta la cadenza
+    EVENT. Lo stato avvio/arresto usa il `param2` REALE del server (rilevato via `ScanStateTexts`: sul server
+    è "running"/"stopped"; il classificatore per-keyword gestisce anche IT "in esecuzione"/"arrestato").
+    NB: le **ComboBox editabili del tema sono rotte** (template senza `PART_EditableTextBox`) → picker con
+    TextBox di ricerca + `ListBox`, non combo editabili.
 - **Pianificati**: `schtasks /Query /FO CSV /V` (TUTTI i task) poi **filtro** su prefisso `\ShaiyaServerHub\`.
   GOTCHA: NON usare `/TN "\ShaiyaServerHub\"` (interrogare una cartella dà `ERROR: syntax incorrect` →
   lista vuota anche se i task esistono). Non uscire su rc≠0 (schtasks può darlo per task di sistema rotti).
@@ -162,6 +194,15 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
 - [x] ⚙ Impostazioni: SQL auth (Windows/SQL login DPAPI), database, Bin, Test con esito colorato,
       bottone registra login nel canale comandi.
 - [x] Nav laterale a viste separate.
+- [x] **Editor file integrato** (`EditorWindow`): ✎ Modifica per riga + ＋ Nuovo file, salva/Ctrl+S,
+      preserva codifica. In Script, Funzioni, Test Suite.
+- [x] **Task: log opzionale** (`TaskLogging`): sqlcmd `-o` / wrapper cmd redirect → `log\<nome>.log`.
+- [x] **Task: cadenza EVENT** + **Guida** (`GuideWindow`): generatore XPath 7036 + scan servizi reali
+      (verificato sul server: 500 eventi SCM 7036, `param1`="Shaiya Game Server").
+- [x] **Più trigger per task** (opzionali): trigger principale + lista extra (`CadencePicker` + `TriggerDialog`).
+      1° trigger via schtasks, extra appesi via PowerShell (time = New-ScheduledTaskTrigger, evento = CIM
+      MSFT_TaskEventTrigger). Verificato: DAILY+WEEKLY+EVENT coesistono nell'XML. Vale anche in Edit
+      (TaskXml parsa TUTTI i trigger).
 
 ---
 
@@ -174,14 +215,14 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
    Meglio ancora: cartella master `dist-scripts\` fuori da `bin\` + copia in output al build.
 2b. **Persistenza script fuori da bin** — spostare `sql\`/`ps1\` in un path stabile (es. `%ProgramData%\ShaiyaServerHub`)
    così sopravvivono ai rebuild; oppure percorso configurabile in Settings.
-3. **Editor cadenza avanzato** — UI più ricca per WEEKLY (multi-giorno checkbox), più trigger,
-   "esegui anche se mancato" (`/RU`, `/Z`, condizioni), preview del comando schtasks.
+3. **Editor cadenza avanzato** — "esegui anche se mancato" (`/Z`, condizioni), preview del comando
+   schtasks generato. (WEEKLY multi-giorno, LOGON/BOOT/SHUTDOWN/**EVENT** già fatti.)
 4. **Toggle ON/OFF preset** — set predefinito di job noti (Auto-EXP, Auto-Boss, Backup DB 04:00,
    pulizia log, watchdog ps_game) con un interruttore che crea/abilita il task giusto già configurato.
 5. **Log persistente + viewer** — filtro per livello, apertura `hub.log`, export.
 6. **Dashboard stato** — riquadro riassuntivo (servizi up/down, ultimi run task, spazio disco backup).
 7. **Audit canale comandi** — vista che legge `PSM_Cmd.dbo.GmCommandLog` (chi ha eseguito cosa).
-8. **Editor SQL/script integrato** — modifica rapida degli script in `sql\`/`ps1\` senza uscire.
+8. **Editor: syntax highlighting** — evidenziazione SQL/PS nell'editor (ora è testo semplice). ✅ base fatta.
 9. **Notifiche** — alert se un servizio va giù o un task fallisce (exit ≠ 0).
 
 ---
@@ -198,6 +239,37 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
 - **Nav Checked durante InitializeComponent**: i pannelli non esistono ancora → `ShowView` fa null-guard,
   poi il ctor chiama `ShowView("scripts")` esplicito.
 - **RadioButton nav**: `GroupName="nav"` per mutua esclusione; stato attivo via trigger `IsChecked`.
+- **Quoting schtasks / PowerShell (CRITICO)**: `ProcessStartInfo.Arguments` è UNA stringa ri-parsata da
+  `CreateProcess` → le **virgolette annidate vengono strippate**. TESTATO: `schtasks /TR "…"` con wrapper
+  `cmd /c ""prog" args > "log" 2>&1"` si rompe (schtasks vede `>` come argomento). Idem `powershell -Command "…"`
+  con doppie virgolette interne. **Soluzione**: passare lo script PowerShell via **`-EncodedCommand`** (Base64
+  UTF-16LE) → `ProcessRunner.RunPowerShellEncoded`. Per il log-wrapper si crea prima il task (azione semplice),
+  poi si **riscrive l'azione** con `New-ScheduledTaskAction`+`Set-ScheduledTask` via EncodedCommand (verificato:
+  Arguments memorizzati con tutte le virgolette intatte).
+- **Evento 7036**: usato da **più provider** (anche driver, es. WiFi `Netwtw08`) con schema `EventData` diverso.
+  SOLO il provider **`Service Control Manager`** ha `<Data Name='param1'>` (nome servizio) e `param2` (stato,
+  **LOCALIZZATO**: IT "in esecuzione"/"arrestato"). Lo scan filtra `ProviderName='Service Control Manager'`.
+  Il filtro EVENT di default matcha solo `param1` (nome servizio) per evitare la trappola del testo localizzato.
+- **Verifica sul server vs dev PC**: l'app gira SUL server (RDP), non sul PC di sviluppo. Test di *quoting*
+  (schtasks/PS) sono machine-independent; test che dipendono dal *contenuto* eventi (scan 7036) vanno verificati
+  sul server reale via SSH (`administrator@10.10.5.91`) — il dev PC può non avere eventi SCM 7036.
+- **ComboBox editabile ROTTA nel tema**: il template custom in `AppStyles.xaml` NON ha `PART_EditableTextBox`
+  → `IsEditable="True"` non mostra/aggiorna testo e `TextChanged` non scatta (preview "morta"). Per input
+  con ricerca usare **TextBox + ListBox** (vedi EventGenWindow), non combo editabili. Le combo NON editabili
+  (SelectionChanged/SelectedItem) funzionano.
+- **`Path.GetFileName*` esplode su virgolette**: `Illegal characters in path` se il Program di un task esistente
+  contiene `"` (task vecchi in Edit). NON usare `Path.*` su stringhe non fidate: `TaskLogging.IsSqlcmd` fa
+  parsing manuale (LastIndexOfAny `\`/`/`) + `StripQuotes`.
+- **`$ProgressPreference`**: PowerShell con stderr redirect emette lo stream *progress* come `#< CLIXML` su
+  stderr → catturato come output. `RunPowerShellEncoded` prepende `$ProgressPreference='SilentlyContinue'`.
+- **Più trigger per task**: `schtasks /Create` fa UN solo trigger. Gli extra si appendono via PowerShell
+  `Set-ScheduledTask` (`$t.Triggers += ...`): a tempo con `New-ScheduledTaskTrigger`, su evento con CIM
+  `New-CimInstance MSFT_TaskEventTrigger` (namespace `Root/Microsoft/Windows/TaskScheduler`, imposta
+  `.Enabled` + `.Subscription=<QueryList>`). Passare il tutto via `-EncodedCommand`. WEEKLY `-DaysOfWeek`
+  vuole i nomi inglesi interi (Monday…). In Edit il task si RICREA (`/F`) con tutti i trigger (TaskXml li parsa tutti).
+- **param2 evento 7036 = testo di stato**: sul server reale è **"running"/"stopped"** (OS EN), ma è comunque
+  LOCALIZZATO in generale. Il generatore lo rileva dagli eventi e classifica per keyword (`run`/`esec`, `stop`/`arrest`);
+  il default "qualsiasi cambio" (nessun `param2`) evita del tutto la trappola.
 
 ---
 
