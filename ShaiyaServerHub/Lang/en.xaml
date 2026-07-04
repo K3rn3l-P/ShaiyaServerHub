@@ -133,6 +133,8 @@
     <s:String x:Key="GuideFindDesc">The generator does all this already. To inspect events by hand, in PowerShell on the server:</s:String>
     <s:String x:Key="LblState">State:</s:String>
     <s:String x:Key="LblChannel">Channel (log):</s:String>
+    <s:String x:Key="LblEventDelay">Delay (min):</s:String>
+    <s:String x:Key="TipEventDelay">Wait N minutes after the event before running (useful: gives server/SQL time to start). 0 = immediately.</s:String>
     <s:String x:Key="BtnUseInTask">✓ Use in task</s:String>
     <s:String x:Key="GuideGenerated">Generated filter (preview):</s:String>
     <!-- Event trigger generator -->

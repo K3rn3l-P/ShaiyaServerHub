@@ -35,6 +35,7 @@ namespace ShaiyaServerHub.Controls
             SetDaysFromCsv(s.Days);
             if (!string.IsNullOrWhiteSpace(s.EventChannel)) TbEventChannel.Text = s.EventChannel;
             TbEventXPath.Text = s.EventXPath ?? "";
+            TbEventDelay.Text = s.EventDelayMinutes.ToString();
             UpdateInputs();
         }
 
@@ -53,6 +54,8 @@ namespace ShaiyaServerHub.Controls
             string channel = TbEventChannel.Text.Trim();
             string xpath = TbEventXPath.Text.Trim();
             if (type == "EVENT" && string.IsNullOrWhiteSpace(xpath)) { error = L.NeedEventXPath; return false; }
+            int delay;
+            if (!int.TryParse((TbEventDelay.Text ?? "").Trim(), out delay) || delay < 0) delay = 0;
 
             spec = new ScheduleSpec
             {
@@ -61,7 +64,8 @@ namespace ShaiyaServerHub.Controls
                 Time = TbTime.Text.Trim(),
                 Days = days,
                 EventChannel = string.IsNullOrWhiteSpace(channel) ? "System" : channel,
-                EventXPath = xpath
+                EventXPath = xpath,
+                EventDelayMinutes = delay
             };
             return true;
         }
@@ -123,6 +127,7 @@ namespace ShaiyaServerHub.Controls
             if (g.ShowDialog() != true || g.ResultSpec == null) return;
             TbEventChannel.Text = string.IsNullOrWhiteSpace(g.ResultSpec.EventChannel) ? "System" : g.ResultSpec.EventChannel;
             TbEventXPath.Text = g.ResultSpec.EventXPath ?? "";
+            TbEventDelay.Text = g.ResultSpec.EventDelayMinutes.ToString();
             SelectCadence("EVENT");
             UpdateInputs();
         }

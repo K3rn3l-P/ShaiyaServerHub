@@ -111,7 +111,9 @@
             <TextBlock Grid.Row="5" Style="{StaticResource StepHdr}" Text="{DynamicResource EvGenStep2}"/>
             <StackPanel Grid.Row="6" Orientation="Horizontal">
                 <Label Content="{DynamicResource LblState}"/>
-                <ComboBox x:Name="CbState" Width="240" SelectionChanged="CbState_SelectionChanged"/>
+                <ComboBox x:Name="CbState" Width="220" SelectionChanged="CbState_SelectionChanged"/>
+                <Label Content="{DynamicResource LblEventDelay}" Margin="12,0,0,0"/>
+                <TextBox x:Name="TbDelay" Text="1" Width="48" ToolTip="{DynamicResource TipEventDelay}"/>
                 <TextBlock x:Name="TbStateNote" VerticalAlignment="Center" Margin="10,0,0,0"
                            FontSize="10" Foreground="#E8B24D" TextWrapping="Wrap"/>
             </StackPanel>

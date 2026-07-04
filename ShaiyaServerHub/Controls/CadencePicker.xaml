@@ -54,6 +54,8 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="56"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -62,10 +64,13 @@
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Content="{DynamicResource LblChannel}"/>
                 <TextBox Grid.Row="0" Grid.Column="1" x:Name="TbEventChannel" Text="System" FontFamily="Consolas" FontSize="10"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource TipEventGen}" Foreground="#5552A8FF"
+                <Label Grid.Row="0" Grid.Column="2" Content="{DynamicResource LblEventDelay}"/>
+                <TextBox Grid.Row="0" Grid.Column="3" x:Name="TbEventDelay" Text="0"
+                         ToolTip="{DynamicResource TipEventDelay}"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="{DynamicResource TipEventDelay}" Foreground="#5552A8FF"
                            FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis"/>
                 <Label Grid.Row="1" Grid.Column="0" Content="XPath:"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TbEventXPath"
+                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" x:Name="TbEventXPath"
                          FontFamily="Consolas" FontSize="10" TextWrapping="Wrap" AcceptsReturn="True"
                          MinHeight="42" VerticalContentAlignment="Top"/>
             </Grid>

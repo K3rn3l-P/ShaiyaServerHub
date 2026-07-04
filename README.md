@@ -34,8 +34,8 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
    inclusi: tutti i loro trigger vengono caricati). Trigger supportati per ciascuno:
    DAILY / HOURLY / MINUTE / **WEEKLY (multi-giorno)** / ONCE / **LOGON** (al login) /
    **BOOT** (all'avvio) / **SHUTDOWN** (allo spegnimento, evento 1074) / **EVENT** (trigger su evento
-   del log di Windows: canale + filtro XPath). Per WEEKLY selezioni più giorni con checkbox localizzate
-   (Lun…Dom). Sezione **Azione** (come Task Scheduler): **Programma/script**, **Argomenti**, **Avvia in**
+   del log di Windows: canale + filtro XPath + **ritardo** opzionale in minuti, es. attendere 1 min dopo
+   che il server è su prima di eseguire). Per WEEKLY selezioni più giorni con checkbox localizzate (Lun…Dom). Sezione **Azione** (come Task Scheduler): **Programma/script**, **Argomenti**, **Avvia in**
    (prefillati con `ShaiyaServerHub.exe --run "<script>"` ma modificabili). Opzioni: **☑ Genera log**
    (crea `log\<nome>.log` accanto al task — sqlcmd via `-o`, altri programmi via wrapper `cmd` con redirect),
    **❓ Guida** (modale: spiega riavvio server `shutdown /r /f /t 0` e i trigger su evento, con snippet

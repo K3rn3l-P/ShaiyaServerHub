@@ -262,6 +262,9 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
   parsing manuale (LastIndexOfAny `\`/`/`) + `StripQuotes`.
 - **`$ProgressPreference`**: PowerShell con stderr redirect emette lo stream *progress* come `#< CLIXML` su
   stderr → catturato come output. `RunPowerShellEncoded` prepende `$ProgressPreference='SilentlyContinue'`.
+- **Delay trigger evento**: la `.xml` vecchia aveva `<Delay>PT1M</Delay>` (attende dopo l'evento — dà tempo a
+  server/SQL di partire). Nostro supporto: `ScheduleSpec.EventDelayMinutes`; primary via schtasks `/DELAY mmmm:ss`
+  (0001:00 = 1 min), extra via CIM `$e.Delay='PT1M'`. TaskXml parsa `<Delay>` (PT_H/_M/_S → minuti). Verificato.
 - **Più trigger per task**: `schtasks /Create` fa UN solo trigger. Gli extra si appendono via PowerShell
   `Set-ScheduledTask` (`$t.Triggers += ...`): a tempo con `New-ScheduledTaskTrigger`, su evento con CIM
   `New-CimInstance MSFT_TaskEventTrigger` (namespace `Root/Microsoft/Windows/TaskScheduler`, imposta

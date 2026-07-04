@@ -133,6 +133,8 @@
     <s:String x:Key="GuideFindDesc">Il generatore fa già tutto. Se vuoi ispezionare gli eventi a mano, in PowerShell sul server:</s:String>
     <s:String x:Key="LblState">Stato:</s:String>
     <s:String x:Key="LblChannel">Canale (log):</s:String>
+    <s:String x:Key="LblEventDelay">Ritardo (min):</s:String>
+    <s:String x:Key="TipEventDelay">Attende N minuti dopo l'evento prima di eseguire (utile: dà tempo a server/SQL di partire). 0 = subito.</s:String>
     <s:String x:Key="BtnUseInTask">✓ Usa nel task</s:String>
     <s:String x:Key="GuideGenerated">Filtro generato (anteprima):</s:String>
     <!-- Generatore trigger evento -->

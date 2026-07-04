@@ -50,6 +50,8 @@ namespace ShaiyaServerHub.Core
                         string ch = string.IsNullOrWhiteSpace(spec.EventChannel) ? "System" : spec.EventChannel;
                         string xp = (spec.EventXPath ?? "").Replace("\"", "\\\"");
                         sc = $"/SC ONEVENT /EC {ch} /MO \"{xp}\"";
+                        // /DELAY mmmm:ss (valido con ONEVENT) → ritardo dopo l'evento.
+                        if (spec.EventDelayMinutes > 0) sc += $" /DELAY {spec.EventDelayMinutes:0000}:00";
                     }
                     break;
                 default: sc = $"/SC DAILY /ST {spec.Time}"; break;
@@ -85,9 +87,10 @@ namespace ShaiyaServerHub.Core
             if (list == null || list.Count == 0) return;
 
             var sb = new System.Text.StringBuilder();
-            sb.Append("function New-EvtTrig($sub){ ");
+            sb.Append("function New-EvtTrig($sub,$delay){ ");
             sb.Append("$c = Get-CimClass -Namespace Root/Microsoft/Windows/TaskScheduler -ClassName MSFT_TaskEventTrigger; ");
-            sb.Append("$e = New-CimInstance -CimClass $c -ClientOnly; $e.Enabled = $true; $e.Subscription = $sub; $e }; ");
+            sb.Append("$e = New-CimInstance -CimClass $c -ClientOnly; $e.Enabled = $true; $e.Subscription = $sub; ");
+            sb.Append("if ($delay) { $e.Delay = $delay }; $e }; ");
             sb.Append($"$t = Get-ScheduledTask -TaskPath '\\{Folder}\\' -TaskName '{shortName.Replace("'", "''")}'; ");
             foreach (var s in list)
             {
@@ -114,14 +117,18 @@ namespace ShaiyaServerHub.Core
                 case "BOOT": return "(New-ScheduledTaskTrigger -AtStartup)";
                 case "SHUTDOWN":
                     return "(New-EvtTrig '" + EventTriggerBuilder
-                        .BuildQueryListXml("System", EventTriggerBuilder.ShutdownXPath).Replace("'", "''") + "')";
+                        .BuildQueryListXml("System", EventTriggerBuilder.ShutdownXPath).Replace("'", "''") + "' " + DelayArg(s) + ")";
                 case "EVENT":
                     string ch = string.IsNullOrWhiteSpace(s.EventChannel) ? "System" : s.EventChannel;
                     string sub = EventTriggerBuilder.BuildQueryListXml(ch, s.EventXPath ?? "");
-                    return "(New-EvtTrig '" + sub.Replace("'", "''") + "')";
+                    return "(New-EvtTrig '" + sub.Replace("'", "''") + "' " + DelayArg(s) + ")";
                 default: return $"(New-ScheduledTaskTrigger -Daily -At '{s.Time}')";
             }
         }
+
+        // Argomento delay per New-EvtTrig: 'PT{n}M' oppure $null.
+        private static string DelayArg(ScheduleSpec s) =>
+            s.EventDelayMinutes > 0 ? $"'PT{s.EventDelayMinutes}M'" : "$null";
 
         // "MON,WED" → "Monday,Wednesday" (per New-ScheduledTaskTrigger -DaysOfWeek).
         private static string DaysToPs(string csv)

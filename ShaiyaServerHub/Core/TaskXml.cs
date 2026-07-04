@@ -77,6 +77,7 @@ namespace ShaiyaServerHub.Core
                 case "EventTrigger":
                     string sub = (string)el.Element(NS + "Subscription") ?? "";
                     ParseSubscription(sub, s);
+                    s.EventDelayMinutes = ParseDelayMinutes((string)el.Element(NS + "Delay"));
                     // Il filtro 1074/User32 è il nostro preset "SHUTDOWN"; il resto è "EVENT" generico.
                     s.Type = (s.EventXPath.Contains("1074") && s.EventXPath.Contains("User32")) ? "SHUTDOWN" : "EVENT";
                     return s;
@@ -99,6 +100,18 @@ namespace ShaiyaServerHub.Core
                 }
             }
             catch { /* Subscription non parsabile → resta il default */ }
+        }
+
+        // "PT1M"/"PT1H"/"PT30S" → minuti (arrotondati). Null/vuoto → 0.
+        private static int ParseDelayMinutes(string iso)
+        {
+            if (string.IsNullOrWhiteSpace(iso)) return 0;
+            var m = Regex.Match(iso, @"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?");
+            if (!m.Success) return 0;
+            int h = m.Groups[1].Success ? int.Parse(m.Groups[1].Value) : 0;
+            int mm = m.Groups[2].Success ? int.Parse(m.Groups[2].Value) : 0;
+            int ss = m.Groups[3].Success ? int.Parse(m.Groups[3].Value) : 0;
+            return h * 60 + mm + (ss >= 30 ? 1 : 0);
         }
 
         private static string TimeFrom(XElement trg)

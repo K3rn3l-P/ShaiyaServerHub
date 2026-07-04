@@ -23,6 +23,7 @@ namespace ShaiyaServerHub.Core
         // ── EVENT (trigger su evento del log di Windows) ──
         public string EventChannel { get; set; } = "System"; // /EC (es. System, Application)
         public string EventXPath { get; set; } = "";         // /MO (query XPath del filtro evento)
+        public int EventDelayMinutes { get; set; } = 0;       // ritardo dopo l'evento (0 = nessuno)
 
         /// <summary>Etichetta breve per la UI (binding lista trigger).</summary>
         public string Label => Describe();
@@ -41,7 +42,8 @@ namespace ShaiyaServerHub.Core
                 case "SHUTDOWN": return "SHUTDOWN (1074)";
                 case "EVENT":
                     var m = System.Text.RegularExpressions.Regex.Match(EventXPath ?? "", @"param1'\] and \(Data='([^']+)'");
-                    return m.Success ? $"EVENT · {m.Groups[1].Value}" : "EVENT";
+                    string ev = m.Success ? $"EVENT · {m.Groups[1].Value}" : "EVENT";
+                    return EventDelayMinutes > 0 ? $"{ev} (+{EventDelayMinutes}min)" : ev;
                 default: return $"DAILY · {Time}";
             }
         }

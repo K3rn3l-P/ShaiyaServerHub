@@ -127,7 +127,9 @@ namespace ShaiyaServerHub
             if (svc == null) { TbStatus.Text = L.EvGenPickService; return; }
             string xpath = TbGenerated.Tag as string;
             if (string.IsNullOrWhiteSpace(xpath)) return;
-            ResultSpec = new ScheduleSpec { Type = "EVENT", EventChannel = "System", EventXPath = xpath };
+            int delay;
+            if (!int.TryParse((TbDelay.Text ?? "").Trim(), out delay) || delay < 0) delay = 0;
+            ResultSpec = new ScheduleSpec { Type = "EVENT", EventChannel = "System", EventXPath = xpath, EventDelayMinutes = delay };
             DialogResult = true; Close();
         }
 
