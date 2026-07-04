@@ -60,7 +60,10 @@ namespace ShaiyaServerHub
                 // --log "<path>" opzionale → log per-task oltre a hub-tasks.log.
                 int lidx = Array.FindIndex(e.Args, a => a.Equals("--log", StringComparison.OrdinalIgnoreCase));
                 string taskLogFile = (lidx >= 0 && lidx + 1 < e.Args.Length) ? e.Args[lidx + 1] : null;
-                int rc = RunHeadless(e.Args[idx + 1], taskLogFile);
+                // --auth win|sql opzionale → override modalità auth SQL solo per questo run.
+                int auidx = Array.FindIndex(e.Args, a => a.Equals("--auth", StringComparison.OrdinalIgnoreCase));
+                string authMode = (auidx >= 0 && auidx + 1 < e.Args.Length) ? e.Args[auidx + 1] : null;
+                int rc = RunHeadless(e.Args[idx + 1], taskLogFile, authMode);
                 Shutdown(rc);
                 return;
             }
@@ -85,7 +88,8 @@ namespace ShaiyaServerHub
 
         /// <summary>Esecuzione senza UI (invocata dal Task Scheduler).</summary>
         /// <param name="taskLogFile">Se valorizzato, ogni riga va anche su questo log per-task.</param>
-        private int RunHeadless(string scriptPath, string taskLogFile = null)
+        /// <param name="authMode">"win"/"sql" → override modalità auth SQL per questo run (null = impostazioni).</param>
+        private int RunHeadless(string scriptPath, string taskLogFile = null, string authMode = null)
         {
             // Sink: hub-tasks.log sempre; log per-task in aggiunta se richiesto.
             Action<string> sink = string.IsNullOrWhiteSpace(taskLogFile)
@@ -94,6 +98,16 @@ namespace ShaiyaServerHub
             try
             {
                 var settings = HubSettings.Load();
+                // Override auth per-task (non persistito): "win" → Windows (-E), "sql" → SQL login.
+                if (!string.IsNullOrWhiteSpace(authMode))
+                {
+                    if (authMode.Equals("win", StringComparison.OrdinalIgnoreCase) ||
+                        authMode.Equals("windows", StringComparison.OrdinalIgnoreCase))
+                        settings.SqlAuthMode = "Windows";
+                    else if (authMode.Equals("sql", StringComparison.OrdinalIgnoreCase))
+                        settings.SqlAuthMode = "Sql";
+                    sink($"[auth override] {settings.SqlAuthMode}");
+                }
                 var runner = new ScriptRunner(settings);
                 var item = new ScriptItem
                 {

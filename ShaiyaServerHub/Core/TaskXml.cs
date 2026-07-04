@@ -29,12 +29,12 @@ namespace ShaiyaServerHub.Core
                     // Auto-rilevamento logging: riporta l'azione alla forma pulita e memorizza GenLog,
                     // così l'Edit mostra Program/Arguments originali e ri-spunta "Genera log".
                     string pr = def.Program, ar = def.Arguments;
-                    if (TaskLogging.TryStripLogging(ref pr, ref ar))
-                    {
-                        def.Program = pr;
-                        def.Arguments = ar;
-                        def.GenLog = true;
-                    }
+                    bool gen = TaskLogging.TryStripLogging(ref pr, ref ar);
+                    string auth = TaskLogging.ExtractAuthMode(ref ar);   // toglie --auth, ritorna modalità
+                    def.Program = pr;
+                    def.Arguments = ar;
+                    if (gen) def.GenLog = true;
+                    def.AuthMode = auth;
                 }
 
                 var trg = root.Element(NS + "Triggers");

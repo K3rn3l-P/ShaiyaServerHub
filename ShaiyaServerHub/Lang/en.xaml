@@ -79,6 +79,8 @@
     <s:String x:Key="BtnEditTask">✎ Edit</s:String>
     <s:String x:Key="TipEditTask">Edit this task</s:String>
     <s:String x:Key="BtnTaskLog">📄 Log</s:String>
+    <s:String x:Key="ChkRunAsSystem">Run as SYSTEM (Windows -E)</s:String>
+    <s:String x:Key="TipRunAsSystem">Unchecked = use global SQL settings (as before). Checked = for SQL scripts force Windows auth (-E), running as SYSTEM. Useful when the settings' SQL user lacks permissions.</s:String>
     <s:String x:Key="BtnOpenTaskSched">🪟 Task Scheduler</s:String>
     <s:String x:Key="TipOpenTaskSched">Open Windows Task Scheduler</s:String>
     <s:String x:Key="LblProgram">Program/script:</s:String>

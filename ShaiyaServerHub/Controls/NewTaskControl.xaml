@@ -81,8 +81,12 @@
 
         <!-- Opzioni: log su file + guida + crea -->
         <Grid Margin="2,8,2,0">
-            <CheckBox x:Name="ChkGenLog" Content="{DynamicResource ChkGenLog}"
-                      ToolTip="{DynamicResource TipGenLog}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <CheckBox x:Name="ChkGenLog" Content="{DynamicResource ChkGenLog}"
+                          ToolTip="{DynamicResource TipGenLog}" VerticalAlignment="Center"/>
+                <CheckBox x:Name="ChkAuthSystem" Content="{DynamicResource ChkRunAsSystem}"
+                          ToolTip="{DynamicResource TipRunAsSystem}" Margin="18,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="{DynamicResource BtnGuide}" ToolTip="{DynamicResource TipGuide}" Click="BtnGuide_Click"/>
                 <Button x:Name="BtnCreate" Style="{StaticResource AccentButton}"

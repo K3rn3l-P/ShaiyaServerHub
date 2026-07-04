@@ -79,6 +79,8 @@
     <s:String x:Key="BtnEditTask">✎ Modifica</s:String>
     <s:String x:Key="TipEditTask">Modifica questo task</s:String>
     <s:String x:Key="BtnTaskLog">📄 Log</s:String>
+    <s:String x:Key="ChkRunAsSystem">Esegui come SYSTEM (Windows -E)</s:String>
+    <s:String x:Key="TipRunAsSystem">Non spuntata = usa le impostazioni SQL globali (come prima). Spuntata = per gli script SQL forza autenticazione Windows (-E), girando come SYSTEM. Utile quando l'utente SQL delle impostazioni non ha i permessi.</s:String>
     <s:String x:Key="BtnOpenTaskSched">🪟 Task Scheduler</s:String>
     <s:String x:Key="TipOpenTaskSched">Apri Utilità di pianificazione di Windows</s:String>
     <s:String x:Key="LblProgram">Programma/script:</s:String>

@@ -37,6 +37,7 @@ namespace ShaiyaServerHub.Controls
             TbProgram.Text = TaskSchedulerService.ExePath;
             TbArguments.Text = $"--run \"{fullPath}\"";
             TbStartIn.Text = TaskSchedulerService.ExeDir;
+            SetAuth("Default");   // nuovo task → usa le impostazioni globali
         }
 
         /// <summary>Modale Edit: precompila tutto dai valori del task esistente (inclusi TUTTI i trigger).</summary>
@@ -49,6 +50,7 @@ namespace ShaiyaServerHub.Controls
             TbArguments.Text = def.Arguments;
             TbStartIn.Text = def.WorkingDir;
             ChkGenLog.IsChecked = def.GenLog;   // auto-rilevato dal parse (wrapper cmd / -o / --log)
+            SetAuth(def.AuthMode);              // auto-rilevato dal parse (--auth)
 
             var triggers = def.Triggers ?? new List<ScheduleSpec>();
             PrimaryCadence.SetSpec(triggers.Count > 0 ? triggers[0] : new ScheduleSpec());
@@ -111,6 +113,12 @@ namespace ShaiyaServerHub.Controls
 
         private void Log(string msg) => LogSink?.Invoke(msg);
 
+        // ── Auth per-task (checkbox) ─────────────────────────
+        // Non spuntata = usa le impostazioni globali (come prima). Spuntata = esegui come SYSTEM (Windows -E).
+        private string SelectedAuth() => ChkAuthSystem.IsChecked == true ? "Windows" : "Default";
+        private void SetAuth(string mode) =>
+            ChkAuthSystem.IsChecked = string.Equals(mode, "Windows", StringComparison.OrdinalIgnoreCase);
+
         // ── Crea / aggiorna task ─────────────────────────────
         private async void BtnCreateTask_Click(object sender, RoutedEventArgs e)
         {
@@ -138,6 +146,15 @@ namespace ShaiyaServerHub.Controls
                     arguments = TaskLogging.AppendHubLog(arguments, logFile);        // --log inline (self-log, no redirect)
                 else
                     wrapLogFile = logFile;                                            // wrapper cmd post-creazione
+            }
+
+            // ── Auth per-task (solo azione --run del Hub; non-Default) ──
+            string authMode = SelectedAuth();
+            if (!string.Equals(authMode, "Default", StringComparison.OrdinalIgnoreCase) &&
+                TaskLogging.IsHubRun(program, arguments))
+            {
+                string aArg = TaskLogging.AuthArg(authMode);
+                if (aArg.Length > 0) arguments = (arguments.TrimEnd() + " " + aArg).Trim();
             }
 
             BtnCreate.IsEnabled = false;

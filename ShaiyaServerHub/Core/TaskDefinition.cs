@@ -13,6 +13,9 @@ namespace ShaiyaServerHub.Core
         /// <summary>True se il task aveva il logging attivo (auto-rilevato in Edit: wrapper cmd / -o / --log).</summary>
         public bool GenLog { get; set; }
 
+        /// <summary>Auth SQL per l'azione --run: "Default" (impostazioni) | "Windows" | "Sql". Auto-rilevato in Edit da --auth.</summary>
+        public string AuthMode { get; set; } = "Default";
+
         /// <summary>Tutti i trigger del task (0..n). Il primo è il "principale".</summary>
         public List<ScheduleSpec> Triggers { get; set; } = new List<ScheduleSpec>();
 

@@ -52,6 +52,28 @@ namespace ShaiyaServerHub.Core
             return (arguments.TrimEnd() + " --log \"" + logFile + "\"").Trim();
         }
 
+        /// <summary>
+        /// Auth per-task: rimuove "--auth &lt;mode&gt;" dagli argomenti e ritorna la modalità normalizzata
+        /// ("Windows" | "Sql" | "Default"). --auth NON è un segreto (solo win/sql), quindi vive negli args.
+        /// </summary>
+        public static string ExtractAuthMode(ref string arguments)
+        {
+            arguments = arguments ?? "";
+            var m = Regex.Match(arguments, @"\s*--auth\s+(\w+)", RegexOptions.IgnoreCase);
+            if (!m.Success) return "Default";
+            string mode = m.Groups[1].Value.ToLowerInvariant();
+            arguments = (arguments.Substring(0, m.Index) + arguments.Substring(m.Index + m.Length)).Trim();
+            return mode == "win" || mode == "windows" ? "Windows" : (mode == "sql" ? "Sql" : "Default");
+        }
+
+        /// <summary>Token "--auth win|sql" per una modalità (stringa vuota se Default).</summary>
+        public static string AuthArg(string mode)
+        {
+            if ("Windows".Equals(mode, StringComparison.OrdinalIgnoreCase)) return "--auth win";
+            if ("Sql".Equals(mode, StringComparison.OrdinalIgnoreCase)) return "--auth sql";
+            return "";
+        }
+
         /// <summary>Rimuove virgolette e spazi esterni da un percorso programma.</summary>
         public static string StripQuotes(string s) => (s ?? "").Trim().Trim('"').Trim();
 
