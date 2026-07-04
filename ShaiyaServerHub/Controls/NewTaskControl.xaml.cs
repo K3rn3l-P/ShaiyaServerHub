@@ -127,6 +127,15 @@ namespace ShaiyaServerHub.Controls
             if (string.IsNullOrWhiteSpace(name)) { Log(L.NeedTaskName); return; }
             if (string.IsNullOrWhiteSpace(program)) { Log(L.NeedProgram); return; }
 
+            // Guardia: l'exe del Hub SENZA --run partirebbe in modalità UI (WinExe headless) e resterebbe
+            // appeso per sempre; se poi "Genera log" lo avvolge in "cmd > log", il redirect locka il file
+            // di log in scrittura esclusiva → ogni run successivo fallisce l'append (log a 0 byte).
+            if (TaskLogging.IsHubExe(program) && !TaskLogging.IsHubRun(program, TbArguments.Text))
+            {
+                Log(L.HubExeNeedsRun);
+                return;
+            }
+
             if (!PrimaryCadence.TryBuild(out ScheduleSpec primary, out string error)) { Log(error); return; }
             var extras = new List<ScheduleSpec>(_extra);
 

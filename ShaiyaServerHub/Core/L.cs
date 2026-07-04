@@ -42,8 +42,12 @@ namespace ShaiyaServerHub
         public static string TaskRemoved(string n) => S($"✓ Rimosso: {n}", $"✓ Removed: {n}");
         public static string TaskActionErr(string n, int rc) => S($"✗ Operazione fallita: {n} (exit {rc})", $"✗ Action failed: {n} (exit {rc})");
         public static string PickAtLeastOneDay => S("Seleziona almeno un giorno per WEEKLY.", "Select at least one day for WEEKLY.");
+        public static string NeedMonthDay => S("Inserisci almeno un giorno del mese (1-31) per MONTHLY.", "Enter at least one day of month (1-31) for MONTHLY.");
         public static string NeedTaskName => S("Inserisci il nome del task.", "Enter the task name.");
         public static string NeedProgram => S("Inserisci il programma/script (azione).", "Enter the program/script (action).");
+        public static string HubExeNeedsRun => S(
+            "Azione non valida: l'eseguibile del Hub va usato SOLO con --run \"<script>\". Senza --run partirebbe la UI in background (task appeso, log bloccato). Usa 'Pianifica' su uno script.",
+            "Invalid action: the Hub executable must be used ONLY with --run \"<script>\". Without --run it would launch the UI in the background (task hangs, log locked). Use 'Schedule' on a script.");
         public static string EditTaskTitle => S("Modifica task", "Edit task");
         public static string TrigDlgEditTitle => S("Modifica trigger", "Edit trigger");
         public static string TaskUpdated(string n) => S($"✓ Task aggiornato: {n}", $"✓ Task updated: {n}");

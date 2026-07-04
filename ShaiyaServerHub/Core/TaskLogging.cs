@@ -38,6 +38,16 @@ namespace ShaiyaServerHub.Core
             if (string.IsNullOrWhiteSpace(arguments) ||
                 !Regex.IsMatch(arguments, @"(^|\s)--run(\s|$)", RegexOptions.IgnoreCase))
                 return false;
+            return IsHubExe(program);
+        }
+
+        /// <summary>
+        /// True se il programma è l'eseguibile del Hub stesso (ShaiyaServerHub.exe), a PRESCINDERE
+        /// dagli argomenti. Serve alla guardia: l'exe del Hub senza --run partirebbe in modalità UI
+        /// (WinExe headless) → si appende per sempre e, se avvolto in "cmd > log", locka il file di log.
+        /// </summary>
+        public static bool IsHubExe(string program)
+        {
             string p = StripQuotes(program);
             int slash = p.LastIndexOfAny(new[] { '\\', '/' });
             if (slash >= 0) p = p.Substring(slash + 1);

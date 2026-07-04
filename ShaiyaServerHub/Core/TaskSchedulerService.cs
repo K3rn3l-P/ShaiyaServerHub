@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace ShaiyaServerHub.Core
 {
@@ -29,6 +30,17 @@ namespace ShaiyaServerHub.Core
             string shortName = Sanitize(taskName);
             string tn = $"\\{Folder}\\{shortName}";
 
+            // Se un qualsiasi trigger è MENSILE, l'intero task va costruito via COM RegisterTask da XML:
+            // schtasks crea il trigger mensile, ma il modulo CIM (Get/Set-ScheduledTask) NON sa
+            // ri-serializzare un CalendarTrigger/ScheduleByMonth → SetAction/AddExtraTriggers falliscono
+            // ("Parametro non corretto") e l'azione (Arguments/WorkingDirectory/log) resta vuota.
+            if (IsMonthly(spec) || (extraTriggers?.Any(IsMonthly) ?? false))
+            {
+                var all = new List<ScheduleSpec> { spec };
+                if (extraTriggers != null) all.AddRange(extraTriggers.Where(t => t != null));
+                return CreateViaXml(shortName, all, program, arguments, workingDir, wrapLogFile, log);
+            }
+
             // /TR = SOLO il programma (token sicuro). Gli argomenti NON vanno qui:
             // le virgolette annidate di "--run \"script\"" (o del vecchio wrapper cmd)
             // collassano nel /TR "..." e schtasks fraintende (Invalid argument '--run').
@@ -41,6 +53,7 @@ namespace ShaiyaServerHub.Core
                 case "MINUTE": sc = $"/SC MINUTE /MO {Math.Max(1, spec.Interval)}"; break;
                 case "HOURLY": sc = $"/SC HOURLY /MO {Math.Max(1, spec.Interval)}"; break;
                 case "WEEKLY": sc = $"/SC WEEKLY /D {(string.IsNullOrWhiteSpace(spec.Days) ? "MON" : spec.Days)} /ST {spec.Time}"; break;
+                // MONTHLY non passa mai di qui: è intercettato a monte e creato via CreateViaXml (COM).
                 case "ONCE": sc = $"/SC ONCE /ST {spec.Time}"; break;
                 case "LOGON": sc = "/SC ONLOGON"; break;               // al login utente
                 case "BOOT": sc = "/SC ONSTART"; break;                // all'avvio del sistema
@@ -65,7 +78,9 @@ namespace ShaiyaServerHub.Core
             log?.Invoke(rc == 0 ? "✓ task creato" : $"✗ schtasks exit {rc}");
             if (rc != 0) return rc;
 
-            if (!string.IsNullOrWhiteSpace(wrapLogFile))
+            // Difensiva: mai avvolgere l'exe del Hub in "cmd > log" (il redirect locka il log e l'exe
+            // senza --run partirebbe in UI headless). Il log dei task hub passa da --log, non dal wrapper.
+            if (!string.IsNullOrWhiteSpace(wrapLogFile) && !TaskLogging.IsHubExe(program))
                 // Riscrive l'azione (Execute+Argument+WorkingDirectory) con redirect su log.
                 SetWrappedAction(shortName, program, arguments, workingDir, wrapLogFile, log);
             else
@@ -74,6 +89,7 @@ namespace ShaiyaServerHub.Core
                 SetAction(shortName, program, arguments, workingDir, log);
 
             // Trigger aggiuntivi (oltre al principale creato da schtasks) → appesi via PowerShell.
+            // (I task con trigger mensili sono già stati deviati su CreateViaXml più sopra.)
             var extras = extraTriggers?.Where(t => t != null).ToList();
             if (extras != null && extras.Count > 0)
                 AddExtraTriggers(shortName, extras, log);
@@ -106,6 +122,196 @@ namespace ShaiyaServerHub.Core
             log?.Invoke(rc == 0 ? $"✓ {list.Count} trigger aggiuntivi impostati" : $"⚠ trigger aggiuntivi non impostati (exit {rc})");
         }
 
+        private static bool IsMonthly(ScheduleSpec s) =>
+            string.Equals(s?.Type, "MONTHLY", StringComparison.OrdinalIgnoreCase);
+
+        private static readonly XNamespace TNS = "http://schemas.microsoft.com/windows/2004/02/mit/task";
+
+        /// <summary>
+        /// Crea un task che contiene almeno un trigger MENSILE costruendo l'XML completo (azione + TUTTI i
+        /// trigger) e registrandolo via COM Schedule.Service.RegisterTask. È l'unico modo affidabile: schtasks
+        /// crea il ScheduleByMonth ma il layer CIM (Set-ScheduledTask / New-ScheduledTaskTrigger) non lo
+        /// gestisce. L'XML prodotto è nel medesimo formato dei task esportati dal Task Scheduler.
+        /// </summary>
+        public static int CreateViaXml(string shortName, List<ScheduleSpec> specs,
+                                       string program, string arguments, string workingDir,
+                                       string wrapLogFile, Action<string> log)
+        {
+            string xml = BuildTaskXml(specs, program, arguments, workingDir, wrapLogFile);
+            string tn = shortName.Replace("'", "''");
+            string xmlLit = xml.Replace("'", "''");
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("$svc = New-Object -ComObject Schedule.Service; $svc.Connect(); ");
+            // La cartella \ShaiyaServerHub potrebbe non esistere ancora (primo task) → creala.
+            sb.Append($"try {{ $f = $svc.GetFolder('\\{Folder}') }} catch {{ $f = $svc.GetFolder('\\').CreateFolder('{Folder}') }}; ");
+            sb.Append($"$xml = '{xmlLit}'; ");
+            // 6 = TASK_CREATE_OR_UPDATE, logon 5 = TASK_LOGON_SERVICE_ACCOUNT (SYSTEM).
+            sb.Append($"$f.RegisterTask('{tn}', $xml, 6, 'SYSTEM', $null, 5) | Out-Null");
+
+            log?.Invoke($"[COM] registro task '{shortName}' (trigger mensile → XML)");
+            int rc = ProcessRunner.RunPowerShellEncoded(sb.ToString(), log);
+            log?.Invoke(rc == 0 ? "✓ task creato" : $"✗ RegisterTask exit {rc}");
+            return rc;
+        }
+
+        // XML completo del task (formato Task Scheduler 1.2): RegistrationInfo + Triggers + Principal(SYSTEM,
+        // HIGHEST) + Settings + Actions. Nessuna dichiarazione <?xml?> (la stringa .NET è già UTF-16).
+        private static string BuildTaskXml(List<ScheduleSpec> specs, string program, string arguments,
+                                           string workingDir, string wrapLogFile)
+        {
+            var triggers = new XElement(TNS + "Triggers");
+            foreach (var s in specs)
+            {
+                var t = BuildTriggerXml(s);
+                if (t != null) triggers.Add(t);
+            }
+
+            // Azione: wrapper cmd con redirect su log, oppure Exec diretto.
+            // Difensiva: mai avvolgere l'exe del Hub in "cmd > log" (redirect locka il log; senza --run
+            // partirebbe la UI headless). I task hub loggano via --log, non col wrapper.
+            string cmd, args;
+            if (!string.IsNullOrWhiteSpace(wrapLogFile) && !TaskLogging.IsHubExe(program))
+            {
+                cmd = "cmd.exe";
+                args = TaskLogging.BuildCmdWrapperArgument(program, arguments, wrapLogFile);
+            }
+            else { cmd = TaskLogging.StripQuotes(program); args = arguments; }
+
+            var exec = new XElement(TNS + "Exec", new XElement(TNS + "Command", cmd));
+            if (!string.IsNullOrWhiteSpace(args)) exec.Add(new XElement(TNS + "Arguments", args.Trim()));
+            if (!string.IsNullOrWhiteSpace(workingDir)) exec.Add(new XElement(TNS + "WorkingDirectory", workingDir.Trim()));
+
+            var task = new XElement(TNS + "Task",
+                new XAttribute("version", "1.2"),
+                new XElement(TNS + "RegistrationInfo",
+                    new XElement(TNS + "Author", "ShaiyaServerHub")),
+                triggers,
+                new XElement(TNS + "Principals",
+                    new XElement(TNS + "Principal", new XAttribute("id", "Author"),
+                        new XElement(TNS + "RunLevel", "HighestAvailable"))),
+                new XElement(TNS + "Settings",
+                    new XElement(TNS + "MultipleInstancesPolicy", "IgnoreNew"),
+                    new XElement(TNS + "AllowStartOnDemand", "true"),
+                    new XElement(TNS + "Enabled", "true"),
+                    new XElement(TNS + "StartWhenAvailable", "true"),
+                    new XElement(TNS + "ExecutionTimeLimit", "PT0S")),
+                new XElement(TNS + "Actions", new XAttribute("Context", "Author"), exec));
+
+            return task.ToString(SaveOptions.DisableFormatting);
+        }
+
+        // Un <Trigger> XML per il dato ScheduleSpec (tutti i tipi supportati, non solo mensile:
+        // un task mensile può avere trigger extra di altro tipo, e vanno emessi tutti nell'XML).
+        private static XElement BuildTriggerXml(ScheduleSpec s)
+        {
+            string type = (s.Type ?? "DAILY").ToUpperInvariant();
+            string time = string.IsNullOrWhiteSpace(s.Time) ? "04:00" : s.Time.Trim();
+            string sb = DateTime.Today.ToString("yyyy-MM-dd") + "T" + time + ":00";  // "non prima di" + orario
+            string now = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+            var sep = new[] { ',', ' ', ';' };
+
+            switch (type)
+            {
+                case "MINUTE":
+                case "HOURLY":
+                    return new XElement(TNS + "TimeTrigger",
+                        new XElement(TNS + "StartBoundary", now),
+                        new XElement(TNS + "Enabled", "true"),
+                        new XElement(TNS + "Repetition",
+                            new XElement(TNS + "Interval",
+                                type == "HOURLY" ? $"PT{Math.Max(1, s.Interval)}H" : $"PT{Math.Max(1, s.Interval)}M")));
+
+                case "WEEKLY":
+                    {
+                        var dow = new XElement(TNS + "DaysOfWeek");
+                        foreach (var code in (s.Days ?? "").Split(sep, StringSplitOptions.RemoveEmptyEntries))
+                        { var n = DayName(code.Trim()); if (n != null) dow.Add(new XElement(TNS + n)); }
+                        if (!dow.HasElements) dow.Add(new XElement(TNS + "Monday"));
+                        return new XElement(TNS + "CalendarTrigger",
+                            new XElement(TNS + "StartBoundary", sb),
+                            new XElement(TNS + "Enabled", "true"),
+                            new XElement(TNS + "ScheduleByWeek", dow, new XElement(TNS + "WeeksInterval", "1")));
+                    }
+
+                case "MONTHLY":
+                    {
+                        var days = new XElement(TNS + "DaysOfMonth");
+                        foreach (var tok in (string.IsNullOrWhiteSpace(s.MonthDays) ? "1" : s.MonthDays)
+                                            .Split(sep, StringSplitOptions.RemoveEmptyEntries))
+                            if (int.TryParse(tok.Trim(), out int d) && d >= 1 && d <= 31)
+                                days.Add(new XElement(TNS + "Day", d.ToString()));
+                        if (!days.HasElements) days.Add(new XElement(TNS + "Day", "1"));
+
+                        var months = new XElement(TNS + "Months");
+                        var codes = (s.Months ?? "").Split(sep, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var mc in (codes.Length > 0 ? codes : AllMonthCodes))
+                        { var n = MonthName(mc.Trim()); if (n != null) months.Add(new XElement(TNS + n)); }
+
+                        return new XElement(TNS + "CalendarTrigger",
+                            new XElement(TNS + "StartBoundary", sb),
+                            new XElement(TNS + "Enabled", "true"),
+                            new XElement(TNS + "ScheduleByMonth", days, months));
+                    }
+
+                case "ONCE":
+                    return new XElement(TNS + "TimeTrigger",
+                        new XElement(TNS + "StartBoundary", sb),
+                        new XElement(TNS + "Enabled", "true"));
+
+                case "LOGON":
+                    return new XElement(TNS + "LogonTrigger", new XElement(TNS + "Enabled", "true"));
+
+                case "BOOT":
+                    return new XElement(TNS + "BootTrigger", new XElement(TNS + "Enabled", "true"));
+
+                case "SHUTDOWN":
+                case "EVENT":
+                    {
+                        string ch = string.IsNullOrWhiteSpace(s.EventChannel) ? "System" : s.EventChannel;
+                        string xp = type == "SHUTDOWN" ? EventTriggerBuilder.ShutdownXPath : (s.EventXPath ?? "");
+                        var ev = new XElement(TNS + "EventTrigger",
+                            new XElement(TNS + "Enabled", "true"),
+                            new XElement(TNS + "Subscription", EventTriggerBuilder.BuildQueryListXml(ch, xp)));
+                        if (s.EventDelayMinutes > 0) ev.Add(new XElement(TNS + "Delay", $"PT{s.EventDelayMinutes}M"));
+                        return ev;
+                    }
+
+                default: // DAILY
+                    return new XElement(TNS + "CalendarTrigger",
+                        new XElement(TNS + "StartBoundary", sb),
+                        new XElement(TNS + "Enabled", "true"),
+                        new XElement(TNS + "ScheduleByDay", new XElement(TNS + "DaysInterval", "1")));
+            }
+        }
+
+        private static readonly string[] AllMonthCodes =
+            { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
+
+        // "JAN" → "January" (nome elemento XML dentro <Months>). Null se codice ignoto.
+        private static string MonthName(string code)
+        {
+            switch ((code ?? "").ToUpperInvariant())
+            {
+                case "JAN": return "January"; case "FEB": return "February"; case "MAR": return "March";
+                case "APR": return "April"; case "MAY": return "May"; case "JUN": return "June";
+                case "JUL": return "July"; case "AUG": return "August"; case "SEP": return "September";
+                case "OCT": return "October"; case "NOV": return "November"; case "DEC": return "December";
+                default: return null;
+            }
+        }
+
+        // "MON" → "Monday" (nome elemento XML dentro <DaysOfWeek>). Null se codice ignoto.
+        private static string DayName(string code)
+        {
+            switch ((code ?? "").ToUpperInvariant())
+            {
+                case "MON": return "Monday"; case "TUE": return "Tuesday"; case "WED": return "Wednesday";
+                case "THU": return "Thursday"; case "FRI": return "Friday"; case "SAT": return "Saturday";
+                case "SUN": return "Sunday"; default: return null;
+            }
+        }
+
         // Espressione PowerShell che valuta a un oggetto trigger, per un dato ScheduleSpec.
         private static string BuildTriggerPsExpr(ScheduleSpec s)
         {
@@ -115,6 +321,7 @@ namespace ShaiyaServerHub.Core
                 case "MINUTE": return $"(New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes {mo}))";
                 case "HOURLY": return $"(New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours {mo}))";
                 case "WEEKLY": return $"(New-ScheduledTaskTrigger -Weekly -DaysOfWeek {DaysToPs(s.Days)} -At '{s.Time}')";
+                case "MONTHLY": return null;   // gestito separatamente via COM (New-ScheduledTaskTrigger non ha -Monthly)
                 case "ONCE": return $"(New-ScheduledTaskTrigger -Once -At '{s.Time}')";
                 case "LOGON": return "(New-ScheduledTaskTrigger -AtLogOn)";
                 case "BOOT": return "(New-ScheduledTaskTrigger -AtStartup)";

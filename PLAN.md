@@ -2,7 +2,7 @@
 
 > Console locale di automazione e controllo del server Shaiya. **by K3rn3l**.
 > Documento per riprendere il progetto e pianificare nuove implementazioni.
-> Ultimo aggiornamento: 2026-07-03 (editor file + log task opzionale + trigger EVENT/guida XPath).
+> Ultimo aggiornamento: 2026-07-04 (trigger MONTHLY via COM RegisterTask/XML + guardia anti-zombie cmd-redirect).
 
 ---
 
@@ -52,7 +52,7 @@ ShaiyaServerHub\
     TriggerDialog.xaml / .cs    (modale "aggiungi/modifica trigger": ospita un CadencePicker → ScheduleSpec)
     Controls\
       NewTaskControl.xaml/.cs   (form task riusabile: trigger principale + lista trigger extra, azione, ☑ log, ❓ guida)
-      CadencePicker.xaml/.cs    (selettore cadenza/trigger riusabile: combo+orario/giorni/EVENT+🧩 genera evento)
+      CadencePicker.xaml/.cs    (selettore cadenza/trigger riusabile: combo+orario/giorni/MONTHLY(giorni-del-mese+mesi)/EVENT+🧩 genera evento)
       ScriptAreaControl.xaml/.cs(area script riusabile Funzioni/Test Suite + editor/nuovo file per riga)
     SettingsWindow.xaml / .cs   (⚙ config SQL/percorsi/canale comandi)
     L.cs                        (localizzazione: switch dizionari + stringhe di codice)
@@ -64,10 +64,11 @@ ShaiyaServerHub\
       ScriptRepository.cs       (scopre sql\ e ps1\ accanto all'exe; le crea all'avvio)
       ProcessRunner.cs          (Process con stdout/stderr live → callback)
       ScriptRunner.cs           (sqlcmd / powershell / cmd)
-      ScheduledTaskInfo.cs      (modello task + ScheduleSpec: cadenza + EventChannel/EventXPath)
-      TaskSchedulerService.cs   (wrapper schtasks: Create/List/Enable/Disable/Delete/RunNow + EVENT + wrapper log)
-      TaskLogging.cs            (log opzionale task: sqlcmd -o / wrapper cmd redirect; path log\<nome>.log)
-      TaskXml.cs                (parse XML task per Edit: cadenza, EVENT via Subscription/QueryList)
+      ScheduledTaskInfo.cs      (modello task + ScheduleSpec: cadenza + EventChannel/EventXPath + MonthDays/Months)
+      TaskSchedulerService.cs   (wrapper schtasks: Create/List/Enable/Disable/Delete/RunNow + EVENT + wrapper log;
+                                 MONTHLY via CreateViaXml → COM Schedule.Service.RegisterTask da XML completo)
+      TaskLogging.cs            (log opzionale task: sqlcmd -o / wrapper cmd redirect; path log\<nome>.log; IsHubExe guard)
+      TaskXml.cs                (parse XML task per Edit: cadenza, EVENT via Subscription/QueryList, MONTHLY/ScheduleByMonth)
       EventTriggerBuilder.cs    (XPath/QueryList per trigger evento + scan servizi da eventi 7036 SCM)
       ProcessRunner.cs          (Process live; RunPowerShellEncoded per quoting robusto via -EncodedCommand)
       ServiceMonitor.cs         (ServiceController: Query/Start/Stop/StartAll)
@@ -203,6 +204,13 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
       1° trigger via schtasks, extra appesi via PowerShell (time = New-ScheduledTaskTrigger, evento = CIM
       MSFT_TaskEventTrigger). Verificato: DAILY+WEEKLY+EVENT coesistono nell'XML. Vale anche in Edit
       (TaskXml parsa TUTTI i trigger).
+- [x] **Trigger MONTHLY** (`ScheduleByMonth`: giorni-del-mese + mesi selezionati, come la `.xml` esportata
+      dal Task Scheduler). UI: giorni CSV + 12 checkbox mesi in `CadencePicker`. Creazione: se un qualsiasi
+      trigger è mensile, l'INTERO task (azione + tutti i trigger) si crea via **COM Schedule.Service.RegisterTask
+      da XML completo** (`CreateViaXml`), NON schtasks+CIM — il layer CIM non sa ri-serializzare un mensile.
+      Edit ok (`TaskXml` parsa `ScheduleByMonth`). Verificato sul server: giorno 21 · Gen/Apr/Lug/Ott, run OK.
+- [x] **Guardia anti-zombie**: l'exe del Hub senza `--run` è rifiutato in creazione/edit e mai avvolto in
+      `cmd > log` (vedi §10 "cmd-redirect wrapper appende la UI e locka il log").
 
 ---
 
@@ -216,7 +224,7 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
 2b. **Persistenza script fuori da bin** — spostare `sql\`/`ps1\` in un path stabile (es. `%ProgramData%\ShaiyaServerHub`)
    così sopravvivono ai rebuild; oppure percorso configurabile in Settings.
 3. **Editor cadenza avanzato** — "esegui anche se mancato" (`/Z`, condizioni), preview del comando
-   schtasks generato. (WEEKLY multi-giorno, LOGON/BOOT/SHUTDOWN/**EVENT** già fatti.)
+   schtasks generato. (WEEKLY multi-giorno, **MONTHLY** giorni+mesi, LOGON/BOOT/SHUTDOWN/**EVENT** già fatti.)
 4. **Toggle ON/OFF preset** — set predefinito di job noti (Auto-EXP, Auto-Boss, Backup DB 04:00,
    pulizia log, watchdog ps_game) con un interruttore che crea/abilita il task giusto già configurato.
 5. **Log persistente + viewer** — filtro per livello, apertura `hub.log`, export.
@@ -273,6 +281,26 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
 - **param2 evento 7036 = testo di stato**: sul server reale è **"running"/"stopped"** (OS EN), ma è comunque
   LOCALIZZATO in generale. Il generatore lo rileva dagli eventi e classifica per keyword (`run`/`esec`, `stop`/`arrest`);
   il default "qualsiasi cambio" (nessun `param2`) evita del tutto la trappola.
+- **Trigger MONTHLY: CIM NON lo sa ri-serializzare (CRITICO)**: `schtasks /SC MONTHLY` crea il
+  `CalendarTrigger/ScheduleByMonth`, MA `New-ScheduledTaskTrigger` **non ha `-Monthly`** e soprattutto
+  `Get-ScheduledTask | Set-ScheduledTask` (CIM) su un task che HA già un trigger mensile **fallisce**
+  (`Parametro non corretto`: il mensile torna come `MSFT_TaskTrigger` generico non round-trippabile).
+  Conseguenza subdola: `SetAction`/`AddExtraTriggers` (che passano da CIM) falliscono in silenzio → l'azione
+  resta con soli `Command`, **Arguments/WorkingDirectory/--log spariscono**. Soluzione: se un qualsiasi
+  trigger è mensile, costruire l'**intero task via COM** `Schedule.Service.RegisterTask` da **XML completo**
+  (`TaskSchedulerService.CreateViaXml` + `BuildTaskXml`/`BuildTriggerXml`, formato identico alla `.xml` del
+  Task Scheduler). `RegisterTask(path, xml, 6=CREATE_OR_UPDATE, 'SYSTEM', $null, 5=SERVICE_ACCOUNT)`.
+  Verificato: round-trippa DaysOfMonth/Months, Arguments e WorkingDirectory intatti.
+- **cmd-redirect wrapper appende la UI e LOCKA il log (CRITICO)**: un'azione `cmd /c ""ShaiyaServerHub.exe" >
+  "log" 2>&1"` **senza `--run`** è doppiamente rotta: (1) l'exe del Hub senza `--run` parte in **modalità UI**
+  (WinExe headless) e **non termina mai** → il `cmd` genitore resta vivo per sempre; (2) il redirect `> log`
+  tiene il file **lockato in scrittura esclusiva** → ogni run successivo fa `AppendAllText` → *sharing violation*
+  → catch silenzioso → **log a 0 byte** (sintomo: "Genera log" sembra non funzionare). Diagnosi sul server:
+  `Get-Process ShaiyaServerHub | ? SessionId -eq 0` (zombie in session 0, parent = svchost `netsvcs` = Task
+  Scheduler) e `Win32_Process.CommandLine`; il file lockato non è nemmeno cancellabile. **Guardia** (3 livelli):
+  `TaskLogging.IsHubExe(program)`; in `NewTaskControl` create/edit si RIFIUTA l'exe del Hub senza `--run`
+  (`L.HubExeNeedsRun`); in `Create` (schtasks) e `BuildTaskXml` (COM) l'exe del Hub non è **mai** avvolto in
+  `cmd > log` (i task hub loggano via `--log`, non col redirect). Se ricapita: killa lo zombie in session 0.
 
 ---
 

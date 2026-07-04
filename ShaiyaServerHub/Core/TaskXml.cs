@@ -61,6 +61,7 @@ namespace ShaiyaServerHub.Core
                 case "CalendarTrigger":
                     s.Time = TimeFrom(el);
                     var wk = el.Element(NS + "ScheduleByWeek");
+                    var mn = el.Element(NS + "ScheduleByMonth");
                     if (wk != null)
                     {
                         s.Type = "WEEKLY";
@@ -68,6 +69,19 @@ namespace ShaiyaServerHub.Core
                         if (dow != null)
                             s.Days = string.Join(",", dow.Elements()
                                 .Select(e => DayCode(e.Name.LocalName)).Where(x => x != null));
+                    }
+                    else if (mn != null)
+                    {
+                        s.Type = "MONTHLY";
+                        var dom = mn.Element(NS + "DaysOfMonth");
+                        if (dom != null)
+                            s.MonthDays = string.Join(",", dom.Elements(NS + "Day")
+                                .Select(e => (e.Value ?? "").Trim())
+                                .Where(v => v.Length > 0));
+                        var months = mn.Element(NS + "Months");
+                        if (months != null)
+                            s.Months = string.Join(",", months.Elements()
+                                .Select(e => MonthCode(e.Name.LocalName)).Where(x => x != null));
                     }
                     else s.Type = "DAILY";
                     return s;
@@ -128,6 +142,26 @@ namespace ShaiyaServerHub.Core
         {
             var sb = (string)trg.Element(NS + "StartBoundary");
             return (sb != null && sb.Length >= 16) ? sb.Substring(11, 5) : "04:00"; // HH:mm
+        }
+
+        private static string MonthCode(string monthName)
+        {
+            switch (monthName)
+            {
+                case "January": return "JAN";
+                case "February": return "FEB";
+                case "March": return "MAR";
+                case "April": return "APR";
+                case "May": return "MAY";
+                case "June": return "JUN";
+                case "July": return "JUL";
+                case "August": return "AUG";
+                case "September": return "SEP";
+                case "October": return "OCT";
+                case "November": return "NOV";
+                case "December": return "DEC";
+                default: return null;
+            }
         }
 
         private static string DayCode(string dayName)

@@ -46,10 +46,14 @@ namespace ShaiyaServerHub.Core
     /// <summary>Cadenza per creare un nuovo task.</summary>
     public class ScheduleSpec
     {
-        public string Type { get; set; } = "DAILY";  // MINUTE | HOURLY | DAILY | WEEKLY | ONCE | LOGON | BOOT | SHUTDOWN | EVENT
+        public string Type { get; set; } = "DAILY";  // MINUTE | HOURLY | DAILY | WEEKLY | MONTHLY | ONCE | LOGON | BOOT | SHUTDOWN | EVENT
         public int Interval { get; set; } = 1;        // per MINUTE/HOURLY (/MO)
-        public string Time { get; set; } = "04:00";   // HH:mm (per DAILY/WEEKLY/ONCE)
+        public string Time { get; set; } = "04:00";   // HH:mm (per DAILY/WEEKLY/MONTHLY/ONCE)
         public string Days { get; set; } = "MON";     // per WEEKLY (/D)
+
+        // ── MONTHLY (ScheduleByMonth: giorni-del-mese + mesi selezionati) ──
+        public string MonthDays { get; set; } = "1";  // CSV giorni del mese 1..31 (/D), es. "21" o "1,15"
+        public string Months { get; set; } = "";      // CSV mesi (/M): "JAN,APR,JUL,OCT" — vuoto = tutti i mesi (*)
 
         // ── EVENT (trigger su evento del log di Windows) ──
         public string EventChannel { get; set; } = "System"; // /EC (es. System, Application)
@@ -67,6 +71,10 @@ namespace ShaiyaServerHub.Core
                 case "MINUTE": return $"MINUTE · ogni {System.Math.Max(1, Interval)} min";
                 case "HOURLY": return $"HOURLY · ogni {System.Math.Max(1, Interval)} h";
                 case "WEEKLY": return $"WEEKLY · {Days} · {Time}";
+                case "MONTHLY":
+                    string mm = string.IsNullOrWhiteSpace(Months) ? "ogni mese" : Months;
+                    string dd = string.IsNullOrWhiteSpace(MonthDays) ? "1" : MonthDays;
+                    return $"MONTHLY · g.{dd} · {mm} · {Time}";
                 case "ONCE": return $"ONCE · {Time}";
                 case "LOGON": return "LOGON";
                 case "BOOT": return "BOOT";

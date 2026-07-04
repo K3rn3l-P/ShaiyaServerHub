@@ -20,6 +20,7 @@
                 <ComboBoxItem Content="HOURLY"/>
                 <ComboBoxItem Content="MINUTE"/>
                 <ComboBoxItem Content="WEEKLY"/>
+                <ComboBoxItem Content="MONTHLY"/>
                 <ComboBoxItem Content="ONCE"/>
                 <ComboBoxItem Content="LOGON"/>
                 <ComboBoxItem Content="BOOT"/>
@@ -45,6 +46,33 @@
             <CheckBox x:Name="ChkFri" Content="{DynamicResource DayFri}" Margin="0,0,12,0"/>
             <CheckBox x:Name="ChkSat" Content="{DynamicResource DaySat}" Margin="0,0,12,0"/>
             <CheckBox x:Name="ChkSun" Content="{DynamicResource DaySun}" Margin="0,0,12,0"/>
+        </StackPanel>
+
+        <!-- MONTHLY: giorni del mese + mesi selezionati (ScheduleByMonth) -->
+        <StackPanel x:Name="PanelMonth" Margin="0,6,0,0" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="{DynamicResource LblMonthDays}"/>
+                <TextBox x:Name="TbMonthDays" Text="1" Width="120"
+                         ToolTip="{DynamicResource TipMonthDays}"/>
+                <TextBlock Text="{DynamicResource TipMonthDays}" Foreground="#5552A8FF"
+                           FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0"
+                           TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Label Content="{DynamicResource LblMonths}"/>
+                <CheckBox x:Name="ChkJan" Content="{DynamicResource MonJan}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkFeb" Content="{DynamicResource MonFeb}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkMar" Content="{DynamicResource MonMar}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkApr" Content="{DynamicResource MonApr}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkMay" Content="{DynamicResource MonMay}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkJun" Content="{DynamicResource MonJun}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkJul" Content="{DynamicResource MonJul}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkAug" Content="{DynamicResource MonAug}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkSep" Content="{DynamicResource MonSep}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkOct" Content="{DynamicResource MonOct}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkNov" Content="{DynamicResource MonNov}" Margin="0,0,10,0"/>
+                <CheckBox x:Name="ChkDec" Content="{DynamicResource MonDec}" Margin="0,0,10,0"/>
+            </StackPanel>
         </StackPanel>
 
         <!-- EVENT: canale + filtro XPath -->

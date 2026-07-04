@@ -33,6 +33,8 @@ namespace ShaiyaServerHub.Controls
             TbInterval.Text = Math.Max(1, s.Interval).ToString();
             if (!string.IsNullOrWhiteSpace(s.Time)) TbTime.Text = s.Time;
             SetDaysFromCsv(s.Days);
+            TbMonthDays.Text = string.IsNullOrWhiteSpace(s.MonthDays) ? "1" : s.MonthDays;
+            SetMonthsFromCsv(s.Months);
             if (!string.IsNullOrWhiteSpace(s.EventChannel)) TbEventChannel.Text = s.EventChannel;
             TbEventXPath.Text = s.EventXPath ?? "";
             TbEventDelay.Text = s.EventDelayMinutes.ToString();
@@ -51,6 +53,10 @@ namespace ShaiyaServerHub.Controls
             string days = BuildDaysCsv();
             if (type == "WEEKLY" && string.IsNullOrEmpty(days)) { error = L.PickAtLeastOneDay; return false; }
 
+            string monthDays = NormalizeMonthDays(TbMonthDays.Text);
+            if (type == "MONTHLY" && monthDays.Length == 0) { error = L.NeedMonthDay; return false; }
+            string months = BuildMonthsCsv();   // vuoto = tutti i mesi (*)
+
             string channel = TbEventChannel.Text.Trim();
             string xpath = TbEventXPath.Text.Trim();
             if (type == "EVENT" && string.IsNullOrWhiteSpace(xpath)) { error = L.NeedEventXPath; return false; }
@@ -63,6 +69,8 @@ namespace ShaiyaServerHub.Controls
                 Interval = interval,
                 Time = TbTime.Text.Trim(),
                 Days = days,
+                MonthDays = monthDays,
+                Months = months,
                 EventChannel = string.IsNullOrWhiteSpace(channel) ? "System" : channel,
                 EventXPath = xpath,
                 EventDelayMinutes = delay
@@ -85,12 +93,14 @@ namespace ShaiyaServerHub.Controls
             if (TbInterval == null) return;
             string c = SelectedCadence();
             bool useInterval = c == "MINUTE" || c == "HOURLY";
-            bool useTime = c == "DAILY" || c == "WEEKLY" || c == "ONCE";
+            bool useTime = c == "DAILY" || c == "WEEKLY" || c == "MONTHLY" || c == "ONCE";
             bool useDays = c == "WEEKLY";
+            bool useMonth = c == "MONTHLY";
             bool useEvent = c == "EVENT";
             TbInterval.IsEnabled = useInterval;
             TbTime.IsEnabled = useTime;
             PanelDays.Visibility = useDays ? Visibility.Visible : Visibility.Collapsed;
+            PanelMonth.Visibility = useMonth ? Visibility.Visible : Visibility.Collapsed;
             PanelEvent.Visibility = useEvent ? Visibility.Visible : Visibility.Collapsed;
             BtnEventGen.Visibility = useEvent ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -117,6 +127,40 @@ namespace ShaiyaServerHub.Controls
             if (ChkFri.IsChecked == true) days.Add("FRI");
             if (ChkSat.IsChecked == true) days.Add("SAT");
             if (ChkSun.IsChecked == true) days.Add("SUN");
+            return string.Join(",", days);
+        }
+
+        // ── MONTHLY: mesi (checkbox) e giorni-del-mese (CSV) ──
+        private static readonly string[] MonthCodes =
+            { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
+
+        private CheckBox[] MonthChecks() => new[]
+            { ChkJan, ChkFeb, ChkMar, ChkApr, ChkMay, ChkJun, ChkJul, ChkAug, ChkSep, ChkOct, ChkNov, ChkDec };
+
+        private void SetMonthsFromCsv(string csv)
+        {
+            var set = new List<string>((csv ?? "").ToUpperInvariant()
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+            var checks = MonthChecks();
+            for (int i = 0; i < checks.Length; i++)
+                checks[i].IsChecked = set.Contains(MonthCodes[i]);
+        }
+
+        private string BuildMonthsCsv()
+        {
+            var checks = MonthChecks();
+            var months = new List<string>();
+            for (int i = 0; i < checks.Length; i++)
+                if (checks[i].IsChecked == true) months.Add(MonthCodes[i]);
+            return string.Join(",", months);   // vuoto = tutti i mesi (interpretato come * a valle)
+        }
+
+        // "21", "1, 15, 31" → "1,15,21,31" (ordinati, deduplicati, solo 1..31).
+        private static string NormalizeMonthDays(string csv)
+        {
+            var days = new SortedSet<int>();
+            foreach (var tok in (csv ?? "").Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries))
+                if (int.TryParse(tok.Trim(), out int d) && d >= 1 && d <= 31) days.Add(d);
             return string.Join(",", days);
         }
 
