@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -55,15 +56,16 @@ namespace ShaiyaServerHub
             TestArea.Runner = _runner;
             TestArea.Init(ScriptRepository.TestSuite, L.HintTestSuite);
 
-            ShowView("scripts");
+            ShowView("dashboard");
 
-            // Auto-refresh servizi ogni 3s (solo mentre la vista Servizi/Web è aperta).
-            // La sonda web (lenta, PowerShell) NON gira nel timer: solo lista servizi veloce.
+            // Auto-refresh servizi ogni 3s (solo mentre la vista Servizi/Web/Dashboard è aperta).
+            // Le sonde lente (web/firewall, PowerShell) NON girano nel timer: solo dati veloci.
             _svcTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
             _svcTimer.Tick += (s, e) =>
             {
                 if (PanelServices.Visibility == Visibility.Visible) RefreshServices();
                 if (PanelWeb.Visibility == Visibility.Visible) RefreshWebServices();
+                if (PanelDashboard.Visibility == Visibility.Visible) RefreshDashboardFast();
             };
             _svcTimer.Start();
         }
@@ -79,6 +81,7 @@ namespace ShaiyaServerHub
         {
             // I pannelli non esistono ancora durante InitializeComponent.
             if (PanelScripts == null) return;
+            PanelDashboard.Visibility = view == "dashboard" ? Visibility.Visible : Visibility.Collapsed;
             PanelScripts.Visibility = view == "scripts" ? Visibility.Visible : Visibility.Collapsed;
             PanelNewTask.Visibility = view == "newtask" ? Visibility.Visible : Visibility.Collapsed;
             PanelTasks.Visibility = view == "tasks" ? Visibility.Visible : Visibility.Collapsed;
@@ -90,15 +93,228 @@ namespace ShaiyaServerHub
 
             // Entrando nella vista Web: refresh completo (servizi + sonda health/cert).
             if (view == "web") RefreshWeb();
+            // Entrando nella Dashboard: panoramica completa (dati veloci + sonde async).
+            if (view == "dashboard") RefreshDashboard();
         }
 
         private void SelectLog() { if (NavLog != null) NavLog.IsChecked = true; }
         private void SelectTasks() { if (NavTasks != null) NavTasks.IsChecked = true; }
 
+        /// <summary>Naviga a una vista dal tag (usato dalle tessere/azioni della Dashboard).</summary>
+        private void SelectView(string view)
+        {
+            switch (view)
+            {
+                case "dashboard": NavDashboard.IsChecked = true; break;
+                case "scripts": NavScripts.IsChecked = true; break;
+                case "newtask": NavNewTask.IsChecked = true; break;
+                case "tasks": NavTasks.IsChecked = true; break;
+                case "services": NavServices.IsChecked = true; break;
+                case "web": NavWeb.IsChecked = true; break;
+                case "functions": NavFunctions.IsChecked = true; break;
+                case "testsuite": NavTestSuite.IsChecked = true; break;
+                case "log": NavLog.IsChecked = true; break;
+            }
+        }
+
+        // ── Dashboard ─────────────────────────────────────────
+        private void BtnDashRefresh_Click(object sender, RoutedEventArgs e) => RefreshDashboard(true);
+        private void DashTile_Click(object sender, MouseButtonEventArgs e) =>
+            SelectView((sender as FrameworkElement)?.Tag as string);
+        private void DashOpen_Click(object sender, RoutedEventArgs e) =>
+            SelectView((sender as FrameworkElement)?.Tag as string);
+
+        // Throttle delle parti pesanti: entrare nella Dashboard NON deve rifare schtasks/probe
+        // ogni volta. I TextBlock mantengono l'ultimo valore → riapertura istantanea; il
+        // ricalcolo parte solo se i dati sono più vecchi del TTL (o su Aggiorna manuale).
+        private static readonly TimeSpan _dashHeavyTtl = TimeSpan.FromSeconds(20);
+        private DateTime _dashHeavyAt = DateTime.MinValue;
+
+        private void RefreshDashboard() => RefreshDashboard(false);
+
+        /// <summary>Panoramica: dati veloci (sync, cheap) + pesanti (off-thread, throttled).</summary>
+        private void RefreshDashboard(bool force)
+        {
+            if (TbKpiSvc == null) return;   // pannello non ancora costruito
+            TbDashHost.Text = $"{_settings.SqlServer} · {_settings.DefaultDatabase}";
+
+            RefreshDashboardFast();   // servizi + orario: leggero, resta sincrono
+
+            // Pesante (schtasks + discover + probe web/firewall): salta se già fresco.
+            if (!force && (DateTime.Now - _dashHeavyAt) < _dashHeavyTtl) return;
+            _dashHeavyAt = DateTime.Now;
+
+            RefreshDashboardHeavyAsync();   // task + script fuori dal thread UI
+            RefreshDashboardWebAsync();
+            RefreshDashboardFirewallAsync();
+            RefreshDashboardPsmAsync();
+        }
+
+        /// <summary>Task (schtasks) + script (filesystem) calcolati off-thread, poi in UI.</summary>
+        private async void RefreshDashboardHeavyAsync()
+        {
+            try
+            {
+                var res = await Task.Run(() =>
+                {
+                    var tasks = TaskSchedulerService.List();
+                    foreach (var t in tasks) t.LogState = TaskLogReader.LastRunState(t.Name);
+                    var scripts = ScriptRepository.Main.Discover();
+                    int enabled = tasks.Count(t => !t.IsDisabled);
+                    int errors = tasks.Count(t => t.LogState == TaskLogState.Error);
+                    int sql = scripts.Count(s => s.Kind == ScriptKind.Sql);
+                    return new { Total = tasks.Count, enabled, errors, ScriptTotal = scripts.Count, sql };
+                });
+                if (TbKpiTasks == null) return;
+
+                TbKpiTasks.Text = res.Total.ToString();
+                TbKpiTasksSub.Text = L.DashTasksSub(res.enabled, res.errors);
+                TbKpiTasksSub.Foreground = new SolidColorBrush(res.errors > 0
+                    ? Color.FromRgb(0xF4, 0x6A, 0x6A) : Color.FromArgb(0x88, 0xE0, 0xE0, 0xE0));
+
+                TbKpiScripts.Text = res.ScriptTotal.ToString();
+                TbKpiScriptsSub.Text = L.DashScriptsSub(res.sql, res.ScriptTotal - res.sql);
+            }
+            catch (Exception ex) { App.WriteLog("DASH-HEAVY", ex.ToString()); }
+        }
+
+        /// <summary>Solo dati veloci (servizi + orario), adatti al timer 3s.</summary>
+        private void RefreshDashboardFast()
+        {
+            if (DashServicesList == null) return;
+            var svc = ServiceMonitor.Query();
+            DashServicesList.ItemsSource = svc;
+            int online = svc.Count(s => s.Running);
+            int total = svc.Count(s => s.Installed);
+            if (total == 0) total = svc.Count;
+            TbKpiSvc.Text = $"{online}/{total}";
+            TbKpiSvc.Foreground = new SolidColorBrush(
+                online == 0 ? Color.FromRgb(0xF4, 0x6A, 0x6A) :
+                online >= total ? Color.FromRgb(0x4D, 0xC8, 0x70) :
+                Color.FromRgb(0xE8, 0xC8, 0x81));
+            TbKpiSvcSub.Text = L.DashSvcSub(online, total);
+            TbDashUpdated.Text = L.DashUpdated(DateTime.Now);
+        }
+
+        private async void RefreshDashboardWebAsync()
+        {
+            if (_webServer == null) _webServer = WebServerFactory.Create(_settings);
+            TbKpiWeb.Text = L.DashWebProbing;
+            TbKpiWeb.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xC8, 0x81));
+            TbDashWebKind.Text = _webServer.DisplayName;
+            TbDashWebHealth.Text = L.DashWebProbing;
+            TbDashWebCert.Text = "";
+
+            var res = await Task.Run(() => WebProbe.Probe(_webServer));
+            if (TbKpiWeb == null) return;
+
+            TbKpiWeb.Text = res.Reachable ? L.DashWebOnline : L.DashWebOffline;
+            var webColor = !res.Reachable ? Color.FromRgb(0xF4, 0x6A, 0x6A)
+                         : res.AppServer ? Color.FromRgb(0x4D, 0xC8, 0x70)
+                                         : Color.FromRgb(0xE8, 0xC8, 0x81);
+            TbKpiWeb.Foreground = new SolidColorBrush(webColor);
+            TbDashWebHealth.Text = res.Summary();
+            TbDashWebHealth.Foreground = new SolidColorBrush(webColor);
+
+            if (res.CertExpiry.HasValue)
+            {
+                int days = (int)(res.CertExpiry.Value.Date - DateTime.Now.Date).TotalDays;
+                TbDashWebCert.Text = L.WebCert(res.CertExpiry.Value, days);
+                TbDashWebCert.Foreground = new SolidColorBrush(days <= 14
+                    ? Color.FromRgb(0xF4, 0x6A, 0x6A) : Color.FromArgb(0x66, 0xE0, 0xE0, 0xE0));
+                TbKpiWebSub.Text = L.WebCert(res.CertExpiry.Value, days);
+            }
+            else
+            {
+                TbDashWebCert.Text = L.WebCertNone;
+                TbDashWebCert.Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x7A));
+                TbKpiWebSub.Text = _webServer.DisplayName;
+            }
+        }
+
+        private async void RefreshDashboardFirewallAsync()
+        {
+            TbDashFwState.Text = L.DashFwProbing;
+            TbDashFwState.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xC8, 0x81));
+            TbDashFwSub.Text = "";
+
+            FirewallStatus st = null;
+            await RunAsync(() => st = new FirewallManager().GetStatus());
+            if (TbDashFwState == null) return;
+
+            if (st == null || st.Profiles.Count == 0)
+            {
+                TbDashFwState.Text = L.DashFwUnknown;
+                TbDashFwState.Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x7A));
+                return;
+            }
+
+            int on = st.Profiles.Count(p => p.Enabled);
+            int total = st.Profiles.Count;
+            if (st.AllEnabled)
+            {
+                TbDashFwState.Text = L.DashFwOn;
+                TbDashFwState.Foreground = new SolidColorBrush(Color.FromRgb(0x4D, 0xC8, 0x70));
+            }
+            else if (st.AnyEnabled)
+            {
+                TbDashFwState.Text = L.DashFwPartial;
+                TbDashFwState.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xB0, 0x40));
+            }
+            else
+            {
+                TbDashFwState.Text = L.DashFwOff;
+                TbDashFwState.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x6A, 0x6A));
+            }
+            TbDashFwSub.Text = L.DashFwSub(on, total, st.SimplewallFiltering);
+        }
+
+        private async void RefreshDashboardPsmAsync()
+        {
+            TbDashPsmState.Text = L.DashPsmProbing;
+            TbDashPsmState.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xC8, 0x81));
+            TbDashPsmSub.Text = L.DashPsmSub;
+
+            bool? ok = null;
+            // Come la scheda Funzioni: sempre Windows auth (-E → SYSTEM) per vedere gli oggetti
+            // least-priv di PSM_Cmd (dbo.Command CLR, Gm* tabelle) invisibili all'account SQL principale.
+            await RunAsync(() =>
+            {
+                var runner = new ScriptRunner(_settings, forceWindowsAuth: true);
+                ok = CommandChannel.VerifyPsmCmd(runner, _ => { });
+            });
+            if (TbDashPsmState == null) return;
+
+            if (ok == true)
+            {
+                TbDashPsmState.Text = L.DashPsmOn;
+                TbDashPsmState.Foreground = new SolidColorBrush(Color.FromRgb(0x4D, 0xC8, 0x70));
+            }
+            else if (ok == false)
+            {
+                TbDashPsmState.Text = L.DashPsmOff;
+                TbDashPsmState.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x6A, 0x6A));
+            }
+            else
+            {
+                TbDashPsmState.Text = L.DashPsmUnknown;
+                TbDashPsmState.Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x7A));
+            }
+        }
+
         // ── Custom chrome ─────────────────────────────────────
         private void DragWindow(object sender, MouseButtonEventArgs e) { try { DragMove(); } catch { } }
         private void BtnMin_Click(object sender, MouseButtonEventArgs e) => WindowState = WindowState.Minimized;
         private void BtnClose_Click(object sender, MouseButtonEventArgs e) => Close();
+
+        // Grip angolo basso-destra: ridimensiona la finestra rispettando i minimi.
+        private void ResizeGrip_DragDelta(object sender, DragDeltaEventArgs e)
+        {
+            double w = Width + e.HorizontalChange;
+            double h = Height + e.VerticalChange;
+            if (w >= MinWidth) Width = w;
+            if (h >= MinHeight) Height = h;
+        }
 
         private static readonly SolidColorBrush _hover = new SolidColorBrush(Color.FromArgb(0x22, 0xE8, 0xC8, 0x81));
         private static readonly SolidColorBrush _closeHover = new SolidColorBrush(Color.FromArgb(0x30, 0xF4, 0x6A, 0x6A));

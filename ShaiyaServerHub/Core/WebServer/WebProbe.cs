@@ -20,7 +20,7 @@ namespace ShaiyaServerHub.Core.WebServer
 
         public string Summary()
         {
-            if (!Reachable) return "○ irraggiungibile" + (string.IsNullOrEmpty(Error) ? "" : " — " + Error);
+            if (!Reachable) return L.WebUnreachable + (string.IsNullOrEmpty(Error) ? "" : " — " + Error);
             string s = $"● HTTP {HttpStatus}";
             if (AppWeb) s += " · web OK";
             if (AppServer) s += " · game OK"; else s += " · game DOWN";

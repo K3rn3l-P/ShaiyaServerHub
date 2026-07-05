@@ -29,7 +29,7 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,8">
-                <TextBlock Text="Settaggi sito (PS_WebSite · Web_Settings)" Foreground="#E8C881"
+                <TextBlock Text="{DynamicResource WsTitle}" Foreground="#E8C881"
                            FontSize="15" FontWeight="Bold" VerticalAlignment="Center"
                            HorizontalAlignment="Left" MouseLeftButtonDown="DragWindow"/>
                 <Border HorizontalAlignment="Right" CornerRadius="3" Padding="10,3" Cursor="Hand"
@@ -39,8 +39,8 @@
             </Grid>
 
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
-                <Button Content="↻ Ricarica" Click="BtnReload_Click"/>
-                <TextBlock Text="Modifica il valore e premi 💾 sulla riga. Attenzione: valori JSON (permessi) vanno tenuti validi."
+                <Button Content="{DynamicResource WsReload}" Click="BtnReload_Click"/>
+                <TextBlock Text="{DynamicResource WsHint}"
                            Foreground="#35E8C881" FontSize="10" VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap"/>
                 <TextBlock x:Name="TbStatus" VerticalAlignment="Center" Margin="10,0" FontSize="11" FontWeight="SemiBold"/>
             </StackPanel>
@@ -79,7 +79,7 @@
                                              FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" AcceptsReturn="True"
                                              MaxHeight="120" VerticalScrollBarVisibility="Auto"/>
                                     <Button Grid.Column="2" Style="{StaticResource AccentButton}" Padding="8,3" FontSize="10"
-                                            Content="💾" Click="BtnSaveRow_Click" ToolTip="Salva questa impostazione"
+                                            Content="💾" Click="BtnSaveRow_Click" ToolTip="{DynamicResource WsTipSaveRow}"
                                             IsEnabled="{Binding ReadOnly, Converter={StaticResource InvBool}}"/>
                                 </Grid>
                             </DataTemplate>

@@ -31,9 +31,9 @@ namespace ShaiyaServerHub.Core
 
         /// <summary>Tooltip del bottone Log.</summary>
         public string LogTip =>
-            LogState == TaskLogState.Ok ? "Ultimo run: OK — clic per vedere il log" :
-            LogState == TaskLogState.Error ? "Ultimo run: ERRORE — clic per vedere il log" :
-            "Nessun log per questo task";
+            LogState == TaskLogState.Ok ? L.TaskLogTipOk :
+            LogState == TaskLogState.Error ? L.TaskLogTipErr :
+            L.TaskLogTipNone;
 
         private static System.Windows.Media.Brush Freeze(System.Windows.Media.Color c)
         {

@@ -25,10 +25,20 @@ ShaiyaServerHub.exe
 Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica gli script → aggiungi nuovi script senza ricompilare.
 
 ## Moduli
-1. **Script** — lista auto-scoperta di `scripts\sql\` e `scripts\ps1\`. `▶ Esegui` lancia subito con log live.
+1. **🏠 Dashboard** — **vista di default all'avvio**. Panoramica a colpo d'occhio di tutto il server, con
+   **navigazione rapida** (le tessere e i bottoni portano alla vista relativa). Contiene: 4 **tessere KPI**
+   cliccabili — *Servizi online* (`X/Y`, verde tutti su / oro parziale / rosso zero), *Task pianificati*
+   (totale + `N attivi · M in errore`, rosso se ci sono run falliti), *Script disponibili* (totale + `SQL · PS1/BAT`),
+   *Web server* (`ONLINE/OFFLINE`, verde se il game server risponde) — più tre **card**: *Servizi di gioco*
+   (mini-lista dei 9 servizi con pallino stato), *Web server* (tipo, health, scadenza cert TLS), *Sicurezza ·
+   Firewall* (🟢/🟠/🔴 profili attivi + nota simplewall). In fondo una barra **Azioni rapide** (Avvia servizi ·
+   Nuovo task · Test Suite · Funzioni · Log). **Performance**: i dati veloci (servizi) si aggiornano col timer
+   3s; le sonde pesanti (`schtasks`, probe web/firewall PowerShell) girano **off-thread** e con **throttle TTL
+   20s** — riaprire la Dashboard è istantaneo (nessun re-probe ad ogni switch di vista); ↻ Aggiorna forza il refresh.
+2. **Script** — lista auto-scoperta di `scripts\sql\` e `scripts\ps1\`. `▶ Esegui` lancia subito con log live.
    **✎ Modifica** apre il file nell'**editor** integrato (modale, salva con `💾`/Ctrl+S, preserva la codifica);
    **＋ Nuovo file** crea un `.sql`/`.ps1`/`.bat` e lo apre subito. (Editor disponibile anche in Funzioni e Test Suite.)
-2. **Nuovo task** — form per pianificare uno script. **Più trigger per task** (opzionali): un **trigger
+3. **Nuovo task** — form per pianificare uno script. **Più trigger per task** (opzionali): un **trigger
    principale** + una lista di **trigger aggiuntivi** (**＋ Aggiungi trigger**, ✎ modifica, ✕ rimuovi) —
    es. DAILY 10:00 **e anche** su evento. Vale sia per task nuovi che per l'Edit di task esistenti (vecchi
    inclusi: tutti i loro trigger vengono caricati). Trigger supportati per ciascuno:
@@ -45,20 +55,20 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
    scegli *quando* scattare _qualsiasi cambio / avvio / arresto_, il filtro XPath si genera da solo e "Usa
    nel task" imposta la cadenza **EVENT**). Dalla riga di uno script, **▶ Pianifica** apre lo stesso form in
    un **modale** (`NewTaskControl` condiviso).
-3. **Task pianificati** — lista dei task di `\ShaiyaServerHub\`: **▶ Ora** (avvia subito, test),
+4. **Task pianificati** — lista dei task di `\ShaiyaServerHub\`: **▶ Ora** (avvia subito, test),
    **✎ Modifica** (modale precompilato dai valori attuali del task, letti da `schtasks /Query /XML`),
    Abilita / Disabilita / Rimuovi, e **🪟 Task Scheduler** (apre la GUI di Windows per modifiche avanzate).
    Ogni operazione mostra l'esito (verde/rosso) in cima al pannello.
-4. **Stato servizi** — presenza processi `ps_game`, `ps_login`, `PSM_Agent`, `sqlservr`, … con
+5. **Stato servizi** — presenza processi `ps_game`, `ps_login`, `PSM_Agent`, `sqlservr`, … con
    Stop e Avvia (via script di avvio configurato).
-5. **🌐 Web server** — controllo del web server del sito (XAMPP/Apache ora, IIS predisposto via
+6. **🌐 Web server** — controllo del web server del sito (XAMPP/Apache ora, IIS predisposto via
    `IWebServer`). Stato/Start/Stop/Riavvio del servizio (`Apache2.4`), **health check** (sonda
    `Updater/api/status.php` → web/game OK, metriche `mod_status ?auto`, **scadenza certificato TLS**
    dal handshake reale su 443), rigenera SSL (`genera_chiavi_ssl-*.ps1`), backup web, apri webroot/log,
    e **⚙ Settaggi sito** → editor di `PS_WebSite.dbo.Web_Settings` (via account `Ernoweb@`): chiavi
    raggruppate per categoria (Drops · Permessi · Lucky Chest · Scheduler · Altri), validazione JSON per
    i `*_Permissions`, righe read-only per heartbeat/secret. Salva testo grezzo (il sito rilegge con `json_decode`).
-6. **⚙ Impostazioni** — **connessione SQL di gioco** (server, auth Windows `-E` / SQL login, database) +
+7. **⚙ Impostazioni** — **connessione SQL di gioco** (server, auth Windows `-E` / SQL login, database) +
    bottone **canale comandi**; **connessione SQL del sito** separata (Env = variabili `DB_USER`/`DB_PASSWORD`
    come il sito / Windows / SQL login) + database sito, usata dall'editor Settaggi sito; config **web
    server** (tipo XAMPP/IIS, path, URL health).

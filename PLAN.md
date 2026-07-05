@@ -84,8 +84,18 @@ ShaiyaServerHub\
 - **All'avvio** `App.Application_Startup` → `ScriptRepository.EnsureFolders()` crea `sql\` e `ps1\`
   accanto all'exe. L'utente ci mette gli script (vecchi e nuovi) → ricaricati ad ogni apertura.
 - **Discovery**: `sql\` → `*.sql`; `ps1\` → `*.ps1/*.bat/*.cmd` (ricorsivo).
-- **Nav laterale** (RadioButton `NavItem`) scambia 5 viste (Visibility toggle in `ShowView`):
-  Script · Nuovo task · Pianificati · Servizi · Log. Auto-switch: Esegui/Start→Log, Crea task→Pianificati.
+- **Nav laterale** (RadioButton `NavItem`) scambia le viste (Visibility toggle in `ShowView`):
+  **Dashboard** (default) · Script · Nuovo task · Pianificati · Servizi · Web · Funzioni · Test Suite · Log.
+  Auto-switch: Esegui/Start→Log, Crea task→Pianificati. Dalla Dashboard le tessere/azioni chiamano
+  `SelectView(tag)` che checka la RadioButton relativa.
+- **Dashboard** (`PanelDashboard`, **vista di default** all'avvio): panoramica a colpo d'occhio.
+  4 **tessere KPI** cliccabili (Servizi `X/Y` · Task tot+errori · Script tot+`SQL·PS1` · Web ONLINE/OFFLINE)
+  + 3 **card** (Servizi di gioco mini-lista · Web health/cert · Sicurezza-Firewall 🟢🟠🔴) + barra **Azioni rapide**.
+  **Performance/anti-lag** (§10): i dati veloci (`ServiceMonitor`, timer 3s) sono sincroni; i pesanti
+  (`schtasks` List + `LastRunState`, `Discover`, probe web/firewall PowerShell) girano **off-thread**
+  (`RefreshDashboardHeavyAsync`/`…WebAsync`/`…FirewallAsync`) con **throttle TTL 20s** (`_dashHeavyAt`):
+  rientrare nella vista NON rifà i probe (i TextBlock tengono l'ultimo valore → apertura istantanea);
+  `↻ Aggiorna` forza (`RefreshDashboard(true)`).
 - **Vista Script**: due sezioni separate **DATABASE—SQL** (blu) e **SISTEMA—PS1/BAT** (verde),
   badge colorato per tipo (`ScriptItem.KindBrush`/`KindBadgeBg`: SQL blu, PS1 verde, BAT arancio).
 - **Esegui** → `ScriptRunner`: SQL via `sqlcmd`, PS1 via `powershell -File`, BAT via `cmd /c`. Log live.
@@ -218,6 +228,11 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
 - [x] **Editor Settaggi sito** (`WebSettingsWindow`, bottone "⚙ Settaggi sito" nel modulo Web server):
       legge/scrive `PS_WebSite.dbo.Web_Settings` via `Ernoweb@` (`Core/WebServer/WebSettingsRepo.cs`).
       Raggruppato per categoria, validazione JSON `*_Permissions`, righe read-only heartbeat/secret.
+- [x] **Dashboard** (`PanelDashboard`, nav "🏠 Dashboard", **vista di default**): panoramica con 4 tessere
+      KPI cliccabili (Servizi/Task/Script/Web) + 3 card (Servizi di gioco · Web health+cert · Firewall) +
+      Azioni rapide, tutte navigabili (`SelectView`). Dati veloci sul timer 3s; sonde pesanti off-thread con
+      throttle TTL 20s → apertura istantanea, nessun re-probe ad ogni switch di vista. Localizzata IT/EN
+      (chiavi `Dash*`/`NavDashboard` in it.xaml **e** en.xaml + testi dinamici in `L.cs`).
 
 > **NB — pivot 2026-07-05:** la vista "Web jobs" (coda DB `Web_TaskJobs`) è stata **RIMOSSA** perché
 > ridondante con Script + Pianificati. I job del sito sono normali script pianificati (metti in `scripts\`,
@@ -274,8 +289,15 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
 - **Servizi = Windows services, non processi**: usare `ServiceController` (Start-Service/Stop-Service),
   NON lanciare/killare gli exe. I nomi servizi vengono da `AutoAvvioServiziShaiya.ps1`.
 - **Nav Checked durante InitializeComponent**: i pannelli non esistono ancora → `ShowView` fa null-guard,
-  poi il ctor chiama `ShowView("scripts")` esplicito.
+  poi il ctor chiama `ShowView("dashboard")` esplicito (vista di default).
 - **RadioButton nav**: `GroupName="nav"` per mutua esclusione; stato attivo via trigger `IsChecked`.
+- **Dizionari IT/EN allineati (OBBLIGATORIO)**: ogni chiave nuova va in `Lang/it.xaml` **E** `Lang/en.xaml`
+  (mai una sola). Testi dinamici con numeri → `L.cs` con `S(it,en)`. **Verifica sempre con diff** delle
+  `x:Key` prima di considerare fatto: `grep -oP 'x:Key="\K[^"]+' it.xaml|sort -u` vs stesso su en.xaml →
+  `comm` deve dare zero differenze (atteso: N == N chiavi). Vedi memoria `always-localize-it-en`.
+- **Dashboard lag**: NON fare `schtasks`/`Discover`/probe PowerShell sincroni sul thread UI ad ogni
+  `ShowView` → freeze. Pesante in `Task.Run` + throttle TTL (i TextBlock tengono l'ultimo valore, riapertura
+  istantanea). Solo `ServiceMonitor` (API in-process, cheap) resta sincrono/nel timer 3s.
 - **Quoting schtasks / PowerShell (CRITICO)**: `ProcessStartInfo.Arguments` è UNA stringa ri-parsata da
   `CreateProcess` → le **virgolette annidate vengono strippate**. TESTATO: `schtasks /TR "…"` con wrapper
   `cmd /c ""prog" args > "log" 2>&1"` si rompe (schtasks vede `>` come argomento). Idem `powershell -Command "…"`

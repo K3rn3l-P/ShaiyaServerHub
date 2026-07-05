@@ -13,7 +13,7 @@ namespace ShaiyaServerHub.Core
         public bool Running { get; set; }
 
         public string StatusText =>
-            !Installed ? "— non installato" : (Running ? "● ONLINE" : "○ offline");
+            !Installed ? L.SvcNotInstalled : (Running ? L.SvcOnline : L.SvcOffline);
 
         private static readonly System.Windows.Media.Brush Green = Freeze(0x4D, 0xC8, 0x70);
         private static readonly System.Windows.Media.Brush Red = Freeze(0xF4, 0x6A, 0x6A);

@@ -66,6 +66,46 @@ namespace ShaiyaServerHub
         public static string RegisterOk => S("✓ Login abilitato nel canale comandi", "✓ Login enabled in command channel");
         public static string RegisterFail(int rc) => S($"✗ Registrazione fallita (exit {rc}, vedi Log)", $"✗ Registration failed (exit {rc}, see Log)");
 
+        // ── Dashboard ────────────────────────────────────────
+        public static string DashUpdated(DateTime t) => S($"aggiornato {t:HH:mm:ss}", $"updated {t:HH:mm:ss}");
+        public static string DashSvcSub(int online, int total) =>
+            online == 0 ? S($"tutti offline ({total})", $"all offline ({total})")
+                        : S($"{online} attivi su {total}", $"{online} of {total} up");
+        public static string DashTasksSub(int enabled, int errors) => errors > 0
+            ? S($"{enabled} attivi · {errors} in errore", $"{enabled} enabled · {errors} failing")
+            : S($"{enabled} attivi", $"{enabled} enabled");
+        public static string DashScriptsSub(int sql, int ps) => $"{sql} SQL · {ps} PS1/BAT";
+        public static string DashWebProbing => S("sonda…", "probing…");
+        public static string DashWebOnline => "● ONLINE";
+        public static string DashWebOffline => "○ OFFLINE";
+        public static string DashFwProbing => S("lettura stato firewall…", "reading firewall state…");
+        public static string DashFwOn => S("🟢  Firewall ATTIVO", "🟢  Firewall ON");
+        public static string DashFwOff => S("🔴  Firewall DISATTIVO", "🔴  Firewall OFF");
+        public static string DashFwPartial => S("🟠  Firewall PARZIALE", "🟠  Firewall PARTIAL");
+        public static string DashFwSub(int on, int total, bool swFiltering) => S(
+            $"{on}/{total} profili attivi" + (swFiltering ? " · simplewall filtra" : ""),
+            $"{on}/{total} profiles on" + (swFiltering ? " · simplewall filtering" : ""));
+        public static string DashFwUnknown => S("stato non rilevato", "state unknown");
+        // PSM_Cmd (canale comandi) — card Dashboard
+        public static string DashPsmProbing => S("verifica…", "checking…");
+        public static string DashPsmOn => S("🟢  PSM_Cmd ATTIVO", "🟢  PSM_Cmd ACTIVE");
+        public static string DashPsmOff => S("🔴  PSM_Cmd NON attivo", "🔴  PSM_Cmd INACTIVE");
+        public static string DashPsmSub => S("canale comandi · usp_RunCommand", "command channel · usp_RunCommand");
+        public static string DashPsmUnknown => S("stato non determinato", "state undetermined");
+
+        // ── Stato servizi (lista) ────────────────────────────
+        public static string SvcNotInstalled => S("— non installato", "— not installed");
+        public static string SvcOnline => "● ONLINE";
+        public static string SvcOffline => S("○ offline", "○ offline");
+
+        // ── Web probe (riepilogo) ────────────────────────────
+        public static string WebUnreachable => S("○ irraggiungibile", "○ unreachable");
+
+        // ── Task: tooltip bottone Log (esito ultimo run) ─────
+        public static string TaskLogTipOk => S("Ultimo run: OK — clic per vedere il log", "Last run: OK — click to view the log");
+        public static string TaskLogTipErr => S("Ultimo run: ERRORE — clic per vedere il log", "Last run: ERROR — click to view the log");
+        public static string TaskLogTipNone => S("Nessun log per questo task", "No log for this task");
+
         // ── Editor file ──────────────────────────────────────
         public static string FileSaved => S("✓ Salvato", "✓ Saved");
         public static string ConfirmDiscardChanges => S("Ci sono modifiche non salvate. Scartarle?", "There are unsaved changes. Discard them?");

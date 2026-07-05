@@ -3,8 +3,10 @@
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
 
     <s:String x:Key="AppSubtitle">Automazione &amp; controllo server</s:String>
+    <s:String x:Key="TipResize">Trascina per ridimensionare la finestra</s:String>
 
     <!-- Nav -->
+    <s:String x:Key="NavDashboard">🏠  Dashboard</s:String>
     <s:String x:Key="NavScripts">📜  Script</s:String>
     <s:String x:Key="NavNewTask">＋  Nuovo task</s:String>
     <s:String x:Key="NavTasks">🕑  Pianificati</s:String>
@@ -14,8 +16,32 @@
     <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
 
+    <!-- Dashboard -->
+    <s:String x:Key="GbDashboard">DASHBOARD</s:String>
+    <s:String x:Key="DashOverview">PANORAMICA</s:String>
+    <s:String x:Key="BtnDashRefresh">↻ Aggiorna</s:String>
+    <s:String x:Key="DashKpiServices">SERVIZI ONLINE</s:String>
+    <s:String x:Key="DashKpiTasks">TASK PIANIFICATI</s:String>
+    <s:String x:Key="DashKpiScripts">SCRIPT DISPONIBILI</s:String>
+    <s:String x:Key="DashKpiWeb">WEB SERVER</s:String>
+    <s:String x:Key="DashCardServices">🖥  SERVIZI DI GIOCO</s:String>
+    <s:String x:Key="DashCardWeb">🌐  WEB SERVER</s:String>
+    <s:String x:Key="DashCardFirewall">🛡  SICUREZZA · FIREWALL</s:String>
+    <s:String x:Key="DashCardPsm">🔐  PSM_Cmd — CANALE COMANDI</s:String>
+    <s:String x:Key="DashOpenServices">Gestisci servizi →</s:String>
+    <s:String x:Key="DashOpenWeb">Apri web server →</s:String>
+    <s:String x:Key="DashOpenFirewall">Apri firewall →</s:String>
+    <s:String x:Key="DashOpenPsm">Apri funzioni →</s:String>
+    <s:String x:Key="DashQuickActions">AZIONI RAPIDE</s:String>
+    <s:String x:Key="DashActNewTask">＋ Nuovo task</s:String>
+    <s:String x:Key="DashActTestSuite">🛡 Test Suite</s:String>
+    <s:String x:Key="DashActFunctions">🛠 Funzioni</s:String>
+    <s:String x:Key="DashActLog">📋 Log</s:String>
+
     <!-- Funzioni / Test Suite -->
     <s:String x:Key="GbFunctions">FUNZIONI</s:String>
+    <s:String x:Key="TabPsmCmd">PSM_Cmd-SCC</s:String>
+    <s:String x:Key="TabFirewall">🛡 Windows Firewall</s:String>
     <s:String x:Key="GbTestSuite">SERVER TEST SUITE — SICUREZZA</s:String>
     <s:String x:Key="BtnVerifyPsm">✓ Verifica PSM_Cmd</s:String>
     <s:String x:Key="BtnInstallPsm">⬇ Installa / Ripara PSM_Cmd</s:String>
@@ -30,6 +56,8 @@
 
     <!-- Scripts -->
     <s:String x:Key="GbScripts">SCRIPT (sql\ + ps1\)</s:String>
+    <s:String x:Key="HdrDbSql">🗄  DATABASE — SQL</s:String>
+    <s:String x:Key="HdrSysPs">⚙  SISTEMA — PS1 / BAT</s:String>
     <s:String x:Key="HintScripts">Metti i tuoi .sql in "scripts\sql\" e .ps1/.bat in "scripts\ps1\" accanto all'exe. Caricati ad ogni avvio.</s:String>
     <s:String x:Key="BtnReloadScripts">↻ Ricarica</s:String>
     <s:String x:Key="BtnOpenFolders">📂 Apri cartelle</s:String>
@@ -126,6 +154,12 @@
     <!-- Log -->
     <s:String x:Key="GbLog">LOG</s:String>
     <s:String x:Key="BtnClearLog">Pulisci</s:String>
+
+    <!-- Settaggi sito (WebSettingsWindow) -->
+    <s:String x:Key="WsTitle">Settaggi sito (PS_WebSite · Web_Settings)</s:String>
+    <s:String x:Key="WsHint">Modifica il valore e premi 💾 sulla riga. Attenzione: valori JSON (permessi) vanno tenuti validi.</s:String>
+    <s:String x:Key="WsReload">↻ Ricarica</s:String>
+    <s:String x:Key="WsTipSaveRow">Salva questa impostazione</s:String>
 
     <!-- Settings window -->
     <s:String x:Key="SetTitle">Impostazioni</s:String>

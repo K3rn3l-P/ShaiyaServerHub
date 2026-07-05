@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:ShaiyaServerHub.Controls"
         Title="ShaiyaServerHub" Icon="icon.ico"
-        Width="1040" Height="660" MinWidth="900" MinHeight="520"
+        Width="1180" Height="800" MinWidth="1000" MinHeight="700"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        ResizeMode="CanMinimize"
+        ResizeMode="CanResize"
         FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
 
     <Window.Resources>
@@ -35,6 +35,46 @@
                         Content="{DynamicResource BtnRun}" Click="BtnRunScript_Click"/>
                 <Button Grid.Column="4" Style="{StaticResource MiniButton}"
                         Content="{DynamicResource BtnSchedule}" Click="BtnScheduleScript_Click"/>
+            </Grid>
+        </DataTemplate>
+
+        <!-- ── Dashboard: tessera KPI cliccabile ──────────────── -->
+        <Style x:Key="DashTile" TargetType="Border">
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Background" Value="#0F0F16"/>
+            <Setter Property="BorderBrush" Value="#22E8C881"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#161620"/>
+                    <Setter Property="BorderBrush" Value="#7BE8C881"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ── Dashboard: card contenitiva (non cliccabile) ────── -->
+        <Style x:Key="DashCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Background" Value="#0C0C13"/>
+            <Setter Property="BorderBrush" Value="#1CE8C881"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+
+        <!-- ── Dashboard: riga servizio compatta (pallino + nome + stato) ── -->
+        <DataTemplate x:Key="DashServiceRow">
+            <Grid Margin="10,3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" Foreground="#C8E0E0E0"
+                           FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Grid.Column="1" Text="{Binding StatusText}" Foreground="{Binding StatusBrush}"
+                           FontFamily="Consolas" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -107,6 +147,31 @@
                 </Grid>
             </Border>
 
+            <!-- ── Grip di ridimensionamento (angolo basso-destra) ─── -->
+            <Thumb x:Name="ResizeGrip" Grid.Row="1" Width="18" Height="18"
+                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   Margin="0,0,-4,-6" Panel.ZIndex="100" Cursor="SizeNWSE"
+                   DragDelta="ResizeGrip_DragDelta"
+                   ToolTip="{DynamicResource TipResize}">
+                <Thumb.Template>
+                    <ControlTemplate TargetType="Thumb">
+                        <Grid Background="#01000000">
+                            <Path x:Name="Grip" Stroke="#4DE8C881" StrokeThickness="1.3"
+                                  SnapsToDevicePixels="True"
+                                  Data="M14,4 L4,14 M14,8 L8,14 M14,12 L12,14"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Grip" Property="Stroke" Value="#C8E8C881"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="Grip" Property="Stroke" Value="#E8C881"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Thumb.Template>
+            </Thumb>
+
             <!-- ── Body: nav sinistra + contenuto ─────────────── -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -118,8 +183,11 @@
                 <Border Grid.Column="0" CornerRadius="6" Background="#0C0C11"
                         BorderBrush="#20E8C881" BorderThickness="1" Padding="8,10" Margin="0,0,8,0">
                     <StackPanel>
+                        <RadioButton x:Name="NavDashboard" Style="{StaticResource NavItem}" GroupName="nav"
+                                     Tag="dashboard" Content="{DynamicResource NavDashboard}" Checked="Nav_Checked" IsChecked="True"/>
+                        <Rectangle Height="1" Fill="#14E8C881" Margin="8,4,8,6"/>
                         <RadioButton x:Name="NavScripts"  Style="{StaticResource NavItem}" GroupName="nav"
-                                     Tag="scripts"  Content="{DynamicResource NavScripts}"  Checked="Nav_Checked" IsChecked="True"/>
+                                     Tag="scripts"  Content="{DynamicResource NavScripts}"  Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavNewTask"  Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="newtask"  Content="{DynamicResource NavNewTask}"  Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavTasks"    Style="{StaticResource NavItem}" GroupName="nav"
@@ -140,8 +208,223 @@
                 <!-- Contenuto: una vista visibile alla volta -->
                 <Grid Grid.Column="1">
 
+                    <!-- ══ Dashboard (vista di default): panoramica a colpo d'occhio ══ -->
+                    <GroupBox x:Name="PanelDashboard" Header="{DynamicResource GbDashboard}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Barra superiore: titolo · server · ultimo aggiornamento · refresh -->
+                            <Grid Grid.Row="0" Margin="0,0,0,10">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{DynamicResource DashOverview}" Foreground="#E8C881"
+                                               FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Rectangle Width="1" Height="13" Fill="#2DE8C881" Margin="12,0"/>
+                                    <TextBlock x:Name="TbDashHost" Foreground="#70E8C881" FontFamily="Consolas"
+                                               FontSize="11" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TbDashUpdated" Foreground="#48E0E0E0" FontSize="10"
+                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <Button Content="{DynamicResource BtnDashRefresh}" Click="BtnDashRefresh_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Riga KPI: 4 tessere cliccabili -->
+                            <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,4">
+                                <!-- Servizi -->
+                                <Border Style="{StaticResource DashTile}" Margin="0,0,5,0"
+                                        Tag="services" MouseLeftButtonUp="DashTile_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource DashKpiServices}" Foreground="#60E8C881"
+                                                   FontSize="10" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="TbKpiSvc" Text="–" Foreground="#E8C881"
+                                                   FontSize="30" FontWeight="Bold" Margin="0,2,0,0"/>
+                                        <TextBlock x:Name="TbKpiSvcSub" Text="" FontSize="10"
+                                                   Foreground="#88E0E0E0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Task -->
+                                <Border Style="{StaticResource DashTile}" Margin="5,0,5,0"
+                                        Tag="tasks" MouseLeftButtonUp="DashTile_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource DashKpiTasks}" Foreground="#60E8C881"
+                                                   FontSize="10" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="TbKpiTasks" Text="–" Foreground="#E8C881"
+                                                   FontSize="30" FontWeight="Bold" Margin="0,2,0,0"/>
+                                        <TextBlock x:Name="TbKpiTasksSub" Text="" FontSize="10"
+                                                   Foreground="#88E0E0E0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Script -->
+                                <Border Style="{StaticResource DashTile}" Margin="5,0,5,0"
+                                        Tag="scripts" MouseLeftButtonUp="DashTile_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource DashKpiScripts}" Foreground="#60E8C881"
+                                                   FontSize="10" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="TbKpiScripts" Text="–" Foreground="#E8C881"
+                                                   FontSize="30" FontWeight="Bold" Margin="0,2,0,0"/>
+                                        <TextBlock x:Name="TbKpiScriptsSub" Text="" FontSize="10"
+                                                   Foreground="#88E0E0E0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Web -->
+                                <Border Style="{StaticResource DashTile}" Margin="5,0,0,0"
+                                        Tag="web" MouseLeftButtonUp="DashTile_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource DashKpiWeb}" Foreground="#60E8C881"
+                                                   FontSize="10" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="TbKpiWeb" Text="…" Foreground="#E8C881"
+                                                   FontSize="24" FontWeight="Bold" Margin="0,6,0,2"/>
+                                        <TextBlock x:Name="TbKpiWebSub" Text="" FontSize="10"
+                                                   Foreground="#88E0E0E0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+
+                            <!-- Corpo: colonna sinistra (servizi) + destra (web / firewall) -->
+                            <Grid Grid.Row="2" Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="300"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Card servizi di gioco -->
+                                <Border Grid.Column="0" Style="{StaticResource DashCard}" Margin="0,0,5,0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Border Grid.Row="0" Background="#0EE8C881" CornerRadius="7,7,0,0" Padding="12,7">
+                                            <TextBlock Text="{DynamicResource DashCardServices}" Foreground="#B8E8C881"
+                                                       FontSize="10" FontWeight="Bold"/>
+                                        </Border>
+                                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,4">
+                                            <ItemsControl x:Name="DashServicesList" ItemTemplate="{StaticResource DashServiceRow}"/>
+                                        </ScrollViewer>
+                                        <Button Grid.Row="2" HorizontalAlignment="Right" Margin="8,4,8,8"
+                                                Style="{StaticResource MiniButton}"
+                                                Content="{DynamicResource DashOpenServices}"
+                                                Tag="services" Click="DashOpen_Click"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Colonna destra: Web + Firewall + PSM_Cmd impilate -->
+                                <Grid Grid.Column="1" Margin="5,0,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Card Web server -->
+                                    <Border Grid.Row="0" Style="{StaticResource DashCard}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Grid.Row="0" Background="#0E5BD16A" CornerRadius="7,7,0,0" Padding="12,7">
+                                                <TextBlock Text="{DynamicResource DashCardWeb}" Foreground="#8FD69A"
+                                                           FontSize="10" FontWeight="Bold"/>
+                                            </Border>
+                                            <StackPanel Grid.Row="1" Margin="12,8" VerticalAlignment="Center">
+                                                <TextBlock x:Name="TbDashWebKind" Foreground="#9BE0E0E0" FontSize="11"
+                                                           TextWrapping="Wrap"/>
+                                                <TextBlock x:Name="TbDashWebHealth" Margin="0,5,0,0" FontFamily="Consolas"
+                                                           FontSize="11" FontWeight="SemiBold" Foreground="#E8C881"
+                                                           TextWrapping="Wrap"/>
+                                                <TextBlock x:Name="TbDashWebCert" Margin="0,4,0,0" FontSize="10"
+                                                           Foreground="#66E0E0E0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Row="2" HorizontalAlignment="Right" Margin="8,0,8,8"
+                                                    Style="{StaticResource MiniButton}"
+                                                    Content="{DynamicResource DashOpenWeb}"
+                                                    Tag="web" Click="DashOpen_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Card Sicurezza / Firewall -->
+                                    <Border Grid.Row="2" Style="{StaticResource DashCard}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Grid.Row="0" Background="#0E52A8FF" CornerRadius="7,7,0,0" Padding="12,7">
+                                                <TextBlock Text="{DynamicResource DashCardFirewall}" Foreground="#8FC2FF"
+                                                           FontSize="10" FontWeight="Bold"/>
+                                            </Border>
+                                            <StackPanel Grid.Row="1" Margin="12,8" VerticalAlignment="Center">
+                                                <TextBlock x:Name="TbDashFwState" Foreground="#E8C881" FontSize="13"
+                                                           FontWeight="SemiBold"/>
+                                                <TextBlock x:Name="TbDashFwSub" Margin="0,4,0,0" FontSize="10"
+                                                           Foreground="#88E0E0E0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Row="2" HorizontalAlignment="Right" Margin="8,0,8,8"
+                                                    Style="{StaticResource MiniButton}"
+                                                    Content="{DynamicResource DashOpenFirewall}"
+                                                    Tag="functions" Click="DashOpen_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Card PSM_Cmd (canale comandi) -->
+                                    <Border Grid.Row="4" Style="{StaticResource DashCard}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Grid.Row="0" Background="#0EE8C881" CornerRadius="7,7,0,0" Padding="12,7">
+                                                <TextBlock Text="{DynamicResource DashCardPsm}" Foreground="#B8E8C881"
+                                                           FontSize="10" FontWeight="Bold"/>
+                                            </Border>
+                                            <StackPanel Grid.Row="1" Margin="12,8" VerticalAlignment="Center">
+                                                <TextBlock x:Name="TbDashPsmState" Foreground="#E8C881" FontSize="13"
+                                                           FontWeight="SemiBold"/>
+                                                <TextBlock x:Name="TbDashPsmSub" Margin="0,4,0,0" FontSize="10"
+                                                           Foreground="#88E0E0E0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Row="2" HorizontalAlignment="Right" Margin="8,0,8,8"
+                                                    Style="{StaticResource MiniButton}"
+                                                    Content="{DynamicResource DashOpenPsm}"
+                                                    Tag="functions" Click="DashOpen_Click"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+
+                            <!-- Azioni rapide -->
+                            <Border Grid.Row="3" Style="{StaticResource DashCard}" Margin="0,10,0,0" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource DashQuickActions}" Foreground="#60E8C881"
+                                               FontSize="10" FontWeight="SemiBold" Margin="2,0,0,6"/>
+                                    <WrapPanel>
+                                        <Button Style="{StaticResource AccentButton}"
+                                                Content="{DynamicResource BtnStartServices}" Click="BtnStartServices_Click"/>
+                                        <Button Content="{DynamicResource DashActNewTask}" Tag="newtask" Click="DashOpen_Click"/>
+                                        <Button Content="{DynamicResource DashActTestSuite}" Tag="testsuite" Click="DashOpen_Click"/>
+                                        <Button Content="{DynamicResource DashActFunctions}" Tag="functions" Click="DashOpen_Click"/>
+                                        <Button Content="{DynamicResource DashActLog}" Tag="log" Click="DashOpen_Click"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </GroupBox>
+
                     <!-- Scripts: due sezioni distinte (SQL / PS1·BAT) -->
-                    <GroupBox x:Name="PanelScripts" Header="{DynamicResource GbScripts}">
+                    <GroupBox x:Name="PanelScripts" Header="{DynamicResource GbScripts}" Visibility="Collapsed">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -168,7 +451,7 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Background="#1152A8FF" CornerRadius="4,4,0,0" Padding="8,4">
-                                        <TextBlock Text="🗄  DATABASE — SQL" Foreground="#52A8FF"
+                                        <TextBlock Text="{DynamicResource HdrDbSql}" Foreground="#52A8FF"
                                                    FontSize="10" FontWeight="Bold"/>
                                     </Border>
                                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -186,7 +469,7 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Background="#115BD16A" CornerRadius="4,4,0,0" Padding="8,4">
-                                        <TextBlock Text="⚙  SISTEMA — PS1 / BAT" Foreground="#5BD16A"
+                                        <TextBlock Text="{DynamicResource HdrSysPs}" Foreground="#5BD16A"
                                                    FontSize="10" FontWeight="Bold"/>
                                     </Border>
                                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -379,7 +662,7 @@
                     <GroupBox x:Name="PanelFunctions" Header="{DynamicResource GbFunctions}" Visibility="Collapsed">
                         <TabControl x:Name="FunctionsTabs">
                             <!-- Scheda 1: PSM_Cmd-SecureCommandChannel (functions\psm_cmd-scc) -->
-                            <TabItem Header="PSM_Cmd-SCC">
+                            <TabItem Header="{DynamicResource TabPsmCmd}">
                                 <controls:ScriptAreaControl x:Name="FuncArea">
                                     <controls:ScriptAreaControl.Actions>
                                         <StackPanel Orientation="Horizontal">
@@ -394,7 +677,7 @@
                                 </controls:ScriptAreaControl>
                             </TabItem>
                             <!-- Scheda 2: Windows Firewall -->
-                            <TabItem Header="🛡 Windows Firewall">
+                            <TabItem Header="{DynamicResource TabFirewall}">
                                 <controls:FirewallControl x:Name="FwArea"/>
                             </TabItem>
                             <!-- Nuove schede funzione: aggiungere qui un <TabItem> con la sua ScriptAreaControl. -->

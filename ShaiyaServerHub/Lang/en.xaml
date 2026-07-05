@@ -3,8 +3,10 @@
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
 
     <s:String x:Key="AppSubtitle">Server automation &amp; control</s:String>
+    <s:String x:Key="TipResize">Drag to resize the window</s:String>
 
     <!-- Nav -->
+    <s:String x:Key="NavDashboard">🏠  Dashboard</s:String>
     <s:String x:Key="NavScripts">📜  Scripts</s:String>
     <s:String x:Key="NavNewTask">＋  New task</s:String>
     <s:String x:Key="NavTasks">🕑  Scheduled</s:String>
@@ -14,8 +16,32 @@
     <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
 
+    <!-- Dashboard -->
+    <s:String x:Key="GbDashboard">DASHBOARD</s:String>
+    <s:String x:Key="DashOverview">OVERVIEW</s:String>
+    <s:String x:Key="BtnDashRefresh">↻ Refresh</s:String>
+    <s:String x:Key="DashKpiServices">SERVICES ONLINE</s:String>
+    <s:String x:Key="DashKpiTasks">SCHEDULED TASKS</s:String>
+    <s:String x:Key="DashKpiScripts">AVAILABLE SCRIPTS</s:String>
+    <s:String x:Key="DashKpiWeb">WEB SERVER</s:String>
+    <s:String x:Key="DashCardServices">🖥  GAME SERVICES</s:String>
+    <s:String x:Key="DashCardWeb">🌐  WEB SERVER</s:String>
+    <s:String x:Key="DashCardFirewall">🛡  SECURITY · FIREWALL</s:String>
+    <s:String x:Key="DashCardPsm">🔐  PSM_Cmd — COMMAND CHANNEL</s:String>
+    <s:String x:Key="DashOpenServices">Manage services →</s:String>
+    <s:String x:Key="DashOpenWeb">Open web server →</s:String>
+    <s:String x:Key="DashOpenFirewall">Open firewall →</s:String>
+    <s:String x:Key="DashOpenPsm">Open functions →</s:String>
+    <s:String x:Key="DashQuickActions">QUICK ACTIONS</s:String>
+    <s:String x:Key="DashActNewTask">＋ New task</s:String>
+    <s:String x:Key="DashActTestSuite">🛡 Test Suite</s:String>
+    <s:String x:Key="DashActFunctions">🛠 Functions</s:String>
+    <s:String x:Key="DashActLog">📋 Log</s:String>
+
     <!-- Functions / Test Suite -->
     <s:String x:Key="GbFunctions">FUNCTIONS</s:String>
+    <s:String x:Key="TabPsmCmd">PSM_Cmd-SCC</s:String>
+    <s:String x:Key="TabFirewall">🛡 Windows Firewall</s:String>
     <s:String x:Key="GbTestSuite">SERVER TEST SUITE — SECURITY</s:String>
     <s:String x:Key="BtnVerifyPsm">✓ Verify PSM_Cmd</s:String>
     <s:String x:Key="BtnInstallPsm">⬇ Install / Repair PSM_Cmd</s:String>
@@ -30,6 +56,8 @@
 
     <!-- Scripts -->
     <s:String x:Key="GbScripts">SCRIPTS (sql\ + ps1\)</s:String>
+    <s:String x:Key="HdrDbSql">🗄  DATABASE — SQL</s:String>
+    <s:String x:Key="HdrSysPs">⚙  SYSTEM — PS1 / BAT</s:String>
     <s:String x:Key="HintScripts">Drop your .sql into "scripts\sql\" and .ps1/.bat into "scripts\ps1\" next to the exe. Loaded on each launch.</s:String>
     <s:String x:Key="BtnReloadScripts">↻ Reload</s:String>
     <s:String x:Key="BtnOpenFolders">📂 Open folders</s:String>
@@ -126,6 +154,12 @@
     <!-- Log -->
     <s:String x:Key="GbLog">LOG</s:String>
     <s:String x:Key="BtnClearLog">Clear</s:String>
+
+    <!-- Site settings (WebSettingsWindow) -->
+    <s:String x:Key="WsTitle">Site settings (PS_WebSite · Web_Settings)</s:String>
+    <s:String x:Key="WsHint">Edit the value and press 💾 on the row. Warning: JSON values (permissions) must stay valid.</s:String>
+    <s:String x:Key="WsReload">↻ Reload</s:String>
+    <s:String x:Key="WsTipSaveRow">Save this setting</s:String>
 
     <!-- Settings window -->
     <s:String x:Key="SetTitle">Settings</s:String>
