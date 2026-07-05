@@ -29,6 +29,8 @@
     <!-- Solo framework: nessuna dipendenza NuGet/DLL esterna. -->
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Security" />
+    <!-- ADO.NET (System.Data.SqlClient) per gli editor PSM_Cmd: query parametrizzate. -->
+    <Reference Include="System.Data" />
   </ItemGroup>
 
   <!-- La copia dei DefaultScripts nell'output è gestita da Build-And-Copy.ps1

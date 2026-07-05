@@ -375,17 +375,30 @@
                         </Grid>
                     </GroupBox>
 
-                    <!-- Funzioni -->
+                    <!-- Funzioni: contenitore a schede (una scheda per funzione) -->
                     <GroupBox x:Name="PanelFunctions" Header="{DynamicResource GbFunctions}" Visibility="Collapsed">
-                        <controls:ScriptAreaControl x:Name="FuncArea">
-                            <controls:ScriptAreaControl.Actions>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Style="{StaticResource AccentButton}"
-                                            Content="{DynamicResource BtnVerifyPsm}" Click="BtnVerifyPsmCmd_Click"/>
-                                    <Button Content="{DynamicResource BtnInstallPsm}" Click="BtnInstallPsmCmd_Click"/>
-                                </StackPanel>
-                            </controls:ScriptAreaControl.Actions>
-                        </controls:ScriptAreaControl>
+                        <TabControl x:Name="FunctionsTabs">
+                            <!-- Scheda 1: PSM_Cmd-SecureCommandChannel (functions\psm_cmd-scc) -->
+                            <TabItem Header="PSM_Cmd-SCC">
+                                <controls:ScriptAreaControl x:Name="FuncArea">
+                                    <controls:ScriptAreaControl.Actions>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Style="{StaticResource AccentButton}"
+                                                    Content="{DynamicResource BtnVerifyPsm}" Click="BtnVerifyPsmCmd_Click"/>
+                                            <Button Content="{DynamicResource BtnInstallPsm}" Click="BtnInstallPsmCmd_Click"/>
+                                            <Border Width="1" Background="#28E8C881" Margin="6,3"/>
+                                            <Button Content="{DynamicResource BtnPsmSettings}" Click="BtnPsmCmdSettings_Click"/>
+                                            <Button Content="{DynamicResource BtnPsmLog}" Click="BtnPsmCmdLog_Click"/>
+                                        </StackPanel>
+                                    </controls:ScriptAreaControl.Actions>
+                                </controls:ScriptAreaControl>
+                            </TabItem>
+                            <!-- Scheda 2: Windows Firewall -->
+                            <TabItem Header="🛡 Windows Firewall">
+                                <controls:FirewallControl x:Name="FwArea"/>
+                            </TabItem>
+                            <!-- Nuove schede funzione: aggiungere qui un <TabItem> con la sua ScriptAreaControl. -->
+                        </TabControl>
                     </GroupBox>
 
                     <!-- Test Suite -->

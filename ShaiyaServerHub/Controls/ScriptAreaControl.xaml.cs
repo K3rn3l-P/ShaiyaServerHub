@@ -39,6 +39,13 @@ namespace ShaiyaServerHub.Controls
         /// <summary>Titolo mostrato nel log modale.</summary>
         public string AreaTitle { get; set; } = "Area";
 
+        /// <summary>Mostra/nasconde il pulsante "Nuovo file" nella toolbar (default: mostrato).</summary>
+        public bool ShowNewFile
+        {
+            get => BtnNewFile.Visibility == Visibility.Visible;
+            set => BtnNewFile.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         /// <summary>Runner SQL/script (aggiornato dall'host quando cambiano le impostazioni).</summary>
         public ScriptRunner Runner { get => _runner; set => _runner = value; }
 

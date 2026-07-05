@@ -49,6 +49,10 @@ namespace ShaiyaServerHub.Core
         // Endpoint di liveness applicativa (già servito dal sito: Updater/api/status.php → {web,server,ts}).
         public string WebHealthUrl { get; set; } = "https://127.0.0.1/Updater/api/status.php";
 
+        // ── Firewall ─────────────────────────────────────────
+        // Subnet della rete locale di gestione (SSH/RDP/SQL ristretti qui).
+        public string FirewallLanCidr { get; set; } = "10.10.0.0/16";
+
         // ── UI ───────────────────────────────────────────────
         public string Language { get; set; } = "It";
 

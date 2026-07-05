@@ -51,14 +51,23 @@ namespace ShaiyaServerHub.Core
         public static string AppRoot => AppContext.BaseDirectory;
         // Ogni area ha la sua cartella con dentro sql\ e ps1\ (progetto ordinato).
         public static ScriptRepository Main => new ScriptRepository(Path.Combine(AppRoot, "scripts"));
-        public static ScriptRepository Functions => new ScriptRepository(Path.Combine(AppRoot, "functions"));
         public static ScriptRepository TestSuite => new ScriptRepository(Path.Combine(AppRoot, "testsuite"));
+
+        // Radice comune di tutte le funzioni (una sottocartella per scheda/tab).
+        public static string FunctionsRoot => Path.Combine(AppRoot, "functions");
+
+        /// <summary>
+        /// Repository di una singola scheda "Funzioni": functions\&lt;name&gt;\ con dentro sql\ e ps1\.
+        /// Ogni nuova scheda della vista Funzioni ha la sua sottocartella (es. "psm_cmd-scc").
+        /// </summary>
+        public static ScriptRepository Function(string name) =>
+            new ScriptRepository(Path.Combine(FunctionsRoot, name));
 
         /// <summary>Crea tutte le cartelle script (principale + aree) all'avvio.</summary>
         public static void EnsureAll()
         {
             Main.EnsureFolders();
-            Functions.EnsureFolders();
+            Function("psm_cmd-scc").EnsureFolders();
             TestSuite.EnsureFolders();
         }
     }

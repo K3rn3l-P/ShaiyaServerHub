@@ -42,9 +42,15 @@ namespace ShaiyaServerHub
             NewTaskCtrl.Created += () => { ReloadTasks(); SelectTasks(); };
 
             // Aree riutilizzabili (cartelle proprie functions\ e testsuite\).
-            FuncArea.AreaTitle = "Funzioni";
-            FuncArea.Runner = _runner;
-            FuncArea.Init(ScriptRepository.Functions, L.HintFunctions);
+            FuncArea.AreaTitle = "PSM_Cmd-SCC";
+            // Sezione Funzioni: SEMPRE Windows auth (-E → SYSTEM). L'Hub è localhost sul
+            // server; così la verifica/installazione PSM_Cmd vede gli oggetti least-priv
+            // (dbo.Command CLR, Gm* tabelle) invisibili all'account SQL principale
+            // (es. ShaiyaTaskAgent). Le impostazioni SQL principali restano invariate.
+            FuncArea.Runner = new ScriptRunner(_settings, forceWindowsAuth: true);
+            FuncArea.ShowNewFile = false;   // scheda PSM_Cmd-SCC: "Nuovo file" non serve
+            FuncArea.Init(ScriptRepository.Function("psm_cmd-scc"), L.HintFunctions);
+            FwArea.Init(_settings);   // scheda Windows Firewall
             TestArea.AreaTitle = "Test Suite";
             TestArea.Runner = _runner;
             TestArea.Init(ScriptRepository.TestSuite, L.HintTestSuite);
@@ -130,7 +136,7 @@ namespace ShaiyaServerHub
                 _settings.Save();
                 _runner = new ScriptRunner(_settings);
                 _webServer = WebServerFactory.Create(_settings);
-                FuncArea.Runner = _runner;
+                FuncArea.Runner = new ScriptRunner(_settings, forceWindowsAuth: true); // Funzioni: sempre -E
                 TestArea.Runner = _runner;
                 Log(L.SettingsSaved);
             }
@@ -145,7 +151,7 @@ namespace ShaiyaServerHub
                 bool ok = CommandChannel.VerifyPsmCmd(FuncArea.Runner, FuncArea.Log);
                 FuncArea.Log(ok
                     ? "✓ PSM_Cmd ATTIVO e funzionante."
-                    : "✗ PSM_Cmd NON attivo/incompleto → usa 'Installa/Ripara' (metti gli script 00→07 in functions\\sql).");
+                    : "✗ PSM_Cmd NON attivo/incompleto → usa 'Installa/Ripara' (metti gli script 00→07 in functions\\psm_cmd-scc\\sql).");
             });
         }
 
@@ -157,6 +163,18 @@ namespace ShaiyaServerHub
             FuncArea.Log("Prerequisiti: PSMagent.signed.dll in C:\\ShaiyaServer\\PSM_Client, login sysadmin, password aggiornate in 01/04.");
             await FuncArea.RunAllSqlAsync();
             FuncArea.Log("Suggerito: ora premi 'Verifica PSM_Cmd' per confermare.");
+        }
+
+        private void BtnPsmCmdSettings_Click(object sender, RoutedEventArgs e)
+        {
+            try { new PsmCmdSettingsWindow(_settings) { Owner = this }.ShowDialog(); }
+            catch (Exception ex) { FuncArea.Log("ERRORE apertura impostazioni PSM_Cmd: " + ex.Message); }
+        }
+
+        private void BtnPsmCmdLog_Click(object sender, RoutedEventArgs e)
+        {
+            try { new PsmCmdLogWindow(_settings) { Owner = this }.ShowDialog(); }
+            catch (Exception ex) { FuncArea.Log("ERRORE apertura log PSM_Cmd: " + ex.Message); }
         }
 
         // ── Test Suite ────────────────────────────────────────

@@ -19,6 +19,8 @@
     <s:String x:Key="GbTestSuite">SERVER TEST SUITE — SICUREZZA</s:String>
     <s:String x:Key="BtnVerifyPsm">✓ Verifica PSM_Cmd</s:String>
     <s:String x:Key="BtnInstallPsm">⬇ Installa / Ripara PSM_Cmd</s:String>
+    <s:String x:Key="BtnPsmSettings">⚙ Impostazioni DB</s:String>
+    <s:String x:Key="BtnPsmLog">📋 Log DB</s:String>
     <s:String x:Key="BtnRunTestSuite">▶ Esegui tutto</s:String>
     <s:String x:Key="BtnOpenLog">📋 Log</s:String>
     <s:String x:Key="TipScriptLog">Apri il log di questo script</s:String>
@@ -190,5 +192,112 @@
     <s:String x:Key="EvGenSearch">Cerca:</s:String>
     <s:String x:Key="EvGenReload">🔄 Ricarica</s:String>
     <s:String x:Key="EvGenStep2">2) Quando far scattare il task</s:String>
+
+    <!-- PSM_Cmd — Impostazioni DB -->
+    <s:String x:Key="PsmSetHdr">Impostazioni PSM_Cmd — canale comandi</s:String>
+    <s:String x:Key="PsmTabAllow">Allowlist comandi</s:String>
+    <s:String x:Key="PsmTabCallers">Profili chiamante</s:String>
+    <s:String x:Key="PsmLblService">Servizio:</s:String>
+    <s:String x:Key="PsmLblTier">Tier:</s:String>
+    <s:String x:Key="PsmLblSearch">Cerca:</s:String>
+    <s:String x:Key="PsmAll">Tutti</s:String>
+    <s:String x:Key="PsmOnlyEnabled">Solo abilitati</s:String>
+    <s:String x:Key="PsmColService">Servizio</s:String>
+    <s:String x:Key="PsmColCommand">Comando</s:String>
+    <s:String x:Key="PsmColTier">Tier</s:String>
+    <s:String x:Key="PsmColEnabled">Abilitato</s:String>
+    <s:String x:Key="PsmColDesc">Descrizione</s:String>
+    <s:String x:Key="PsmAllowHint">Abilitato = il comando è eseguibile via usp_RunCommand. Disabilitato = bloccato (return -3). Tier = classe di privilegio richiesta (SAFE&lt;PLAYER&lt;ECONOMY&lt;SERVICE). I comandi SERVICE (distruttivi) restano tipicamente disabilitati.</s:String>
+    <s:String x:Key="PsmAddCaller">＋ Aggiungi login</s:String>
+    <s:String x:Key="PsmRemoveCaller">✕ Rimuovi selezionato</s:String>
+    <s:String x:Key="PsmColCaller">Login SQL (CallerLogin)</s:String>
+    <s:String x:Key="PsmColMaxTier">Tier massimo</s:String>
+    <s:String x:Key="PsmCallersHint">Ogni login SQL che usa usp_RunCommand può eseguire solo comandi fino al suo Tier massimo. Es: Ernoweb@ (web) = PLAYER; ShaiyaTaskAgent (worker task) = ECONOMY. SERVICE non è concedibile qui.</s:String>
+    <s:String x:Key="PsmReload">↻ Ricarica</s:String>
+    <s:String x:Key="PsmSave">💾 Salva</s:String>
+
+    <!-- PSM_Cmd — Log DB -->
+    <s:String x:Key="PsmLogHdr">Log DB — GmCommandLog (audit comandi)</s:String>
+    <s:String x:Key="PsmLblResult">Esito:</s:String>
+    <s:String x:Key="PsmLblWrapper">Wrapper:</s:String>
+    <s:String x:Key="PsmLblSearchCmd">Cerca comando:</s:String>
+    <s:String x:Key="PsmLblRows">Righe:</s:String>
+    <s:String x:Key="PsmApply">🔎 Applica</s:String>
+    <s:String x:Key="PsmRefresh">↻ Aggiorna</s:String>
+    <s:String x:Key="PsmColId">Id</s:String>
+    <s:String x:Key="PsmColDateTime">Data/ora</s:String>
+    <s:String x:Key="PsmColLogin">Login</s:String>
+    <s:String x:Key="PsmColWrapper">Wrapper</s:String>
+    <s:String x:Key="PsmColResult">Esito</s:String>
+    <s:String x:Key="PsmLblPurge">Pulisci:</s:String>
+    <s:String x:Key="PsmPurge90">più vecchi di 90gg</s:String>
+    <s:String x:Key="PsmPurge30">più vecchi di 30gg</s:String>
+    <s:String x:Key="PsmPurge7">più vecchi di 7gg</s:String>
+    <s:String x:Key="PsmPurgeAll">TUTTO il log</s:String>
+    <s:String x:Key="PsmPurgeBtn">🗑 Pulisci log</s:String>
+
+    <!-- PSM_Cmd — Guida -->
+    <s:String x:Key="PsmGHdr">Guida — Canale comandi PSM_Cmd</s:String>
+    <s:String x:Key="PsmGIntro">PSM_Cmd è il canale sicuro con cui l'Hub e i servizi inviano comandi al server di gioco (ps_game/ps_login): messaggi /nt, moltiplicatori EXP, kick, spawn boss, ecc. È isolato in un DB dedicato e chiuso, con assembly CLR firmata (niente TRUSTWORTHY), wrapper, allowlist e audit.</s:String>
+    <s:String x:Key="PsmGFlowH">Come viaggia un comando</s:String>
+    <s:String x:Key="PsmGFlowP">Chi chiama (sito, worker task, gameplay) NON tocca mai dbo.Command direttamente. Chiama un wrapper — usp_SendNotice (solo /nt) o usp_RunCommand (comandi in allowlist) — che gira EXECUTE AS OWNER, valida, esegue e scrive l'audit. Così un eventuale leak di credenziali non dà potere oltre ciò che il wrapper concede.</s:String>
+    <s:String x:Key="PsmGTierH">I Tier (classi di privilegio)</s:String>
+    <s:String x:Key="PsmGTierIntro">Ogni comando ha un Tier; ogni login ha un Tier massimo. Potere crescente:</s:String>
+    <s:String x:Key="PsmGTierSafe">lettura/broadcast innocui: /nt, /uc, /si, /mem.</s:String>
+    <s:String x:Key="PsmGTierPlayer">agisce sui giocatori: kick per nome/ID, protezioni.</s:String>
+    <s:String x:Key="PsmGTierEconomy">tocca l'economia: EXP x2, enchant/gem rate, spawn boss, item/gold.</s:String>
+    <s:String x:Key="PsmGTierService">distruttivi: /shutdown, /allout, /crashdump. NON concedibili ai login; restano disabilitati.</s:String>
+    <s:String x:Key="PsmGAllowH">Tab «Allowlist comandi»</s:String>
+    <s:String x:Key="PsmGAllowP">La whitelist di ciò che usp_RunCommand accetta. Per ogni comando: Abilitato (on/off) e Tier. Le righe abilitate sono evidenziate in oro. Regola: un comando parte solo se è Abilitato. I comandi SERVICE e quelli economici rischiosi arrivano disabilitati di default — abilita solo ciò che serve davvero.</s:String>
+    <s:String x:Key="PsmGCallersH">Tab «Profili chiamante»</s:String>
+    <s:String x:Key="PsmGCallersP">Mappa login SQL → Tier massimo consentito. Un login può eseguire un comando solo se: il comando è Abilitato E il suo Tier ≤ Tier massimo del login. Altrimenti viene negato (return -3).</s:String>
+    <s:String x:Key="PsmGCallersP2">• Ernoweb@ (sito web) = PLAYER → può /nt e kick, mai economia.&#x0a;• ShaiyaTaskAgent (worker dei task pianificati) = ECONOMY → anche EXP x2, boss, ecc.&#x0a;Meno potere dai a un login, meno danno fa un suo leak.</s:String>
+    <s:String x:Key="PsmGLogH">Log DB (audit)</s:String>
+    <s:String x:Key="PsmGLogP">Ogni tentativo finisce in GmCommandLog con esito: OK (eseguito), DENIED (bloccato da allowlist/tier), ERROR (errore d'esecuzione). Utile per capire chi ha lanciato cosa e perché è stato eventualmente rifiutato. Dal Log DB puoi filtrare e pulire i vecchi record.</s:String>
+    <s:String x:Key="PsmGPracticeH">In pratica</s:String>
+    <s:String x:Key="PsmGPracticeP">Per abilitare al worker un nuovo comando economico (es. /exp2xenable): in Allowlist metti Abilitato = on e verifica che ShaiyaTaskAgent abbia Tier massimo ≥ ECONOMY nei Profili. Salva. Controlla poi il Log DB che il comando risulti OK e non DENIED.</s:String>
+    <s:String x:Key="PsmGGotIt">Ho capito</s:String>
+
+    <!-- Windows Firewall -->
+    <s:String x:Key="FwEnableAll">🛡 Abilita firewall</s:String>
+    <s:String x:Key="FwOpenWf">🪟 Windows Firewall</s:String>
+    <s:String x:Key="FwSimplewallWarn">⚠ simplewall sta FILTRANDO (filtri WFP attivi): è lui a governare, non Windows Firewall. Consenti le porte pubbliche (30800/30810/80/443) anche in simplewall.</s:String>
+    <s:String x:Key="FwLanCidr">Rete LAN (CIDR):</s:String>
+    <s:String x:Key="FwApplyPosture">🛡 Applica posture consigliata</s:String>
+    <s:String x:Key="FwAddRule">＋ Aggiungi regola</s:String>
+    <s:String x:Key="FwNetTest">🔎 Test di rete</s:String>
+    <s:String x:Key="FwOpenScript">✎ Script posture</s:String>
+    <s:String x:Key="FwColEnabled">Attiva</s:String>
+    <s:String x:Key="FwColRule">Regola</s:String>
+    <s:String x:Key="FwColProto">Proto</s:String>
+    <s:String x:Key="FwColPort">Porte</s:String>
+    <s:String x:Key="FwColScope">Ambito</s:String>
+    <s:String x:Key="FwColAction">Azione</s:String>
+
+    <!-- Firewall — nuova regola -->
+    <s:String x:Key="FwDlgTitle">Nuova regola firewall</s:String>
+    <s:String x:Key="FwDlgName">Nome:</s:String>
+    <s:String x:Key="FwDlgProto">Protocollo:</s:String>
+    <s:String x:Key="FwDlgPort">Porte:</s:String>
+    <s:String x:Key="FwDlgPortTip">Numeri, liste (80,443) o range (5000-5100)</s:String>
+    <s:String x:Key="FwDlgAction">Azione:</s:String>
+    <s:String x:Key="FwDlgScope">Ambito:</s:String>
+    <s:String x:Key="FwDlgScopeAny">Pubblico (Any)</s:String>
+    <s:String x:Key="FwDlgScopeLan">Solo LAN</s:String>
+    <s:String x:Key="FwDlgScopeCustom">Personalizzato…</s:String>
+    <s:String x:Key="FwDlgCustom">Indirizzo/CIDR:</s:String>
+    <s:String x:Key="FwDlgCustomTip">Es. 203.0.113.0/24 oppure 198.51.100.7</s:String>
+    <s:String x:Key="FwDlgAdd">＋ Crea regola</s:String>
+    <s:String x:Key="FwEditRule">✎ Salva modifiche</s:String>
+    <s:String x:Key="FwColHealth">Esito</s:String>
+    <s:String x:Key="FwTipEdit">Modifica questa regola</s:String>
+
+    <!-- Firewall — test di rete -->
+    <s:String x:Key="FwAuditHdr">Test di rete — superficie in ascolto</s:String>
+    <s:String x:Key="FwColProcess">Processo</s:String>
+    <s:String x:Key="FwColPurpose">A cosa serve</s:String>
+    <s:String x:Key="FwColExposure">Esposizione</s:String>
+    <s:String x:Key="FwColRisk">Rischio</s:String>
+    <s:String x:Key="FwColNote">Note</s:String>
 
 </ResourceDictionary>

@@ -14,8 +14,8 @@ All'avvio l'app crea due cartelle accanto all'exe:
 ShaiyaServerHub.exe
   scripts\sql\      ← *.sql della vista "Script"
   scripts\ps1\      ← *.ps1 / *.bat della vista "Script"
-  functions\sql\    ← *.sql della vista "Funzioni" (es. PSM_Cmd 00→07)
-  functions\ps1\
+  functions\<scheda>\sql\   ← *.sql di una scheda "Funzioni" (es. functions\psm_cmd-scc\sql, PSM_Cmd 00→07)
+  functions\<scheda>\ps1\   ← ogni scheda della vista "Funzioni" ha la sua sottocartella
   testsuite\sql\    ← *.sql della "Test Suite" (audit 01→19)
   testsuite\ps1\    ← check *.ps1 (10→21)
   hub.settings.xml   (config; password SQL cifrata DPAPI LocalMachine)

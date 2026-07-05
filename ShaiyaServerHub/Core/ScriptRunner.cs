@@ -7,7 +7,19 @@ namespace ShaiyaServerHub.Core
     public class ScriptRunner
     {
         private readonly HubSettings _settings;
-        public ScriptRunner(HubSettings settings) { _settings = settings; }
+        // Se true, gli SQL girano SEMPRE in autenticazione Windows (-E), ignorando
+        // SqlAuthMode/SqlUser delle impostazioni. Usato dalla sezione "Funzioni":
+        // l'Hub è localhost sul server → -E = SYSTEM, che vede gli oggetti least-priv
+        // di PSM_Cmd (dbo.Command CLR, Gm* tabelle) invisibili a un login SQL ristretto
+        // come ShaiyaTaskAgent. Le impostazioni principali restano invariate.
+        private readonly bool _forceWindowsAuth;
+
+        public ScriptRunner(HubSettings settings) : this(settings, false) { }
+        public ScriptRunner(HubSettings settings, bool forceWindowsAuth)
+        {
+            _settings = settings;
+            _forceWindowsAuth = forceWindowsAuth;
+        }
 
         public int RunScript(ScriptItem item, Action<string> log)
         {
@@ -31,7 +43,8 @@ namespace ShaiyaServerHub.Core
         {
             string args = BuildSqlcmdAuth() + FmtArgs +
                           $" -d {Quote(_settings.DefaultDatabase)} -b -i {Quote(scriptPath)}";
-            log?.Invoke($"[sqlcmd] {Path.GetFileName(scriptPath)}  (server={_settings.SqlServer}, auth={_settings.SqlAuthMode})");
+            string authLabel = _forceWindowsAuth ? "Windows(-E, forzata)" : _settings.SqlAuthMode;
+            log?.Invoke($"[sqlcmd] {Path.GetFileName(scriptPath)}  (server={_settings.SqlServer}, auth={authLabel})");
             int rc = ProcessRunner.Run("sqlcmd", args, log);
             log?.Invoke(rc == 0 ? "✓ sqlcmd OK (exit 0)" : $"✗ sqlcmd exit {rc}");
             return rc;
@@ -50,9 +63,10 @@ namespace ShaiyaServerHub.Core
         private string BuildSqlcmdAuth()
         {
             string baseArgs = $"-S {Quote(_settings.SqlServer)}";
-            if (string.Equals(_settings.SqlAuthMode, "Sql", StringComparison.OrdinalIgnoreCase))
+            if (!_forceWindowsAuth &&
+                string.Equals(_settings.SqlAuthMode, "Sql", StringComparison.OrdinalIgnoreCase))
                 return baseArgs + $" -U {Quote(_settings.SqlUser)} -P {Quote(_settings.SqlPassword)}";
-            return baseArgs + " -E"; // Windows auth
+            return baseArgs + " -E"; // Windows auth (forzata per la sezione Funzioni)
         }
 
         // ── PowerShell ───────────────────────────────────────

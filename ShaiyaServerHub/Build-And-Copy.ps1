@@ -51,7 +51,7 @@ if (Test-Path -LiteralPath $envFile) {
         '<<CAMBIA_PASSWORD_PSMCmdOwner>>'     = $vars['PSMCmdOwner_PASSWORD']
         '<<CAMBIA_PASSWORD_ShaiyaTaskAgent>>' = $vars['ShaiyaTaskAgent_PASSWORD']
     }
-    $fnDir = Join-Path $outDir 'functions\sql'
+    $fnDir = Join-Path $outDir 'functions\psm_cmd-scc\sql'
     if (Test-Path -LiteralPath $fnDir) {
         Get-ChildItem -LiteralPath $fnDir -Filter *.sql | ForEach-Object {
             $c = Get-Content -LiteralPath $_.FullName -Raw

@@ -359,6 +359,64 @@
         </Setter>
     </Style>
 
+    <!-- ── TabControl / TabItem (schede gold, vista Funzioni) ──── -->
+    <Style TargetType="TabControl">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Barra schede -->
+                        <Border Grid.Row="0" BorderBrush="#28E8C881" BorderThickness="0,0,0,1">
+                            <TabPanel IsItemsHost="True" Margin="0,0,0,-1" Panel.ZIndex="1"/>
+                        </Border>
+                        <!-- Contenuto scheda selezionata -->
+                        <Border Grid.Row="1" Margin="0,8,0,0">
+                            <ContentPresenter ContentSource="SelectedContent"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="TabItem">
+        <Setter Property="Foreground" Value="#88E0E0E0"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="Bd" CornerRadius="5,5,0,0" Margin="0,0,3,0"
+                            Background="#0AE8C881" BorderBrush="#20E8C881"
+                            BorderThickness="1,1,1,0" Padding="14,7">
+                        <ContentPresenter ContentSource="Header" HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#18E8C881"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#4DE8C881"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#1EE8C881"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#7BE8C881"/>
+                            <Setter Property="Foreground" Value="#E8C881"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ── Scrollbar sottile gold ────────────────────────────── -->
     <ControlTemplate x:Key="GoldScrollThumb" TargetType="Thumb">
         <Border x:Name="Bd" CornerRadius="3" Background="#50E8C881" Margin="1"/>
@@ -408,6 +466,79 @@
             </Track>
         </Border>
     </ControlTemplate>
+
+    <!-- ── DataGrid (dark gold, compatta) ───────────────────── -->
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="#0F0F14"/>
+        <Setter Property="Foreground" Value="#E8C881"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="BorderBrush" Value="#20E8C881"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style TargetType="DataGridRow">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#CCE0E0E0"/>
+        <Style.Triggers>
+            <Trigger Property="AlternationIndex" Value="1">
+                <Setter Property="Background" Value="#06E8C881"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#1EE8C881"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="DataGridCell">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="#CCE0E0E0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridCell">
+                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"
+                            BorderThickness="0" SnapsToDevicePixels="True">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="#F0E8C881"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="#080810"/>
+        <Setter Property="BorderBrush" Value="#18E8C881"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="RowBackground" Value="Transparent"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="#12E8C881"/>
+        <Setter Property="VerticalGridLinesBrush" Value="#0CE8C881"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+        <Setter Property="RowHeaderWidth" Value="0"/>
+        <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="CanUserAddRows" Value="False"/>
+        <Setter Property="CanUserDeleteRows" Value="False"/>
+        <Setter Property="CanUserResizeRows" Value="False"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="SelectionUnit" Value="FullRow"/>
+        <Setter Property="AlternationCount" Value="2"/>
+        <Setter Property="ColumnHeaderHeight" Value="28"/>
+        <Setter Property="RowHeight" Value="30"/>
+        <Setter Property="EnableRowVirtualization" Value="True"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="#CCE0E0E0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
 
     <!-- Stile GLOBALE implicito: si applica a tutte le ScrollBar dell'app -->
     <Style TargetType="ScrollBar">

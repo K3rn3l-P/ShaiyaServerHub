@@ -19,6 +19,8 @@
     <s:String x:Key="GbTestSuite">SERVER TEST SUITE — SECURITY</s:String>
     <s:String x:Key="BtnVerifyPsm">✓ Verify PSM_Cmd</s:String>
     <s:String x:Key="BtnInstallPsm">⬇ Install / Repair PSM_Cmd</s:String>
+    <s:String x:Key="BtnPsmSettings">⚙ DB Settings</s:String>
+    <s:String x:Key="BtnPsmLog">📋 DB Log</s:String>
     <s:String x:Key="BtnRunTestSuite">▶ Run all</s:String>
     <s:String x:Key="BtnOpenLog">📋 Log</s:String>
     <s:String x:Key="TipScriptLog">Open this script's log</s:String>
@@ -190,5 +192,112 @@
     <s:String x:Key="EvGenSearch">Search:</s:String>
     <s:String x:Key="EvGenReload">🔄 Reload</s:String>
     <s:String x:Key="EvGenStep2">2) When to fire the task</s:String>
+
+    <!-- PSM_Cmd — DB Settings -->
+    <s:String x:Key="PsmSetHdr">PSM_Cmd settings — command channel</s:String>
+    <s:String x:Key="PsmTabAllow">Command allowlist</s:String>
+    <s:String x:Key="PsmTabCallers">Caller profiles</s:String>
+    <s:String x:Key="PsmLblService">Service:</s:String>
+    <s:String x:Key="PsmLblTier">Tier:</s:String>
+    <s:String x:Key="PsmLblSearch">Search:</s:String>
+    <s:String x:Key="PsmAll">All</s:String>
+    <s:String x:Key="PsmOnlyEnabled">Enabled only</s:String>
+    <s:String x:Key="PsmColService">Service</s:String>
+    <s:String x:Key="PsmColCommand">Command</s:String>
+    <s:String x:Key="PsmColTier">Tier</s:String>
+    <s:String x:Key="PsmColEnabled">Enabled</s:String>
+    <s:String x:Key="PsmColDesc">Description</s:String>
+    <s:String x:Key="PsmAllowHint">Enabled = the command can run via usp_RunCommand. Disabled = blocked (return -3). Tier = required privilege class (SAFE&lt;PLAYER&lt;ECONOMY&lt;SERVICE). SERVICE (destructive) commands usually stay disabled.</s:String>
+    <s:String x:Key="PsmAddCaller">＋ Add login</s:String>
+    <s:String x:Key="PsmRemoveCaller">✕ Remove selected</s:String>
+    <s:String x:Key="PsmColCaller">SQL login (CallerLogin)</s:String>
+    <s:String x:Key="PsmColMaxTier">Max tier</s:String>
+    <s:String x:Key="PsmCallersHint">Each SQL login using usp_RunCommand can only run commands up to its max Tier. E.g. Ernoweb@ (web) = PLAYER; ShaiyaTaskAgent (task worker) = ECONOMY. SERVICE cannot be granted here.</s:String>
+    <s:String x:Key="PsmReload">↻ Reload</s:String>
+    <s:String x:Key="PsmSave">💾 Save</s:String>
+
+    <!-- PSM_Cmd — DB Log -->
+    <s:String x:Key="PsmLogHdr">DB Log — GmCommandLog (command audit)</s:String>
+    <s:String x:Key="PsmLblResult">Result:</s:String>
+    <s:String x:Key="PsmLblWrapper">Wrapper:</s:String>
+    <s:String x:Key="PsmLblSearchCmd">Search command:</s:String>
+    <s:String x:Key="PsmLblRows">Rows:</s:String>
+    <s:String x:Key="PsmApply">🔎 Apply</s:String>
+    <s:String x:Key="PsmRefresh">↻ Refresh</s:String>
+    <s:String x:Key="PsmColId">Id</s:String>
+    <s:String x:Key="PsmColDateTime">Date/time</s:String>
+    <s:String x:Key="PsmColLogin">Login</s:String>
+    <s:String x:Key="PsmColWrapper">Wrapper</s:String>
+    <s:String x:Key="PsmColResult">Result</s:String>
+    <s:String x:Key="PsmLblPurge">Purge:</s:String>
+    <s:String x:Key="PsmPurge90">older than 90d</s:String>
+    <s:String x:Key="PsmPurge30">older than 30d</s:String>
+    <s:String x:Key="PsmPurge7">older than 7d</s:String>
+    <s:String x:Key="PsmPurgeAll">ALL the log</s:String>
+    <s:String x:Key="PsmPurgeBtn">🗑 Purge log</s:String>
+
+    <!-- PSM_Cmd — Guide -->
+    <s:String x:Key="PsmGHdr">Guide — PSM_Cmd command channel</s:String>
+    <s:String x:Key="PsmGIntro">PSM_Cmd is the secure channel the Hub and services use to send commands to the game server (ps_game/ps_login): /nt messages, EXP multipliers, kicks, boss spawns, etc. It is isolated in a dedicated, closed DB, with a signed CLR assembly (no TRUSTWORTHY), wrappers, allowlist and audit.</s:String>
+    <s:String x:Key="PsmGFlowH">How a command travels</s:String>
+    <s:String x:Key="PsmGFlowP">Callers (site, task worker, gameplay) NEVER touch dbo.Command directly. They call a wrapper — usp_SendNotice (only /nt) or usp_RunCommand (allowlisted commands) — which runs EXECUTE AS OWNER, validates, executes and writes the audit. So a credential leak grants no power beyond what the wrapper allows.</s:String>
+    <s:String x:Key="PsmGTierH">The Tiers (privilege classes)</s:String>
+    <s:String x:Key="PsmGTierIntro">Every command has a Tier; every login has a max Tier. Increasing power:</s:String>
+    <s:String x:Key="PsmGTierSafe">harmless read/broadcast: /nt, /uc, /si, /mem.</s:String>
+    <s:String x:Key="PsmGTierPlayer">acts on players: kick by name/ID, protections.</s:String>
+    <s:String x:Key="PsmGTierEconomy">touches the economy: EXP x2, enchant/gem rates, boss spawn, item/gold.</s:String>
+    <s:String x:Key="PsmGTierService">destructive: /shutdown, /allout, /crashdump. NOT grantable to logins; stay disabled.</s:String>
+    <s:String x:Key="PsmGAllowH">«Command allowlist» tab</s:String>
+    <s:String x:Key="PsmGAllowP">The whitelist of what usp_RunCommand accepts. Per command: Enabled (on/off) and Tier. Enabled rows are highlighted in gold. Rule: a command runs only if Enabled. SERVICE and risky economy commands come disabled by default — enable only what you truly need.</s:String>
+    <s:String x:Key="PsmGCallersH">«Caller profiles» tab</s:String>
+    <s:String x:Key="PsmGCallersP">Maps SQL login → max allowed Tier. A login can run a command only if: the command is Enabled AND its Tier ≤ the login's max Tier. Otherwise it is denied (return -3).</s:String>
+    <s:String x:Key="PsmGCallersP2">• Ernoweb@ (web site) = PLAYER → can /nt and kick, never economy.&#x0a;• ShaiyaTaskAgent (scheduled-task worker) = ECONOMY → also EXP x2, boss, etc.&#x0a;The less power a login has, the less damage a leak does.</s:String>
+    <s:String x:Key="PsmGLogH">DB Log (audit)</s:String>
+    <s:String x:Key="PsmGLogP">Every attempt ends up in GmCommandLog with a result: OK (executed), DENIED (blocked by allowlist/tier), ERROR (execution error). Useful to see who ran what and why it was possibly refused. From DB Log you can filter and purge old records.</s:String>
+    <s:String x:Key="PsmGPracticeH">In practice</s:String>
+    <s:String x:Key="PsmGPracticeP">To enable a new economy command for the worker (e.g. /exp2xenable): in Allowlist set Enabled = on and check that ShaiyaTaskAgent has max Tier ≥ ECONOMY in Profiles. Save. Then check DB Log that the command shows OK, not DENIED.</s:String>
+    <s:String x:Key="PsmGGotIt">Got it</s:String>
+
+    <!-- Windows Firewall -->
+    <s:String x:Key="FwEnableAll">🛡 Enable firewall</s:String>
+    <s:String x:Key="FwOpenWf">🪟 Windows Firewall</s:String>
+    <s:String x:Key="FwSimplewallWarn">⚠ simplewall is FILTERING (active WFP filters): it governs, not Windows Firewall. Allow the public ports (30800/30810/80/443) in simplewall too.</s:String>
+    <s:String x:Key="FwLanCidr">LAN network (CIDR):</s:String>
+    <s:String x:Key="FwApplyPosture">🛡 Apply recommended posture</s:String>
+    <s:String x:Key="FwAddRule">＋ Add rule</s:String>
+    <s:String x:Key="FwNetTest">🔎 Network test</s:String>
+    <s:String x:Key="FwOpenScript">✎ Posture script</s:String>
+    <s:String x:Key="FwColEnabled">On</s:String>
+    <s:String x:Key="FwColRule">Rule</s:String>
+    <s:String x:Key="FwColProto">Proto</s:String>
+    <s:String x:Key="FwColPort">Ports</s:String>
+    <s:String x:Key="FwColScope">Scope</s:String>
+    <s:String x:Key="FwColAction">Action</s:String>
+
+    <!-- Firewall — new rule -->
+    <s:String x:Key="FwDlgTitle">New firewall rule</s:String>
+    <s:String x:Key="FwDlgName">Name:</s:String>
+    <s:String x:Key="FwDlgProto">Protocol:</s:String>
+    <s:String x:Key="FwDlgPort">Ports:</s:String>
+    <s:String x:Key="FwDlgPortTip">Numbers, lists (80,443) or ranges (5000-5100)</s:String>
+    <s:String x:Key="FwDlgAction">Action:</s:String>
+    <s:String x:Key="FwDlgScope">Scope:</s:String>
+    <s:String x:Key="FwDlgScopeAny">Public (Any)</s:String>
+    <s:String x:Key="FwDlgScopeLan">LAN only</s:String>
+    <s:String x:Key="FwDlgScopeCustom">Custom…</s:String>
+    <s:String x:Key="FwDlgCustom">Address/CIDR:</s:String>
+    <s:String x:Key="FwDlgCustomTip">E.g. 203.0.113.0/24 or 198.51.100.7</s:String>
+    <s:String x:Key="FwDlgAdd">＋ Create rule</s:String>
+    <s:String x:Key="FwEditRule">✎ Save changes</s:String>
+    <s:String x:Key="FwColHealth">Result</s:String>
+    <s:String x:Key="FwTipEdit">Edit this rule</s:String>
+
+    <!-- Firewall — network test -->
+    <s:String x:Key="FwAuditHdr">Network test — listening surface</s:String>
+    <s:String x:Key="FwColProcess">Process</s:String>
+    <s:String x:Key="FwColPurpose">Purpose</s:String>
+    <s:String x:Key="FwColExposure">Exposure</s:String>
+    <s:String x:Key="FwColRisk">Risk</s:String>
+    <s:String x:Key="FwColNote">Notes</s:String>
 
 </ResourceDictionary>

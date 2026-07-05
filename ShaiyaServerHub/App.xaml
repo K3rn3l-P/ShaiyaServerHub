@@ -8,6 +8,7 @@
                 <ResourceDictionary Source="Styles/AppStyles.xaml"/>
                 <ResourceDictionary Source="Lang/it.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

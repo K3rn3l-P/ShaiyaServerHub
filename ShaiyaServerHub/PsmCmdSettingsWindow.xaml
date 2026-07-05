@@ -1,0 +1,193 @@
+<Window x:Class="ShaiyaServerHub.PsmCmdSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:ShaiyaServerHub.Core"
+        Title="Impostazioni PSM_Cmd" Icon="icon.ico"
+        Width="960" Height="640" MinWidth="720" MinHeight="460"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
+
+    <Window.Resources>
+        <!-- Testo mostrato nelle celle combo (dark) -->
+        <Style x:Key="CellText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#CCE0E0E0"/>
+            <Setter Property="Margin" Value="8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Combo nelle celle DataGrid: forza il tema dark+oro (lo stile implicito
+             non viene ereditato dagli elementi generati dalle colonne combo). -->
+        <Style x:Key="GridCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Foreground" Value="#DDE0E0E0"/>
+        </Style>
+
+        <!-- Righe allowlist: comandi ABILITATI evidenziati (oro soft); selezione oro intenso. -->
+        <Style x:Key="AllowRow" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Enabled}" Value="True">
+                    <Setter Property="Background" Value="#1EE8C881"/>
+                </DataTrigger>
+                <!-- IsSelected per ultimo: vince sull'evidenziazione "abilitato". -->
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#4AE8C881"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="8" BorderBrush="#4DE8C881" BorderThickness="1" ClipToBounds="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#0D0D10" Offset="0"/>
+                <GradientStop Color="#070709" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <StackPanel Orientation="Horizontal" MouseLeftButtonDown="DragWindow" HorizontalAlignment="Left">
+                    <TextBlock Text="⚙" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="{DynamicResource PsmSetHdr}" Foreground="#E8C881"
+                               FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TbServerInfo" Foreground="#55E8C881" FontSize="11"
+                               VerticalAlignment="Center" Margin="12,2,0,0"/>
+                </StackPanel>
+                <Border HorizontalAlignment="Right" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                        Background="Transparent" MouseLeftButtonUp="BtnClose_Click">
+                    <TextBlock Text="✕" FontSize="12" Foreground="#60E8C881" IsHitTestVisible="False"/>
+                </Border>
+            </Grid>
+
+            <TabControl Grid.Row="1">
+                <!-- ── Allowlist comandi ── -->
+                <TabItem Header="{DynamicResource PsmTabAllow}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Toolbar filtri -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="{DynamicResource PsmLblService}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="2,0,4,0"/>
+                            <ComboBox x:Name="CbService" Width="110" SelectionChanged="Filter_Changed">
+                                <ComboBoxItem Content="{DynamicResource PsmAll}" IsSelected="True"/>
+                                <ComboBoxItem Content="ps_game"/>
+                                <ComboBoxItem Content="ps_login"/>
+                            </ComboBox>
+                            <TextBlock Text="{DynamicResource PsmLblTier}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="12,0,4,0"/>
+                            <ComboBox x:Name="CbTier" Width="110" SelectionChanged="Filter_Changed">
+                                <ComboBoxItem Content="{DynamicResource PsmAll}" IsSelected="True"/>
+                                <ComboBoxItem Content="SAFE"/>
+                                <ComboBoxItem Content="PLAYER"/>
+                                <ComboBoxItem Content="ECONOMY"/>
+                                <ComboBoxItem Content="SERVICE"/>
+                            </ComboBox>
+                            <TextBlock Text="{DynamicResource PsmLblSearch}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="12,0,4,0"/>
+                            <TextBox x:Name="TbSearch" Width="180" TextChanged="Filter_Changed"/>
+                            <CheckBox x:Name="ChkOnlyEnabled" Content="{DynamicResource PsmOnlyEnabled}" VerticalAlignment="Center"
+                                      Margin="12,0,0,0" Click="Filter_Changed"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" x:Name="GridAllow" RowStyle="{StaticResource AllowRow}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{DynamicResource PsmColService}" Binding="{Binding Service}" Width="90" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                                            <Setter Property="Foreground" Value="#88E0E0E0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="{DynamicResource PsmColCommand}" Binding="{Binding Command}" Width="150" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                                            <Setter Property="FontFamily" Value="Consolas"/>
+                                            <Setter Property="Foreground" Value="#E0E0E0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridComboBoxColumn Header="{DynamicResource PsmColTier}" Width="100"
+                                        ItemsSource="{x:Static core:Tiers.All}"
+                                        SelectedItemBinding="{Binding Tier}"
+                                        ElementStyle="{StaticResource GridCombo}"
+                                        EditingElementStyle="{StaticResource GridCombo}"/>
+                                <DataGridCheckBoxColumn Header="{DynamicResource PsmColEnabled}" Binding="{Binding Enabled}" Width="80"/>
+                                <DataGridTextColumn Header="{DynamicResource PsmColDesc}" Binding="{Binding Description}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Grid.Row="2" Margin="2,6,0,0" Foreground="#55E8C881" FontSize="10" TextWrapping="Wrap"
+                                   Text="{DynamicResource PsmAllowHint}"/>
+                    </Grid>
+                </TabItem>
+
+                <!-- ── Profili chiamante ── -->
+                <TabItem Header="{DynamicResource PsmTabCallers}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                            <Button Content="{DynamicResource PsmAddCaller}" Click="BtnAddCaller_Click"/>
+                            <Button Style="{StaticResource DangerButton}" Content="{DynamicResource PsmRemoveCaller}"
+                                    Click="BtnRemoveCaller_Click" Padding="10,5" FontSize="11"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" x:Name="GridCallers">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{DynamicResource PsmColCaller}" Binding="{Binding CallerLogin}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                                            <Setter Property="FontFamily" Value="Consolas"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridComboBoxColumn Header="{DynamicResource PsmColMaxTier}" Width="180"
+                                        ItemsSource="{x:Static core:Tiers.CallerRanks}"
+                                        SelectedValueBinding="{Binding MaxTierRank}"
+                                        SelectedValuePath="Rank" DisplayMemberPath="Label"
+                                        ElementStyle="{StaticResource GridCombo}"
+                                        EditingElementStyle="{StaticResource GridCombo}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Grid.Row="2" Margin="2,6,0,0" Foreground="#55E8C881" FontSize="10" TextWrapping="Wrap"
+                                   Text="{DynamicResource PsmCallersHint}"/>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+
+            <!-- Footer -->
+            <Grid Grid.Row="2" Margin="0,10,0,0">
+                <TextBlock x:Name="TbStatus" Foreground="#88E0E0E0" FontSize="11"
+                           VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="{DynamicResource BtnGuide}" Click="BtnGuide_Click" MinWidth="90"/>
+                    <Button Content="{DynamicResource PsmReload}" Click="BtnReload_Click" MinWidth="90"/>
+                    <Button Content="{DynamicResource BtnCancel}" Click="BtnClose_Click" MinWidth="90"/>
+                    <Button Style="{StaticResource AccentButton}" Content="{DynamicResource PsmSave}" Click="BtnSave_Click" MinWidth="110"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

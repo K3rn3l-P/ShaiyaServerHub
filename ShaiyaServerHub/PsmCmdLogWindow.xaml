@@ -1,0 +1,146 @@
+<Window x:Class="ShaiyaServerHub.PsmCmdLogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Log DB PSM_Cmd" Icon="icon.ico"
+        Width="1000" Height="640" MinWidth="720" MinHeight="440"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
+
+    <Window.Resources>
+        <Style x:Key="CellText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#CCE0E0E0"/>
+            <Setter Property="Margin" Value="8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <!-- Result colorato -->
+        <Style x:Key="ResultCell" TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Result}" Value="OK">
+                    <Setter Property="Foreground" Value="#6BD98A"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result}" Value="DENIED">
+                    <Setter Property="Foreground" Value="#E8C881"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result}" Value="ERROR">
+                    <Setter Property="Foreground" Value="#F46A6A"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="8" BorderBrush="#4DE8C881" BorderThickness="1" ClipToBounds="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#0D0D10" Offset="0"/>
+                <GradientStop Color="#070709" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <StackPanel Orientation="Horizontal" MouseLeftButtonDown="DragWindow" HorizontalAlignment="Left">
+                    <TextBlock Text="📋" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="{DynamicResource PsmLogHdr}" Foreground="#E8C881"
+                               FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TbServerInfo" Foreground="#55E8C881" FontSize="11"
+                               VerticalAlignment="Center" Margin="12,2,0,0"/>
+                </StackPanel>
+                <Border HorizontalAlignment="Right" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                        Background="Transparent" MouseLeftButtonUp="BtnClose_Click">
+                    <TextBlock Text="✕" FontSize="12" Foreground="#60E8C881" IsHitTestVisible="False"/>
+                </Border>
+            </Grid>
+
+            <!-- Toolbar filtri -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
+                <TextBlock Text="{DynamicResource PsmLblResult}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="2,0,4,0"/>
+                <ComboBox x:Name="CbResult" Width="100" SelectionChanged="Filter_Changed">
+                    <ComboBoxItem Content="{DynamicResource PsmAll}" IsSelected="True"/>
+                    <ComboBoxItem Content="OK"/>
+                    <ComboBoxItem Content="DENIED"/>
+                    <ComboBoxItem Content="ERROR"/>
+                </ComboBox>
+                <TextBlock Text="{DynamicResource PsmLblWrapper}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="12,0,4,0"/>
+                <ComboBox x:Name="CbWrapper" Width="120" SelectionChanged="Filter_Changed">
+                    <ComboBoxItem Content="{DynamicResource PsmAll}" IsSelected="True"/>
+                    <ComboBoxItem Content="RunCommand"/>
+                    <ComboBoxItem Content="SendNotice"/>
+                </ComboBox>
+                <TextBlock Text="{DynamicResource PsmLblSearchCmd}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="12,0,4,0"/>
+                <TextBox x:Name="TbSearch" Width="170"/>
+                <TextBlock Text="{DynamicResource PsmLblRows}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="12,0,4,0"/>
+                <ComboBox x:Name="CbTop" Width="80" SelectionChanged="Filter_Changed">
+                    <ComboBoxItem Content="200" IsSelected="True"/>
+                    <ComboBoxItem Content="500"/>
+                    <ComboBoxItem Content="1000"/>
+                    <ComboBoxItem Content="5000"/>
+                </ComboBox>
+                <Button Content="{DynamicResource PsmApply}" Click="BtnApply_Click" Margin="12,0,0,0"/>
+                <Button Content="{DynamicResource PsmRefresh}" Click="BtnApply_Click"/>
+            </StackPanel>
+
+            <DataGrid Grid.Row="2" x:Name="Grid">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{DynamicResource PsmColId}" Binding="{Binding Id}" Width="60" IsReadOnly="True"
+                                        ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="{DynamicResource PsmColDateTime}" Binding="{Binding Ts, StringFormat=yyyy-MM-dd HH:mm:ss}"
+                                        Width="150" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                                <Setter Property="FontFamily" Value="Consolas"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="{DynamicResource PsmColLogin}" Binding="{Binding CallerLogin}" Width="200" IsReadOnly="True"
+                                        ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="{DynamicResource PsmColWrapper}" Binding="{Binding Wrapper}" Width="100" IsReadOnly="True"
+                                        ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="{DynamicResource PsmColService}" Binding="{Binding Service}" Width="80" IsReadOnly="True"
+                                        ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="{DynamicResource PsmColCommand}" Binding="{Binding Command}" Width="*" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+                                <Setter Property="FontFamily" Value="Consolas"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="{DynamicResource PsmColResult}" Binding="{Binding Result}" Width="90" IsReadOnly="True"
+                                        ElementStyle="{StaticResource ResultCell}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Footer -->
+            <Grid Grid.Row="3" Margin="0,10,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button Content="{DynamicResource BtnGuide}" Click="BtnGuide_Click" MinWidth="90"/>
+                    <TextBlock x:Name="TbStatus" Foreground="#88E0E0E0" FontSize="11"
+                               VerticalAlignment="Center" Margin="10,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="{DynamicResource PsmLblPurge}" Foreground="#88E0E0E0" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <ComboBox x:Name="CbPurge" Width="150" VerticalAlignment="Center">
+                        <ComboBoxItem Content="{DynamicResource PsmPurge90}" IsSelected="True"/>
+                        <ComboBoxItem Content="{DynamicResource PsmPurge30}"/>
+                        <ComboBoxItem Content="{DynamicResource PsmPurge7}"/>
+                        <ComboBoxItem Content="{DynamicResource PsmPurgeAll}"/>
+                    </ComboBox>
+                    <Button Style="{StaticResource DangerButton}" Content="{DynamicResource PsmPurgeBtn}"
+                            Click="BtnPurge_Click" Padding="10,5" FontSize="11" Margin="4,2,12,2"/>
+                    <Button Style="{StaticResource AccentButton}" Content="{DynamicResource BtnCloseWin}" Click="BtnClose_Click" MinWidth="90"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

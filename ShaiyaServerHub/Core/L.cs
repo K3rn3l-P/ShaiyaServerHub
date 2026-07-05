@@ -60,9 +60,9 @@ namespace ShaiyaServerHub
         public static string SqlTesting => S("test in corso…", "testing…");
         public static string SqlTestOk => S("✓ Connessione riuscita", "✓ Connected");
         public static string SqlTestFail(int rc) => S($"✗ Connessione fallita (exit {rc}, vedi Log)", $"✗ Connection failed (exit {rc}, see Log)");
-        public static string HintFunctions => S("Verifica/installa PSM_Cmd. Script personalizzati in functions\\sql e functions\\ps1.", "Verify/install PSM_Cmd. Custom scripts in functions\\sql and functions\\ps1.");
+        public static string HintFunctions => S("Verifica/installa PSM_Cmd. Script personalizzati in functions\\psm_cmd-scc\\sql e functions\\psm_cmd-scc\\ps1.", "Verify/install PSM_Cmd. Custom scripts in functions\\psm_cmd-scc\\sql and functions\\psm_cmd-scc\\ps1.");
         public static string HintTestSuite => S("Esegui i controlli di sicurezza. Metti gli script audit in testsuite\\sql e testsuite\\ps1.", "Run security checks. Put audit scripts in testsuite\\sql and testsuite\\ps1.");
-        public static string ConfirmInstallPsm => S("Installare/riparare PSM_Cmd eseguendo TUTTI gli script SQL in functions\\sql in ordine?\n\nRichiede: DLL firmata in posizione, login sysadmin, password già aggiornate negli script.", "Install/repair PSM_Cmd by running ALL SQL scripts in functions\\sql in order?\n\nRequires: signed DLL in place, sysadmin login, passwords already updated in scripts.");
+        public static string ConfirmInstallPsm => S("Installare/riparare PSM_Cmd eseguendo TUTTI gli script SQL in functions\\psm_cmd-scc\\sql in ordine?\n\nRichiede: DLL firmata in posizione, login sysadmin, password già aggiornate negli script.", "Install/repair PSM_Cmd by running ALL SQL scripts in functions\\psm_cmd-scc\\sql in order?\n\nRequires: signed DLL in place, sysadmin login, passwords already updated in scripts.");
         public static string RegisterOk => S("✓ Login abilitato nel canale comandi", "✓ Login enabled in command channel");
         public static string RegisterFail(int rc) => S($"✗ Registrazione fallita (exit {rc}, vedi Log)", $"✗ Registration failed (exit {rc}, see Log)");
 
@@ -89,6 +89,63 @@ namespace ShaiyaServerHub
         public static string EvGenStateUnknown => S("stato non rilevato negli eventi → uso 'qualsiasi cambio'", "state not found in events → using 'any change'");
         public static string LogDirWarn(string dir) => S($"⚠ Cartella log non creabile: {dir}", $"⚠ Cannot create log folder: {dir}");
         public static string NoTaskLog(string n) => S($"Nessun log per '{n}' (abilita 'Genera log' in modifica, poi esegui).", $"No log for '{n}' (enable 'Write log' in edit, then run).");
+
+        // ── PSM_Cmd: editor impostazioni / log ───────────────
+        public static string PsmAuthInfo(string server) => S($"({server} · PSM_Cmd · autenticazione Windows)", $"({server} · PSM_Cmd · Windows auth)");
+        public static string PsmLoaded(int a, int c) => S($"Caricati {a} comandi · {c} profili.", $"Loaded {a} commands · {c} profiles.");
+        public static string PsmLoadErr => S("Errore di caricamento.", "Load error.");
+        public static string PsmReadErr(string m) => S("Errore di lettura da PSM_Cmd:\n\n", "Read error from PSM_Cmd:\n\n") + m;
+        public static string PsmSavedStatus(int a, int p) => S($"Salvato: {a} comandi aggiornati · {p} profili.", $"Saved: {a} commands updated · {p} profiles.");
+        public static string PsmSavedBox(int a, int p) => S($"Impostazioni salvate.\n\nAllowlist: {a} righe aggiornate\nProfili chiamante: {p} righe.", $"Settings saved.\n\nAllowlist: {a} rows updated\nCaller profiles: {p} rows.");
+        public static string PsmSaveErr(string m) => S("Errore in salvataggio:\n\n", "Save error:\n\n") + m;
+        public static string PsmSaveErrStatus => S("Errore di salvataggio (nessuna modifica applicata).", "Save error (no change applied).");
+        public static string PsmLogShown(int shown, int total) => S($"Mostrate {shown} righe (di {total} totali nel log).", $"Showing {shown} rows (of {total} total in the log).");
+        public static string PsmLogReadErr(string m) => S("Errore di lettura del log:\n\n", "Log read error:\n\n") + m;
+        public static string PsmPurgeWhatAll => S("TUTTE le righe del log", "ALL log rows");
+        public static string PsmPurgeWhatDays(int d) => S($"le righe più vecchie di {d} giorni", $"rows older than {d} days");
+        public static string PsmPurgeConfirm(string what) => S($"Cancellare {what} da GmCommandLog?\n\nOperazione irreversibile.", $"Delete {what} from GmCommandLog?\n\nIrreversible operation.");
+        public static string PsmPurgeTitle => S("Pulisci log PSM_Cmd", "Purge PSM_Cmd log");
+        public static string PsmPurgeDone(int n) => S($"Cancellate {n} righe dal log.", $"Deleted {n} rows from the log.");
+        public static string PsmPurgeErr(string m) => S("Errore in pulizia log:\n\n", "Purge error:\n\n") + m;
+
+        // ── Firewall ─────────────────────────────────────────
+        public static string FwOn => S("ATTIVO", "ON");
+        public static string FwOff => S("DISATTIVO", "OFF");
+        public static string FwStateLabel(bool on) => S("Firewall: ", "Firewall: ") + (on ? FwOn : FwOff);
+        public static string FwEnableBtn => S("🛡 Abilita firewall", "🛡 Enable firewall");
+        public static string FwDisableBtn => S("🛑 Disabilita firewall", "🛑 Disable firewall");
+        public static string FwProfilesLine(string profs) => profs;
+        public static string FwConfirmEnable => S(
+            "Abilitare Windows Firewall su tutti i profili (default inbound = Block)?\n\nAssicurati che le regole di gestione (SSH/RDP/SQL) siano presenti e che il tuo PC sia in LAN, per non perdere l'accesso.",
+            "Enable Windows Firewall on all profiles (default inbound = Block)?\n\nMake sure the management rules (SSH/RDP/SQL) exist and your PC is on the LAN, to avoid losing access.");
+        public static string FwConfirmDisable => S(
+            "⚠ Disabilitare Windows Firewall su TUTTI i profili?\n\nIl server resterebbe senza filtro: tutte le porte in ascolto diventano raggiungibili. Sconsigliato in produzione.",
+            "⚠ Disable Windows Firewall on ALL profiles?\n\nThe server would be left unfiltered: every listening port becomes reachable. Not recommended in production.");
+        public static string FwConfirmPosture(string lan) => S(
+            $"Applicare la posture consigliata (LAN {lan})?\n\nGioco/web pubblici; SSH/RDP/SQL/Ghidra solo LAN; default-block; riduzione superficie. Esegui da un PC in LAN (rischio lockout).",
+            $"Apply the recommended posture (LAN {lan})?\n\nGame/web public; SSH/RDP/SQL/Ghidra LAN-only; default-block; surface reduction. Run from a LAN PC (lockout risk).");
+        public static string FwConfirmRemove(string name) => S($"Rimuovere la regola '{name}'?", $"Remove rule '{name}'?");
+        public static string FwTitle => S("Firewall", "Firewall");
+        public static string FwDone => S("✓ Operazione completata.", "✓ Operation completed.");
+        public static string FwActionErr => S("✗ Operazione fallita (vedi log).", "✗ Operation failed (see log).");
+        public static string FwScriptMissing(string p) => S($"Script posture non trovato: {p}", $"Posture script not found: {p}");
+        public static string FwDlgErrName => S("Nome regola non valido (lettere, numeri, spazi, - _ ).", "Invalid rule name (letters, digits, spaces, - _ ).");
+        public static string FwDlgErrPort => S("Porte non valide. Usa numeri, liste (80,443) o range (5000-5100).", "Invalid ports. Use numbers, lists (80,443) or ranges (5000-5100).");
+        public static string FwDlgErrCustom => S("Inserisci l'indirizzo/CIDR personalizzato (es. 203.0.113.0/24).", "Enter the custom address/CIDR (e.g. 203.0.113.0/24).");
+        public static string FwDlgEditTitle => S("Modifica regola firewall", "Edit firewall rule");
+        public static string FwScopePublic => S("Pubblico (Any)", "Public (Any)");
+        public static string FwScopeRestricted(string remote) => S("Ristretto (", "Restricted (") + remote + ")";
+        public static string FwAuditLogHeader(bool fwOn, bool sw) => S(
+            $"===== Test di rete {DateTime.Now:yyyy-MM-dd HH:mm:ss} · Firewall {(fwOn ? "ON" : "OFF")}{(sw ? " · simplewall FILTRA" : "")} =====",
+            $"===== Network test {DateTime.Now:yyyy-MM-dd HH:mm:ss} · Firewall {(fwOn ? "ON" : "OFF")}{(sw ? " · simplewall FILTERING" : "")} =====");
+        public static string FwAuditCounts(int risk, int warn, int ok) => S(
+            $"Rischi: {risk} · Attenzione: {warn} · OK: {ok}.",
+            $"Risks: {risk} · Warnings: {warn} · OK: {ok}.");
+        public static string FwAuditNote(bool fwOn, bool swFiltering) => S(
+            (fwOn ? "Windows Firewall ATTIVO. " : "⚠ Windows Firewall DISATTIVO: tutto ciò che è in ascolto è esposto. ") +
+            (swFiltering ? "simplewall STA FILTRANDO (il verdetto qui si basa sulle regole di Windows Firewall)." : ""),
+            (fwOn ? "Windows Firewall ON. " : "⚠ Windows Firewall OFF: everything listening is exposed. ") +
+            (swFiltering ? "simplewall IS FILTERING (the verdict here is based on Windows Firewall rules)." : ""));
 
         // ── Web server ───────────────────────────────────────
         public static string WebKind(string disp, string root) => S($"{disp}  ·  webroot: {root}", $"{disp}  ·  webroot: {root}");
