@@ -211,11 +211,40 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
       Edit ok (`TaskXml` parsa `ScheduleByMonth`). Verificato sul server: giorno 21 · Gen/Apr/Lug/Ott, run OK.
 - [x] **Guardia anti-zombie**: l'exe del Hub senza `--run` è rifiutato in creazione/edit e mai avvolto in
       `cmd > log` (vedi §10 "cmd-redirect wrapper appende la UI e locka il log").
+- [x] **Modulo Web server** (`Core/WebServer/`, nav "🌐 Web server"): astrazione `IWebServer`
+      (`XamppApache` attivo + `Iis` stub), `ServiceMonitor.Query(services[])` per servizi web separati
+      dai `ps_*` (solo `Apache2.4`), `WebProbe` (health `status.php`, `mod_status ?auto`, scadenza cert TLS).
+      Start/Stop/Riavvio, rigenera SSL, backup web, apri webroot/log.
+- [x] **Editor Settaggi sito** (`WebSettingsWindow`, bottone "⚙ Settaggi sito" nel modulo Web server):
+      legge/scrive `PS_WebSite.dbo.Web_Settings` via `Ernoweb@` (`Core/WebServer/WebSettingsRepo.cs`).
+      Raggruppato per categoria, validazione JSON `*_Permissions`, righe read-only heartbeat/secret.
+
+> **NB — pivot 2026-07-05:** la vista "Web jobs" (coda DB `Web_TaskJobs`) è stata **RIMOSSA** perché
+> ridondante con Script + Pianificati. I job del sito sono normali script pianificati (metti in `scripts\`,
+> usa ▶ Pianifica). Il worker.ps1/`ShaiyaSchedulerWorker` è eliminato dal server (era test).
+
+---
+
+## 8b. Web server + Settaggi sito — dettagli
+
+**Due connessioni SQL** (memoria `sql-accounts-split`):
+- **game** = impostazioni SQL correnti (`ShaiyaTaskAgent`, solo PSM_Cmd) → `usp_RunCommand` (ECONOMY).
+- **web** = `Ernoweb@` via variabili ambiente `DB_USER`/`DB_PASSWORD` (come il sito) → SOLO l'editor
+  Settaggi sito (`Web_Settings`). Configurabile in ⚙ Impostazioni → "CONNESSIONE SITO" (Env default / Windows / SQL login).
+
+**Gotcha risolti (Web):**
+- `Invoke-WebRequest` HTTPS self-signed: NON usare scriptblock come `ServerCertificateValidationCallback`
+  (thread threadpool senza runspace → "There is no Runspace available"). Usare tipo **compilato**
+  `ICertificatePolicy` via `Add-Type`. Il cert probe SslStream è sincrono → scriptblock ok lì.
+- Parsing output sqlcmd (`-W -s "|"`): SELECT a **colonna singola senza nome** → header vuoto → NON contare
+  le righe. `WebSettingsRepo.Rows()` individua la riga separatore `---` e prende il resto. Valori settings
+  letti in HEX (UTF-16LE) per gestire `|`/newline.
 
 ---
 
 ## 9. TODO / prossime implementazioni
 
+0. **Pagina "Task" del sito** — invariata; in futuro forse sola-lettura dei task pianificati (da decidere).
 1. **Wizard "nuovo server"** — procedura guidata che esegue in ordine gli step di
    `A-Best-Installation-GUIDE` (SQL setup, PSM_Cmd install 00→07, servizi, task). Il modulo più grande.
 2. **Import script dalla cartella NAS** — bottone in Settings per copiare gli script aggiornati da

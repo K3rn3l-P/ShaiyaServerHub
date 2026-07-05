@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ShaiyaServerHub.Core;
+using ShaiyaServerHub.Core.WebServer;
 
 namespace ShaiyaServerHub
 {
@@ -16,6 +18,7 @@ namespace ShaiyaServerHub
     {
         private HubSettings _settings;
         private ScriptRunner _runner;
+        private IWebServer _webServer;
         private DispatcherTimer _svcTimer;
 
         public MainWindow()
@@ -23,6 +26,7 @@ namespace ShaiyaServerHub
             InitializeComponent();
             _settings = HubSettings.Load();
             _runner = new ScriptRunner(_settings);
+            _webServer = WebServerFactory.Create(_settings);
 
             if (_settings.Language == "En") L.Switch(L.Lang.En);
             UpdateLangButtons();
@@ -47,9 +51,14 @@ namespace ShaiyaServerHub
 
             ShowView("scripts");
 
-            // Auto-refresh servizi ogni 3s (solo mentre la vista Servizi è aperta).
+            // Auto-refresh servizi ogni 3s (solo mentre la vista Servizi/Web è aperta).
+            // La sonda web (lenta, PowerShell) NON gira nel timer: solo lista servizi veloce.
             _svcTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-            _svcTimer.Tick += (s, e) => { if (PanelServices.Visibility == Visibility.Visible) RefreshServices(); };
+            _svcTimer.Tick += (s, e) =>
+            {
+                if (PanelServices.Visibility == Visibility.Visible) RefreshServices();
+                if (PanelWeb.Visibility == Visibility.Visible) RefreshWebServices();
+            };
             _svcTimer.Start();
         }
 
@@ -68,9 +77,13 @@ namespace ShaiyaServerHub
             PanelNewTask.Visibility = view == "newtask" ? Visibility.Visible : Visibility.Collapsed;
             PanelTasks.Visibility = view == "tasks" ? Visibility.Visible : Visibility.Collapsed;
             PanelServices.Visibility = view == "services" ? Visibility.Visible : Visibility.Collapsed;
+            PanelWeb.Visibility = view == "web" ? Visibility.Visible : Visibility.Collapsed;
             PanelFunctions.Visibility = view == "functions" ? Visibility.Visible : Visibility.Collapsed;
             PanelTestSuite.Visibility = view == "testsuite" ? Visibility.Visible : Visibility.Collapsed;
             PanelLog.Visibility = view == "log" ? Visibility.Visible : Visibility.Collapsed;
+
+            // Entrando nella vista Web: refresh completo (servizi + sonda health/cert).
+            if (view == "web") RefreshWeb();
         }
 
         private void SelectLog() { if (NavLog != null) NavLog.IsChecked = true; }
@@ -116,6 +129,7 @@ namespace ShaiyaServerHub
             {
                 _settings.Save();
                 _runner = new ScriptRunner(_settings);
+                _webServer = WebServerFactory.Create(_settings);
                 FuncArea.Runner = _runner;
                 TestArea.Runner = _runner;
                 Log(L.SettingsSaved);
@@ -363,6 +377,116 @@ namespace ShaiyaServerHub
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
             await RunAsync(() => ServiceMonitor.Stop(s.ServiceName, Log));
             RefreshServices();
+            RefreshWebServices();   // il servizio potrebbe essere web (Apache/mysql)
+        }
+
+        // ── Web server (XAMPP/Apache · IIS) ───────────────────
+        private void RefreshWebServices()
+        {
+            if (_webServer == null) return;
+            WebServicesList.ItemsSource = ServiceMonitor.Query(_webServer.Services);
+        }
+
+        private async void RefreshWeb()
+        {
+            if (WebServicesList == null) return;                 // pannello non ancora costruito
+            if (_webServer == null) _webServer = WebServerFactory.Create(_settings);
+            TbWebKind.Text = L.WebKind(_webServer.DisplayName, _webServer.WebRoot);
+            RefreshWebServices();
+
+            TbWebHealth.Text = L.WebProbing;
+            SetWebHealth(0xE8, 0xC8, 0x81);
+            var res = await Task.Run(() => WebProbe.Probe(_webServer));
+            TbWebHealth.Text = res.Summary();
+            if (!res.Reachable) SetWebHealth(0xF4, 0x6A, 0x6A);
+            else if (res.AppServer) SetWebHealth(0x4D, 0xC8, 0x70);
+            else SetWebHealth(0xE8, 0xC8, 0x81);
+
+            if (res.CertExpiry.HasValue)
+            {
+                int days = (int)(res.CertExpiry.Value.Date - DateTime.Now.Date).TotalDays;
+                TbWebCert.Text = L.WebCert(res.CertExpiry.Value, days);
+                TbWebCert.Foreground = new SolidColorBrush(days <= 14
+                    ? Color.FromRgb(0xF4, 0x6A, 0x6A) : Color.FromArgb(0x66, 0xE0, 0xE0, 0xE0));
+            }
+            else { TbWebCert.Text = L.WebCertNone; TbWebCert.Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x7A)); }
+        }
+
+        private void SetWebHealth(byte r, byte g, byte b) =>
+            TbWebHealth.Foreground = new SolidColorBrush(Color.FromRgb(r, g, b));
+
+        private void BtnRefreshWeb_Click(object sender, RoutedEventArgs e) => RefreshWeb();
+
+        private async void BtnRestartWeb_Click(object sender, RoutedEventArgs e)
+        {
+            if (_webServer == null) return;
+            string svc = _webServer.PrimaryService;
+            if (MessageBox.Show(L.ConfirmRestartWeb(svc), "ShaiyaServerHub",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            SelectLog();
+            await RunAsync(() =>
+            {
+                ServiceMonitor.Stop(svc, Log);
+                ServiceMonitor.Start(svc, Log);
+            });
+            RefreshWebServices();
+        }
+
+        private async void BtnWebSslGen_Click(object sender, RoutedEventArgs e)
+        {
+            if (_webServer == null) return;
+            string path = FindMainScript(_webServer.SslCertScript);
+            if (path == null) { Log(L.WebScriptMissing(_webServer.SslCertScript)); SelectLog(); return; }
+            if (MessageBox.Show(L.ConfirmWebSslGen(_webServer.SslCertScript), "ShaiyaServerHub",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            SelectLog();
+            Log(L.RunningScript(System.IO.Path.GetFileName(path)));
+            await RunAsync(() => _runner.RunPowerShell(path, Log));
+        }
+
+        private async void BtnBackupWeb_Click(object sender, RoutedEventArgs e)
+        {
+            string path = FindMainScript("BackupFolderWEB.bat");
+            if (path == null) { Log(L.WebScriptMissing("BackupFolderWEB.bat")); SelectLog(); return; }
+            SelectLog();
+            Log(L.RunningScript(System.IO.Path.GetFileName(path)));
+            await RunAsync(() => _runner.RunBatch(path, Log));
+        }
+
+        private void BtnOpenWebRoot_Click(object sender, RoutedEventArgs e)
+        {
+            try { if (_webServer != null) Process.Start("explorer.exe", _webServer.WebRoot); }
+            catch (Exception ex) { Log(L.Err(ex.Message)); }
+        }
+
+        private void BtnOpenWebLogs_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_webServer == null || _webServer.LogPaths.Length == 0) return;
+                string dir = System.IO.Path.GetDirectoryName(_webServer.LogPaths[0]);
+                if (System.IO.Directory.Exists(dir)) Process.Start("explorer.exe", dir);
+                else Log(L.WebLogsMissing(dir));
+            }
+            catch (Exception ex) { Log(L.Err(ex.Message)); }
+        }
+
+        private void BtnWebSettings_Click(object sender, RoutedEventArgs e)
+        {
+            new WebSettingsWindow(_settings, Log) { Owner = this }.ShowDialog();
+        }
+
+        /// <summary>Cerca uno script per nome file nell'area principale (scripts\ps1, ricorsivo).</summary>
+        private static string FindMainScript(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) return null;
+            try
+            {
+                var dir = ScriptRepository.Main.Ps1Dir;
+                return System.IO.Directory.EnumerateFiles(dir, fileName, System.IO.SearchOption.AllDirectories)
+                                          .FirstOrDefault();
+            }
+            catch { return null; }
         }
 
         // ── Log & helpers ─────────────────────────────────────

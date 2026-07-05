@@ -62,7 +62,13 @@ namespace ShaiyaServerHub.Core
             "ps_session", "ps_userLog", "ps_login", "ps_gameLog", "ps_dbAgent", "ps_game"
         };
 
-        public static List<ServiceStatus> Query()
+        public static List<ServiceStatus> Query() => Query(Watched);
+
+        /// <summary>
+        /// Stato di un insieme arbitrario di servizi (svc, displayName). Usato dalla vista
+        /// gioco (Watched) e dalla vista Web (servizi del web server scelto), tenute separate.
+        /// </summary>
+        public static List<ServiceStatus> Query((string svc, string disp)[] which)
         {
             ServiceController[] all;
             try { all = ServiceController.GetServices(); }
@@ -76,7 +82,7 @@ namespace ShaiyaServerHub.Core
             }
 
             var list = new List<ServiceStatus>();
-            foreach (var (svc, disp) in Watched)
+            foreach (var (svc, disp) in which)
             {
                 bool installed = map.TryGetValue(svc, out var st);
                 list.Add(new ServiceStatus

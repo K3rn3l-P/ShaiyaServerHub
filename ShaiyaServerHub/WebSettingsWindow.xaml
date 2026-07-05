@@ -1,0 +1,92 @@
+<Window x:Class="ShaiyaServerHub.WebSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:ShaiyaServerHub"
+        Title="ShaiyaServerHub — Settaggi sito" Icon="icon.ico"
+        Width="720" Height="560"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanResizeWithGrip" FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
+
+    <Window.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolVis"/>
+        <conv:InverseBoolConverter x:Key="InvBool"/>
+    </Window.Resources>
+
+    <Border CornerRadius="8" BorderBrush="#4DE8C881" BorderThickness="1" ClipToBounds="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#0D0D10" Offset="0"/>
+                <GradientStop Color="#070709" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid Margin="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <TextBlock Text="Settaggi sito (PS_WebSite · Web_Settings)" Foreground="#E8C881"
+                           FontSize="15" FontWeight="Bold" VerticalAlignment="Center"
+                           HorizontalAlignment="Left" MouseLeftButtonDown="DragWindow"/>
+                <Border HorizontalAlignment="Right" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                        Background="Transparent" MouseLeftButtonUp="BtnClose_Click">
+                    <TextBlock Text="✕" FontSize="12" Foreground="#60E8C881" IsHitTestVisible="False"/>
+                </Border>
+            </Grid>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
+                <Button Content="↻ Ricarica" Click="BtnReload_Click"/>
+                <TextBlock Text="Modifica il valore e premi 💾 sulla riga. Attenzione: valori JSON (permessi) vanno tenuti validi."
+                           Foreground="#35E8C881" FontSize="10" VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap"/>
+                <TextBlock x:Name="TbStatus" VerticalAlignment="Center" Margin="10,0" FontSize="11" FontWeight="SemiBold"/>
+            </StackPanel>
+
+            <Border Grid.Row="2" CornerRadius="4" Background="#080810" BorderBrush="#18E8C881" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="SettingsList">
+                        <ItemsControl.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#12E8C881" CornerRadius="3" Padding="8,3" Margin="0,8,0,2">
+                                            <TextBlock Text="{Binding Name}" Foreground="#E8C881"
+                                                       FontSize="11" FontWeight="Bold"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ItemsControl.GroupStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="6,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="230"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Key}" Foreground="#CCE0E0E0"
+                                                   FontFamily="Consolas" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="JSON" Foreground="#5BD16A" FontSize="8" FontWeight="Bold"
+                                                   Visibility="{Binding IsJson, Converter={StaticResource BoolVis}}"/>
+                                    </StackPanel>
+                                    <TextBox Grid.Column="1" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding ReadOnly, Converter={StaticResource InvBool}}"
+                                             FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" AcceptsReturn="True"
+                                             MaxHeight="120" VerticalScrollBarVisibility="Auto"/>
+                                    <Button Grid.Column="2" Style="{StaticResource AccentButton}" Padding="8,3" FontSize="10"
+                                            Content="💾" Click="BtnSaveRow_Click" ToolTip="Salva questa impostazione"
+                                            IsEnabled="{Binding ReadOnly, Converter={StaticResource InvBool}}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

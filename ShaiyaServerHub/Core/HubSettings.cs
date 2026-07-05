@@ -19,10 +19,35 @@ namespace ShaiyaServerHub.Core
         public string SqlUser { get; set; } = "ShaiyaTaskAgent";
         public string SqlPasswordEnc { get; set; } = "";        // DPAPI base64
         public string DefaultDatabase { get; set; } = "PS_GameDefs";
+        // DB del sito web (coda task Web_TaskJobs/Web_TaskQueue/Web_TaskJobRuns, Web_Settings).
+        public string WebsiteDatabase { get; set; } = "PS_WebSite";
 
         // ── Percorsi server ──────────────────────────────────
         public string ServerBinPath { get; set; } = @"C:\ShaiyaServer\PSM_Client\Bin";
         public string StartServicesScript { get; set; } = "";   // es. AutoAvvioServiziShaiya.ps1
+
+        // ── Connessione SQL del SITO (Web Jobs), separata da quella di gioco ──
+        // Il sito usa un account dedicato (Ernoweb@) con accesso a PS_WebSite. Modi:
+        //  "Env"     → legge DB_USER/DB_PASSWORD dalle variabili d'ambiente Machine (come il sito). DEFAULT.
+        //  "Windows" → autenticazione Windows (-E), utile se l'Hub gira sotto un account con accesso.
+        //  "Sql"     → login SQL esplicito (WebSqlUser/WebSqlPassword).
+        public string WebSqlAuthMode { get; set; } = "Env";     // "Env" | "Windows" | "Sql"
+        public string WebSqlUser { get; set; } = "";
+        public string WebSqlPasswordEnc { get; set; } = "";     // DPAPI base64
+
+        [XmlIgnore]
+        public string WebSqlPassword
+        {
+            get { return Unprotect(WebSqlPasswordEnc); }
+            set { WebSqlPasswordEnc = Protect(value); }
+        }
+
+        // ── Web server (XAMPP/Apache ora, IIS in futuro) ─────
+        public string WebServerKind { get; set; } = "Xampp";    // "Xampp" | "Iis"
+        public string XamppRoot { get; set; } = @"C:\xampp";
+        public string WebRoot { get; set; } = @"C:\xampp\htdocs";
+        // Endpoint di liveness applicativa (già servito dal sito: Updater/api/status.php → {web,server,ts}).
+        public string WebHealthUrl { get; set; } = "https://127.0.0.1/Updater/api/status.php";
 
         // ── UI ───────────────────────────────────────────────
         public string Language { get; set; } = "It";

@@ -89,5 +89,17 @@ namespace ShaiyaServerHub
         public static string EvGenStateUnknown => S("stato non rilevato negli eventi → uso 'qualsiasi cambio'", "state not found in events → using 'any change'");
         public static string LogDirWarn(string dir) => S($"⚠ Cartella log non creabile: {dir}", $"⚠ Cannot create log folder: {dir}");
         public static string NoTaskLog(string n) => S($"Nessun log per '{n}' (abilita 'Genera log' in modifica, poi esegui).", $"No log for '{n}' (enable 'Write log' in edit, then run).");
+
+        // ── Web server ───────────────────────────────────────
+        public static string WebKind(string disp, string root) => S($"{disp}  ·  webroot: {root}", $"{disp}  ·  webroot: {root}");
+        public static string WebProbing => S("sonda in corso…", "probing…");
+        public static string WebCert(DateTime exp, int days) => S(
+            $"🔒 Cert SSL scade il {exp:yyyy-MM-dd} (tra {days} giorni)",
+            $"🔒 SSL cert expires {exp:yyyy-MM-dd} (in {days} days)");
+        public static string WebCertNone => S("🔒 Cert SSL: non rilevato (HTTPS non risponde su 443?)", "🔒 SSL cert: not detected (HTTPS not answering on 443?)");
+        public static string ConfirmRestartWeb(string svc) => S($"Riavviare il web server ({svc})? Il sito sarà offline per qualche secondo.", $"Restart the web server ({svc})? The site will be offline for a few seconds.");
+        public static string ConfirmWebSslGen(string script) => S($"Rigenerare il certificato SSL eseguendo '{script}'? Riavvierà il web server.", $"Regenerate the SSL certificate by running '{script}'? It will restart the web server.");
+        public static string WebScriptMissing(string script) => S($"✗ Script non trovato in scripts\\ps1: {script}", $"✗ Script not found in scripts\\ps1: {script}");
+        public static string WebLogsMissing(string dir) => S($"✗ Cartella log web non trovata: {dir}", $"✗ Web log folder not found: {dir}");
     }
 }

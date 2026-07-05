@@ -51,8 +51,20 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
    Ogni operazione mostra l'esito (verde/rosso) in cima al pannello.
 4. **Stato servizi** — presenza processi `ps_game`, `ps_login`, `PSM_Agent`, `sqlservr`, … con
    Stop e Avvia (via script di avvio configurato).
-5. **⚙ Impostazioni** — server SQL, auth (Windows `-E` / SQL login), database, percorsi, e il
-   bottone **canale comandi** (vedi sotto).
+5. **🌐 Web server** — controllo del web server del sito (XAMPP/Apache ora, IIS predisposto via
+   `IWebServer`). Stato/Start/Stop/Riavvio del servizio (`Apache2.4`), **health check** (sonda
+   `Updater/api/status.php` → web/game OK, metriche `mod_status ?auto`, **scadenza certificato TLS**
+   dal handshake reale su 443), rigenera SSL (`genera_chiavi_ssl-*.ps1`), backup web, apri webroot/log,
+   e **⚙ Settaggi sito** → editor di `PS_WebSite.dbo.Web_Settings` (via account `Ernoweb@`): chiavi
+   raggruppate per categoria (Drops · Permessi · Lucky Chest · Scheduler · Altri), validazione JSON per
+   i `*_Permissions`, righe read-only per heartbeat/secret. Salva testo grezzo (il sito rilegge con `json_decode`).
+6. **⚙ Impostazioni** — **connessione SQL di gioco** (server, auth Windows `-E` / SQL login, database) +
+   bottone **canale comandi**; **connessione SQL del sito** separata (Env = variabili `DB_USER`/`DB_PASSWORD`
+   come il sito / Windows / SQL login) + database sito, usata dall'editor Settaggi sito; config **web
+   server** (tipo XAMPP/IIS, path, URL health).
+
+> I "job del sito" (EXP notice, ecc.) sono normali script pianificati: mettili in `scripts\` e usa
+> **▶ Pianifica** / la vista **Pianificati** come qualsiasi altro task. Non c'è una vista dedicata separata.
 
 ## Dove finiscono i task pianificati
 I task creati dall'app vivono in una **cartella dedicata** del Task Scheduler:
@@ -77,6 +89,13 @@ sysadmin → NON è in profilo → DENIED.
 
 Fix nell'app: ⚙ Impostazioni → **"Abilita questo login nel canale comandi (ECONOMY)"** registra
 il login corrente con tier ECONOMY. In alternativa usa auth **SQL login = ShaiyaTaskAgent**.
+
+## Due account SQL (non intercambiabili)
+- **`ShaiyaTaskAgent`** = solo **`PSM_Cmd`** → `usp_RunCommand` (tier ECONOMY: `/exp2xenable`, `/mmake`).
+  È la **connessione di gioco** dell'Hub (usata da tutti gli script SQL / task).
+- **`Ernoweb@`** = account del **sito web**, credenziali nelle **variabili d'ambiente** `DB_USER`/`DB_PASSWORD`.
+  Accede a **`PS_WebSite`**. È la **connessione del sito**, usata SOLO dall'editor **Settaggi sito**
+  (`Web_Settings`). In Impostazioni si configura a parte (default = variabili ambiente).
 
 ## Script di default (DefaultScripts\ + .env)
 Gli script di default vivono, versionati, in `ShaiyaServerHub\DefaultScripts\` con la stessa
@@ -108,6 +127,8 @@ cartelle script **funzionanti** (password reali) + `.env`, pronto per copia-inco
 > (placeholder per i segreti) e, se cambi una password, aggiorna il `.env`.
 
 ## TODO (prossimo)
+- Pagina "Task" del **sito web**: al momento invariata; in futuro forse sola-lettura dei task pianificati
+  (da decidere). Il vecchio worker.ps1 / coda `Web_TaskJobs` è dismesso (era di test).
 - Wizard "nuovo server" (esegue in ordine gli step di `A-Best-Installation-GUIDE`).
 - Import automatico degli script dalla cartella NAS.
 - Editor: syntax highlighting SQL/PS + preview del comando schtasks generato.

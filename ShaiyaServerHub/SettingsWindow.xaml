@@ -83,6 +83,71 @@
                 </Grid>
             </GroupBox>
 
+            <!-- Web site SQL connection -->
+            <GroupBox Header="{DynamicResource SetGbWebSql}">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource HintWebSql}" Foreground="#66E0E0E0"
+                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                    <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                        <Label Content="{DynamicResource LblWebAuth}"/>
+                        <RadioButton x:Name="RbWebEnv" Content="{DynamicResource WebAuthEnv}" GroupName="webauth" Checked="WebAuth_Changed"/>
+                        <RadioButton x:Name="RbWebWin" Content="{DynamicResource WebAuthWindows}" GroupName="webauth" Checked="WebAuth_Changed"/>
+                        <RadioButton x:Name="RbWebSqlLogin" Content="{DynamicResource WebAuthSql}" GroupName="webauth" Checked="WebAuth_Changed"/>
+                    </StackPanel>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="{DynamicResource LblWebSqlUser}"/>
+                        <TextBox Grid.Column="1" x:Name="TbWebSqlUser"/>
+                        <Label Grid.Column="2" Content="{DynamicResource LblWebSqlPass}"/>
+                        <PasswordBox Grid.Column="3" x:Name="PbWebSqlPass"/>
+                    </Grid>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="{DynamicResource LblWebDb}"/>
+                        <TextBox Grid.Column="1" x:Name="TbWebDb"/>
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Web server -->
+            <GroupBox Header="{DynamicResource SetGbWeb}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                        <Label Content="{DynamicResource LblWebKind}"/>
+                        <RadioButton x:Name="RbWebXampp" Content="{DynamicResource WebKindXampp}" GroupName="webkind"/>
+                        <RadioButton x:Name="RbWebIis" Content="{DynamicResource WebKindIis}" GroupName="webkind"/>
+                    </StackPanel>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="{DynamicResource LblXamppRoot}"/>
+                        <TextBox Grid.Column="1" x:Name="TbXamppRoot"/>
+                        <Label Grid.Column="2" Content="{DynamicResource LblWebRoot}"/>
+                        <TextBox Grid.Column="3" x:Name="TbWebRoot"/>
+                    </Grid>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="{DynamicResource LblWebHealth}"/>
+                        <TextBox Grid.Column="1" x:Name="TbWebHealth"/>
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+
             <!-- Command channel -->
             <GroupBox Header="{DynamicResource SetGbChannel}">
                 <StackPanel>

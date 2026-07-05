@@ -9,6 +9,7 @@
     <s:String x:Key="NavNewTask">＋  Nuovo task</s:String>
     <s:String x:Key="NavTasks">🕑  Pianificati</s:String>
     <s:String x:Key="NavServices">🖥  Servizi</s:String>
+    <s:String x:Key="NavWeb">🌐  Web server</s:String>
     <s:String x:Key="NavFunctions">🛠  Funzioni</s:String>
     <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
@@ -109,6 +110,17 @@
     <s:String x:Key="BtnStart">▶ Avvia</s:String>
     <s:String x:Key="BtnStop">■ Stop</s:String>
 
+    <!-- Web server -->
+    <s:String x:Key="GbWeb">WEB SERVER (XAMPP/Apache · IIS)</s:String>
+    <s:String x:Key="BtnRefreshWeb">↻ Aggiorna</s:String>
+    <s:String x:Key="BtnRestartWeb">🔄 Riavvia web</s:String>
+    <s:String x:Key="BtnWebSslGen">🔒 Rigenera SSL</s:String>
+    <s:String x:Key="TipWebSslGen">Esegue lo script di rigenerazione certificato (genera_chiavi_ssl-*.ps1) e riavvia il web server</s:String>
+    <s:String x:Key="BtnBackupWeb">💾 Backup web</s:String>
+    <s:String x:Key="BtnOpenWebRoot">📂 Webroot</s:String>
+    <s:String x:Key="BtnOpenWebLogs">📄 Log web</s:String>
+    <s:String x:Key="BtnWebSettings">⚙ Settaggi sito</s:String>
+
     <!-- Log -->
     <s:String x:Key="GbLog">LOG</s:String>
     <s:String x:Key="BtnClearLog">Pulisci</s:String>
@@ -128,6 +140,22 @@
     <s:String x:Key="LblBinPath">Cartella Bin server:</s:String>
     <s:String x:Key="LblStartScript">Script avvio servizi:</s:String>
     <s:String x:Key="BtnBrowse">Sfoglia</s:String>
+    <s:String x:Key="SetGbWebSql">CONNESSIONE SITO (Settaggi sito)</s:String>
+    <s:String x:Key="HintWebSql">Connessione al DB del sito (PS_WebSite), separata da quella di gioco, usata dall'editor "Settaggi sito". Env = usa le variabili d'ambiente DB_USER/DB_PASSWORD (come il sito, consigliato).</s:String>
+    <s:String x:Key="LblWebAuth">Autenticazione:</s:String>
+    <s:String x:Key="WebAuthEnv">Variabili ambiente</s:String>
+    <s:String x:Key="WebAuthWindows">Windows (-E)</s:String>
+    <s:String x:Key="WebAuthSql">SQL login</s:String>
+    <s:String x:Key="LblWebSqlUser">Utente:</s:String>
+    <s:String x:Key="LblWebSqlPass">Password:</s:String>
+    <s:String x:Key="LblWebDb">Database sito:</s:String>
+    <s:String x:Key="SetGbWeb">WEB SERVER</s:String>
+    <s:String x:Key="LblWebKind">Tipo:</s:String>
+    <s:String x:Key="WebKindXampp">XAMPP / Apache</s:String>
+    <s:String x:Key="WebKindIis">IIS</s:String>
+    <s:String x:Key="LblXamppRoot">Cartella XAMPP:</s:String>
+    <s:String x:Key="LblWebRoot">Webroot:</s:String>
+    <s:String x:Key="LblWebHealth">URL health:</s:String>
     <s:String x:Key="SetGbChannel">CANALE COMANDI (PSM_Cmd)</s:String>
     <s:String x:Key="HintChannel">In Windows auth (sysadmin) gli script che usano usp_RunCommand (/mmake, /exp2xenable) vengono negati (-3): sysadmin non è in GmCallerProfile. Registra il login corrente con tier ECONOMY per farli funzionare.</s:String>
     <s:String x:Key="BtnRegisterCaller">Abilita questo login nel canale comandi (ECONOMY)</s:String>

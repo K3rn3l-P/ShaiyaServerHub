@@ -126,6 +126,8 @@
                                      Tag="tasks"    Content="{DynamicResource NavTasks}"    Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavServices" Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="services" Content="{DynamicResource NavServices}" Checked="Nav_Checked"/>
+                        <RadioButton x:Name="NavWeb" Style="{StaticResource NavItem}" GroupName="nav"
+                                     Tag="web" Content="{DynamicResource NavWeb}" Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavFunctions" Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="functions" Content="{DynamicResource NavFunctions}" Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavTestSuite" Style="{StaticResource NavItem}" GroupName="nav"
@@ -279,6 +281,70 @@
                                     BorderBrush="#18E8C881" BorderThickness="1">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <ItemsControl x:Name="ServicesList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="8,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="180"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}" Foreground="#CCE0E0E0"
+                                                               FontSize="12" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
+                                                               FontFamily="Consolas" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                               Foreground="{Binding StatusBrush}"/>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                        <Button Style="{StaticResource AccentButton}" Padding="8,3" FontSize="10"
+                                                                Content="{DynamicResource BtnStart}" Click="BtnStartService_Click"
+                                                                Visibility="{Binding StartVis}"/>
+                                                        <Button Style="{StaticResource DangerButton}"
+                                                                Content="{DynamicResource BtnStop}" Click="BtnStopService_Click"
+                                                                Visibility="{Binding StopVis}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Web server (XAMPP/Apache · IIS) -->
+                    <GroupBox x:Name="PanelWeb" Header="{DynamicResource GbWeb}" Visibility="Collapsed">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <WrapPanel Grid.Row="0">
+                                <Button Content="{DynamicResource BtnRefreshWeb}" Click="BtnRefreshWeb_Click"/>
+                                <Button Content="{DynamicResource BtnRestartWeb}" Click="BtnRestartWeb_Click"/>
+                                <Button Content="{DynamicResource BtnWebSslGen}" Click="BtnWebSslGen_Click"
+                                        ToolTip="{DynamicResource TipWebSslGen}"/>
+                                <Button Content="{DynamicResource BtnBackupWeb}" Click="BtnBackupWeb_Click"/>
+                                <Button Content="{DynamicResource BtnOpenWebRoot}" Click="BtnOpenWebRoot_Click"/>
+                                <Button Content="{DynamicResource BtnOpenWebLogs}" Click="BtnOpenWebLogs_Click"/>
+                                <Button Style="{StaticResource AccentButton}"
+                                        Content="{DynamicResource BtnWebSettings}" Click="BtnWebSettings_Click"/>
+                            </WrapPanel>
+
+                            <Border Grid.Row="1" Margin="0,6,0,0" CornerRadius="4" Background="#080810"
+                                    BorderBrush="#225BD16A" BorderThickness="1" Padding="10,7">
+                                <StackPanel>
+                                    <TextBlock x:Name="TbWebKind" Foreground="#7BE8C881" FontSize="11" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="TbWebHealth" Margin="0,3,0,0" FontFamily="Consolas" FontSize="11"
+                                               Foreground="#AADDE0E0" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="TbWebCert" Margin="0,3,0,0" FontSize="10" Foreground="#66E0E0E0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="2" Margin="0,6,0,0" CornerRadius="4" Background="#080810"
+                                    BorderBrush="#18E8C881" BorderThickness="1">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="WebServicesList">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="8,5">

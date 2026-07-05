@@ -30,6 +30,21 @@ namespace ShaiyaServerHub
             PbSqlPass.Password = _settings.SqlPassword;
             TbBinPath.Text = _settings.ServerBinPath;
 
+            TbXamppRoot.Text = _settings.XamppRoot;
+            TbWebRoot.Text = _settings.WebRoot;
+            TbWebHealth.Text = _settings.WebHealthUrl;
+            bool iis = string.Equals(_settings.WebServerKind, "Iis", StringComparison.OrdinalIgnoreCase);
+            RbWebIis.IsChecked = iis;
+            RbWebXampp.IsChecked = !iis;
+
+            TbWebSqlUser.Text = _settings.WebSqlUser;
+            PbWebSqlPass.Password = _settings.WebSqlPassword;
+            TbWebDb.Text = _settings.WebsiteDatabase;
+            if (string.Equals(_settings.WebSqlAuthMode, "Windows", StringComparison.OrdinalIgnoreCase)) RbWebWin.IsChecked = true;
+            else if (string.Equals(_settings.WebSqlAuthMode, "Sql", StringComparison.OrdinalIgnoreCase)) RbWebSqlLogin.IsChecked = true;
+            else RbWebEnv.IsChecked = true;
+            UpdateWebAuthInputs();
+
             bool sql = string.Equals(_settings.SqlAuthMode, "Sql", StringComparison.OrdinalIgnoreCase);
             RbSql.IsChecked = sql;
             RbWin.IsChecked = !sql;
@@ -44,6 +59,24 @@ namespace ShaiyaServerHub
             _settings.SqlPassword = PbSqlPass.Password;
             _settings.ServerBinPath = TbBinPath.Text.Trim();
             _settings.SqlAuthMode = RbSql.IsChecked == true ? "Sql" : "Windows";
+            _settings.XamppRoot = TbXamppRoot.Text.Trim();
+            _settings.WebRoot = TbWebRoot.Text.Trim();
+            _settings.WebHealthUrl = TbWebHealth.Text.Trim();
+            _settings.WebServerKind = RbWebIis.IsChecked == true ? "Iis" : "Xampp";
+
+            _settings.WebSqlUser = TbWebSqlUser.Text.Trim();
+            _settings.WebSqlPassword = PbWebSqlPass.Password;
+            _settings.WebsiteDatabase = TbWebDb.Text.Trim();
+            _settings.WebSqlAuthMode = RbWebWin.IsChecked == true ? "Windows"
+                                     : (RbWebSqlLogin.IsChecked == true ? "Sql" : "Env");
+        }
+
+        private void WebAuth_Changed(object sender, RoutedEventArgs e) => UpdateWebAuthInputs();
+        private void UpdateWebAuthInputs()
+        {
+            bool sql = RbWebSqlLogin?.IsChecked == true;
+            if (TbWebSqlUser != null) TbWebSqlUser.IsEnabled = sql;
+            if (PbWebSqlPass != null) PbWebSqlPass.IsEnabled = sql;
         }
 
         private void AuthMode_Changed(object sender, RoutedEventArgs e) => UpdateAuthInputs();
