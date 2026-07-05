@@ -256,8 +256,15 @@
                                                    FontSize="10" FontWeight="SemiBold"/>
                                         <TextBlock x:Name="TbKpiTasks" Text="–" Foreground="#E8C881"
                                                    FontSize="30" FontWeight="Bold" Margin="0,2,0,0"/>
-                                        <TextBlock x:Name="TbKpiTasksSub" Text="" FontSize="10"
-                                                   Foreground="#88E0E0E0" TextTrimming="CharacterEllipsis"/>
+                                        <!-- Esiti ultimo run: ● verde = OK · ● rosso = errore -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,1,0,0">
+                                            <Ellipse Width="7" Height="7" VerticalAlignment="Center" Fill="#4DC870"/>
+                                            <TextBlock x:Name="TbKpiTasksOk" Text="0" FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="#A8E0E0E0" Margin="3,0,10,0" VerticalAlignment="Center"/>
+                                            <Ellipse Width="7" Height="7" VerticalAlignment="Center" Fill="#F46A6A"/>
+                                            <TextBlock x:Name="TbKpiTasksErr" Text="0" FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="#A8E0E0E0" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                                 <!-- Script -->
@@ -290,7 +297,7 @@
                             <Grid Grid.Row="2" Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="384"/>
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Card servizi di gioco -->
@@ -315,18 +322,21 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Colonna destra: Web + Firewall + PSM_Cmd impilate -->
+                                <!-- Colonna destra: griglia 2×2 (Web · Firewall · PSM_Cmd · Test Suite) -->
                                 <Grid Grid.Column="1" Margin="5,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="8"/>
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="8"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Card Web server -->
-                                    <Border Grid.Row="0" Style="{StaticResource DashCard}">
+                                    <!-- Card Web server (0,0) -->
+                                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource DashCard}">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -353,8 +363,8 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Card Sicurezza / Firewall -->
-                                    <Border Grid.Row="2" Style="{StaticResource DashCard}">
+                                    <!-- Card Sicurezza / Firewall (0,1) -->
+                                    <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource DashCard}">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -378,8 +388,8 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Card PSM_Cmd (canale comandi) -->
-                                    <Border Grid.Row="4" Style="{StaticResource DashCard}">
+                                    <!-- Card PSM_Cmd (1,0) -->
+                                    <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource DashCard}">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -400,6 +410,40 @@
                                                     Style="{StaticResource MiniButton}"
                                                     Content="{DynamicResource DashOpenPsm}"
                                                     Tag="functions" Click="DashOpen_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Card Test Suite (1,1): esiti ultimo run · ● PASS/WARN/FAIL -->
+                                    <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource DashCard}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Grid.Row="0" Background="#0EB07BE8" CornerRadius="7,7,0,0" Padding="12,7">
+                                                <TextBlock Text="{DynamicResource DashCardTestSuite}" Foreground="#C6A8F0"
+                                                           FontSize="10" FontWeight="Bold"/>
+                                            </Border>
+                                            <StackPanel Grid.Row="1" Margin="12,8" VerticalAlignment="Center">
+                                                <TextBlock x:Name="TbDashTsSummary" Foreground="#9BE0E0E0" FontSize="11"
+                                                           TextWrapping="Wrap"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                                                    <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="#4DC870"/>
+                                                    <TextBlock x:Name="TbDashTsPass" Text="–" FontSize="13" FontWeight="Bold"
+                                                               Foreground="#CFE0E0E0" Margin="4,0,12,0" VerticalAlignment="Center"/>
+                                                    <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="#E8B040"/>
+                                                    <TextBlock x:Name="TbDashTsWarn" Text="–" FontSize="13" FontWeight="Bold"
+                                                               Foreground="#CFE0E0E0" Margin="4,0,12,0" VerticalAlignment="Center"/>
+                                                    <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="#F46A6A"/>
+                                                    <TextBlock x:Name="TbDashTsFail" Text="–" FontSize="13" FontWeight="Bold"
+                                                               Foreground="#CFE0E0E0" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Row="2" HorizontalAlignment="Right" Margin="8,0,8,8"
+                                                    Style="{StaticResource MiniButton}"
+                                                    Content="{DynamicResource DashOpenTestSuite}"
+                                                    Tag="testsuite" Click="DashOpen_Click"/>
                                         </Grid>
                                     </Border>
                                 </Grid>

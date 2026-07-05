@@ -28,10 +28,12 @@
     <s:String x:Key="DashCardWeb">🌐  WEB SERVER</s:String>
     <s:String x:Key="DashCardFirewall">🛡  SICUREZZA · FIREWALL</s:String>
     <s:String x:Key="DashCardPsm">🔐  PSM_Cmd — CANALE COMANDI</s:String>
+    <s:String x:Key="DashCardTestSuite">🛡  TEST SUITE</s:String>
     <s:String x:Key="DashOpenServices">Gestisci servizi →</s:String>
     <s:String x:Key="DashOpenWeb">Apri web server →</s:String>
     <s:String x:Key="DashOpenFirewall">Apri firewall →</s:String>
     <s:String x:Key="DashOpenPsm">Apri funzioni →</s:String>
+    <s:String x:Key="DashOpenTestSuite">Apri test suite →</s:String>
     <s:String x:Key="DashQuickActions">AZIONI RAPIDE</s:String>
     <s:String x:Key="DashActNewTask">＋ Nuovo task</s:String>
     <s:String x:Key="DashActTestSuite">🛡 Test Suite</s:String>

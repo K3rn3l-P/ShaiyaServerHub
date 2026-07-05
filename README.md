@@ -28,13 +28,19 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
 1. **🏠 Dashboard** — **vista di default all'avvio**. Panoramica a colpo d'occhio di tutto il server, con
    **navigazione rapida** (le tessere e i bottoni portano alla vista relativa). Contiene: 4 **tessere KPI**
    cliccabili — *Servizi online* (`X/Y`, verde tutti su / oro parziale / rosso zero), *Task pianificati*
-   (totale + `N attivi · M in errore`, rosso se ci sono run falliti), *Script disponibili* (totale + `SQL · PS1/BAT`),
-   *Web server* (`ONLINE/OFFLINE`, verde se il game server risponde) — più tre **card**: *Servizi di gioco*
-   (mini-lista dei 9 servizi con pallino stato), *Web server* (tipo, health, scadenza cert TLS), *Sicurezza ·
-   Firewall* (🟢/🟠/🔴 profili attivi + nota simplewall). In fondo una barra **Azioni rapide** (Avvia servizi ·
+   (totale + esiti ultimo run in pallini **●verde OK / ●rosso errore**), *Script disponibili* (totale + `SQL · PS1/BAT`),
+   *Web server* (`ONLINE/OFFLINE`, verde se il game server risponde) — più il corpo con la card *Servizi di gioco*
+   (mini-lista dei 9 servizi con pallino stato) a sinistra e una **griglia 2×2** a destra con quattro card: *Web
+   server* (tipo, health, scadenza cert TLS), *Sicurezza · Firewall* (🟢/🟠/🔴 profili attivi + nota simplewall),
+   *PSM_Cmd* (canale comandi 🟢/🔴) e *Test Suite* (esiti dell'ultimo run letti dal log: pallini **●verde PASS /
+   ●oro WARN / ●rosso FAIL** + `N controlli · data`). In fondo una barra **Azioni rapide** (Avvia servizi ·
    Nuovo task · Test Suite · Funzioni · Log). **Performance**: i dati veloci (servizi) si aggiornano col timer
-   3s; le sonde pesanti (`schtasks`, probe web/firewall PowerShell) girano **off-thread** e con **throttle TTL
-   20s** — riaprire la Dashboard è istantaneo (nessun re-probe ad ogni switch di vista); ↻ Aggiorna forza il refresh.
+   3s; le sonde pesanti (`schtasks`, probe web/firewall PowerShell, lettura log Test Suite) girano **off-thread**
+   e con **throttle TTL 20s** — riaprire la Dashboard è istantaneo (nessun re-probe ad ogni switch di vista); ↻ Aggiorna forza il refresh.
+
+   > **Convenzione progetto:** ogni nuova finestra/scheda/funzione aggiunta al Hub deve **valutare una card
+   > "a colpo d'occhio" in Dashboard** (tessera KPI, card corpo o slot nella griglia 2×2) — Dashboard è il punto
+   > di sintesi del server. Quando si implementa un modulo nuovo, proporre la sua card e concordarne la forma.
 2. **Script** — lista auto-scoperta di `scripts\sql\` e `scripts\ps1\`. `▶ Esegui` lancia subito con log live.
    **✎ Modifica** apre il file nell'**editor** integrato (modale, salva con `💾`/Ctrl+S, preserva la codifica);
    **＋ Nuovo file** crea un `.sql`/`.ps1`/`.bat` e lo apre subito. (Editor disponibile anche in Funzioni e Test Suite.)

@@ -92,6 +92,11 @@ namespace ShaiyaServerHub
         public static string DashPsmOff => S("🔴  PSM_Cmd NON attivo", "🔴  PSM_Cmd INACTIVE");
         public static string DashPsmSub => S("canale comandi · usp_RunCommand", "command channel · usp_RunCommand");
         public static string DashPsmUnknown => S("stato non determinato", "state undetermined");
+        // Test Suite — card Dashboard (esiti ultimo run dal log testsuite\testsuite.log)
+        public static string DashTsNever => S("mai eseguita", "never run");
+        public static string DashTsSummary(int total, DateTime when) => S(
+            $"{total} controlli · {when:dd/MM HH:mm}",
+            $"{total} checks · {when:MM/dd HH:mm}");
 
         // ── Stato servizi (lista) ────────────────────────────
         public static string SvcNotInstalled => S("— non installato", "— not installed");

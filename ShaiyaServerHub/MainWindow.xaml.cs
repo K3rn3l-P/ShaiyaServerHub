@@ -162,20 +162,41 @@ namespace ShaiyaServerHub
                     var scripts = ScriptRepository.Main.Discover();
                     int enabled = tasks.Count(t => !t.IsDisabled);
                     int errors = tasks.Count(t => t.LogState == TaskLogState.Error);
+                    int okRun = tasks.Count(t => t.LogState == TaskLogState.Ok);
                     int sql = scripts.Count(s => s.Kind == ScriptKind.Sql);
-                    return new { Total = tasks.Count, enabled, errors, ScriptTotal = scripts.Count, sql };
+                    var ts = TestSuiteReport.Load();
+                    return new { Total = tasks.Count, enabled, errors, okRun,
+                                 ScriptTotal = scripts.Count, sql, ts };
                 });
                 if (TbKpiTasks == null) return;
 
+                // Tessera Task: numero totale + esiti ultimo run (● verde OK · ● rosso errore).
                 TbKpiTasks.Text = res.Total.ToString();
-                TbKpiTasksSub.Text = L.DashTasksSub(res.enabled, res.errors);
-                TbKpiTasksSub.Foreground = new SolidColorBrush(res.errors > 0
-                    ? Color.FromRgb(0xF4, 0x6A, 0x6A) : Color.FromArgb(0x88, 0xE0, 0xE0, 0xE0));
+                TbKpiTasksOk.Text = res.okRun.ToString();
+                TbKpiTasksErr.Text = res.errors.ToString();
 
                 TbKpiScripts.Text = res.ScriptTotal.ToString();
                 TbKpiScriptsSub.Text = L.DashScriptsSub(res.sql, res.ScriptTotal - res.sql);
+
+                ApplyTestSuiteCard(res.ts);
             }
             catch (Exception ex) { App.WriteLog("DASH-HEAVY", ex.ToString()); }
+        }
+
+        /// <summary>Card Test Suite: esiti dell'ultimo run (● PASS/WARN/FAIL) dal log dell'area.</summary>
+        private void ApplyTestSuiteCard(TestSuiteReport ts)
+        {
+            if (TbDashTsPass == null) return;
+            if (ts == null || !ts.HasData)
+            {
+                TbDashTsSummary.Text = L.DashTsNever;
+                TbDashTsPass.Text = TbDashTsWarn.Text = TbDashTsFail.Text = "–";
+                return;
+            }
+            TbDashTsSummary.Text = L.DashTsSummary(ts.Total, ts.When);
+            TbDashTsPass.Text = ts.Pass.ToString();
+            TbDashTsWarn.Text = ts.Warn.ToString();
+            TbDashTsFail.Text = ts.FailTotal.ToString();
         }
 
         /// <summary>Solo dati veloci (servizi + orario), adatti al timer 3s.</summary>

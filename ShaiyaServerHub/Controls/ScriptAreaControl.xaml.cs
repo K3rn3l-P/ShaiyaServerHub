@@ -68,7 +68,30 @@ namespace ShaiyaServerHub.Controls
         {
             if (_repo == null) return;
             _items = _repo.Discover();
+            HydrateOutcomes();   // ripristina badge/log dell'ultimo run dal file (persistono a reload/riavvio)
             ScriptsList.ItemsSource = _items;
+        }
+
+        /// <summary>
+        /// Popola RunStatus + LastLog di ogni script dal log dell'area (ultimo run per-script).
+        /// Senza questo, i badge PASS/WARN/FAIL restano vuoti finché non si riesegue lo script
+        /// nella sessione corrente.
+        /// </summary>
+        private void HydrateOutcomes()
+        {
+            try
+            {
+                if (_logFile == null || _items == null) return;
+                var map = AreaLogParser.ParsePerScript(_logFile);
+                if (map.Count == 0) return;
+                foreach (var it in _items)
+                    if (map.TryGetValue(it.Name, out var o))
+                    {
+                        it.LastLog = o.Log;
+                        it.RunStatus = o.Status;   // il setter notifica → aggiorna il badge
+                    }
+            }
+            catch { }
         }
 
         // ── Toolbar ──────────────────────────────────────────

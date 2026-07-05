@@ -53,7 +53,8 @@ ShaiyaServerHub\
     Controls\
       NewTaskControl.xaml/.cs   (form task riusabile: trigger principale + lista trigger extra, azione, ☑ log, ❓ guida)
       CadencePicker.xaml/.cs    (selettore cadenza/trigger riusabile: combo+orario/giorni/MONTHLY(giorni-del-mese+mesi)/EVENT+🧩 genera evento)
-      ScriptAreaControl.xaml/.cs(area script riusabile Funzioni/Test Suite + editor/nuovo file per riga)
+      ScriptAreaControl.xaml/.cs(area script riusabile Funzioni/Test Suite + editor/nuovo file per riga; badge PASS/WARN/FAIL per riga idratati da log via AreaLogParser in Reload)
+    Core\AreaLogParser.cs         (parse per-script del log d'area → esito+blocco ultimo run; usato da badge finestra E card Dashboard/TestSuiteReport)
     SettingsWindow.xaml / .cs   (⚙ config SQL/percorsi/canale comandi)
     L.cs                        (localizzazione: switch dizionari + stringhe di codice)
     Styles\AppStyles.xaml       (tema: GroupBox/Button/TextBox/ComboBox/RadioButton/NavItem/ScrollBar globale)
@@ -89,13 +90,19 @@ ShaiyaServerHub\
   Auto-switch: Esegui/Start→Log, Crea task→Pianificati. Dalla Dashboard le tessere/azioni chiamano
   `SelectView(tag)` che checka la RadioButton relativa.
 - **Dashboard** (`PanelDashboard`, **vista di default** all'avvio): panoramica a colpo d'occhio.
-  4 **tessere KPI** cliccabili (Servizi `X/Y` · Task tot+errori · Script tot+`SQL·PS1` · Web ONLINE/OFFLINE)
-  + 3 **card** (Servizi di gioco mini-lista · Web health/cert · Sicurezza-Firewall 🟢🟠🔴) + barra **Azioni rapide**.
+  4 **tessere KPI** cliccabili (Servizi `X/Y` · Task tot + pallini ●OK/●errore · Script tot+`SQL·PS1` · Web ONLINE/OFFLINE)
+  + corpo: card Servizi di gioco (mini-lista, sx) e **griglia 2×2** dx = Web health/cert · Sicurezza-Firewall 🟢🟠🔴 ·
+  PSM_Cmd 🟢🔴 · **Test Suite** (esiti ultimo run ●PASS/●WARN/●FAIL) + barra **Azioni rapide**.
+  La card Test Suite legge `testsuite\testsuite.log` via `TestSuiteReport.Load()` (esito **per-script**: marker
+  `[sqlcmd]/[powershell]/[cmd] <name>` + `RESULT:`/`Status :` + `exit N`, ultimo run vince — NON dipende dal
+  riassunto `TOTALE:`, così funziona anche dopo run singoli; FAIL rosso = FAIL+ERRORE); la tessera Task usa `LastRunState`.
   **Performance/anti-lag** (§10): i dati veloci (`ServiceMonitor`, timer 3s) sono sincroni; i pesanti
-  (`schtasks` List + `LastRunState`, `Discover`, probe web/firewall PowerShell) girano **off-thread**
-  (`RefreshDashboardHeavyAsync`/`…WebAsync`/`…FirewallAsync`) con **throttle TTL 20s** (`_dashHeavyAt`):
+  (`schtasks` List + `LastRunState`, `Discover`, probe web/firewall PowerShell, `TestSuiteReport.Load`) girano **off-thread**
+  (`RefreshDashboardHeavyAsync`/`…WebAsync`/`…FirewallAsync` + `ApplyTestSuiteCard`) con **throttle TTL 20s** (`_dashHeavyAt`):
   rientrare nella vista NON rifà i probe (i TextBlock tengono l'ultimo valore → apertura istantanea);
   `↻ Aggiorna` forza (`RefreshDashboard(true)`).
+  > **Convenzione:** ogni nuova finestra/scheda/funzione del Hub deve valutare una card Dashboard (KPI / card /
+  > slot griglia) e concordarne la forma — Dashboard = punto di sintesi del server.
 - **Vista Script**: due sezioni separate **DATABASE—SQL** (blu) e **SISTEMA—PS1/BAT** (verde),
   badge colorato per tipo (`ScriptItem.KindBrush`/`KindBadgeBg`: SQL blu, PS1 verde, BAT arancio).
 - **Esegui** → `ScriptRunner`: SQL via `sqlcmd`, PS1 via `powershell -File`, BAT via `cmd /c`. Log live.
@@ -229,10 +236,12 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
       legge/scrive `PS_WebSite.dbo.Web_Settings` via `Ernoweb@` (`Core/WebServer/WebSettingsRepo.cs`).
       Raggruppato per categoria, validazione JSON `*_Permissions`, righe read-only heartbeat/secret.
 - [x] **Dashboard** (`PanelDashboard`, nav "🏠 Dashboard", **vista di default**): panoramica con 4 tessere
-      KPI cliccabili (Servizi/Task/Script/Web) + 3 card (Servizi di gioco · Web health+cert · Firewall) +
-      Azioni rapide, tutte navigabili (`SelectView`). Dati veloci sul timer 3s; sonde pesanti off-thread con
-      throttle TTL 20s → apertura istantanea, nessun re-probe ad ogni switch di vista. Localizzata IT/EN
-      (chiavi `Dash*`/`NavDashboard` in it.xaml **e** en.xaml + testi dinamici in `L.cs`).
+      KPI cliccabili (Servizi/Task/Script/Web) + corpo con card Servizi di gioco (sx) e **griglia 2×2** dx
+      (Web health+cert · Firewall · PSM_Cmd · Test Suite) + Azioni rapide, tutte navigabili (`SelectView`).
+      La tessera Task mostra pallini ●OK/●errore; la card **Test Suite** legge `testsuite\testsuite.log`
+      (`Core/TestSuiteReport.cs`) e mostra ●PASS/●WARN/●FAIL dell'ultimo run. Dati veloci sul timer 3s;
+      sonde pesanti off-thread con throttle TTL 20s → apertura istantanea, nessun re-probe ad ogni switch di
+      vista. Localizzata IT/EN (chiavi `Dash*`/`NavDashboard` in it.xaml **e** en.xaml + testi dinamici in `L.cs`).
 
 > **NB — pivot 2026-07-05:** la vista "Web jobs" (coda DB `Web_TaskJobs`) è stata **RIMOSSA** perché
 > ridondante con Script + Pianificati. I job del sito sono normali script pianificati (metti in `scripts\`,
