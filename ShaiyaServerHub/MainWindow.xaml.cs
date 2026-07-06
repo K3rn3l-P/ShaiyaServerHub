@@ -53,7 +53,10 @@ namespace ShaiyaServerHub
             FuncArea.Init(ScriptRepository.Function("psm_cmd-scc"), L.HintFunctions);
             FwArea.Init(_settings);   // scheda Windows Firewall
             TestArea.AreaTitle = "Test Suite";
-            TestArea.Runner = _runner;
+            // Test Suite: SEMPRE Windows auth (-E → SYSTEM), come la scheda Funzioni.
+            // I test di sicurezza toccano DB (PS_UserData ecc.) invisibili all'account SQL
+            // principale (es. ShaiyaTaskAgent, limitato a PSM_Cmd). Impostazioni SQL invariate.
+            TestArea.Runner = new ScriptRunner(_settings, forceWindowsAuth: true);
             TestArea.Init(ScriptRepository.TestSuite, L.HintTestSuite);
             KeyRotArea.Init(_settings);   // vista Key Rotation (rotazione chiavi)
 
@@ -425,7 +428,7 @@ namespace ShaiyaServerHub
                 _runner = new ScriptRunner(_settings);
                 _webServer = WebServerFactory.Create(_settings);
                 FuncArea.Runner = new ScriptRunner(_settings, forceWindowsAuth: true); // Funzioni: sempre -E
-                TestArea.Runner = _runner;
+                TestArea.Runner = new ScriptRunner(_settings, forceWindowsAuth: true); // Test Suite: sempre -E
                 KeyRotArea.Init(_settings);   // percorso GMSecurity.ini dipende da ServerBinPath
                 Log(L.SettingsSaved);
             }
