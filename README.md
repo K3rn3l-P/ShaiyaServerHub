@@ -18,6 +18,7 @@ ShaiyaServerHub.exe
   functions\<scheda>\ps1\   ← ogni scheda della vista "Funzioni" ha la sua sottocartella
   testsuite\sql\    ← *.sql della "Test Suite" (audit 01→19)
   testsuite\ps1\    ← check *.ps1 (10→21)
+  keyrotation\ps1\  ← Rotate-ShaiyaKeys.ps1 (vista "Key Rotation"; chiama la CLI crypt dell'Hub)
   hub.settings.xml   (config; password SQL cifrata DPAPI LocalMachine)
   hub.log            (log persistente)   ·   hub-tasks.log (task headless)
 ```
@@ -33,7 +34,8 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
    (mini-lista dei 9 servizi con pallino stato) a sinistra e una **griglia 2×2** a destra con quattro card: *Web
    server* (tipo, health, scadenza cert TLS), *Sicurezza · Firewall* (🟢/🟠/🔴 profili attivi + nota simplewall),
    *PSM_Cmd* (canale comandi 🟢/🔴) e *Test Suite* (esiti dell'ultimo run letti dal log: pallini **●verde PASS /
-   ●oro WARN / ●rosso FAIL** + `N controlli · data`). In fondo una barra **Azioni rapide** (Avvia servizi ·
+   ●oro WARN / ●rosso FAIL** + `N controlli · data`), più una card **Key Rotation** full-width (stato task
+   04:00 · ultima rotazione · esito ultimo run). In fondo una barra **Azioni rapide** (Avvia servizi ·
    Nuovo task · Test Suite · Funzioni · Log). **Performance**: i dati veloci (servizi) si aggiornano col timer
    3s; le sonde pesanti (`schtasks`, probe web/firewall PowerShell, lettura log Test Suite) girano **off-thread**
    e con **throttle TTL 20s** — riaprire la Dashboard è istantaneo (nessun re-probe ad ogni switch di vista); ↻ Aggiorna forza il refresh.
@@ -78,6 +80,14 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
    bottone **canale comandi**; **connessione SQL del sito** separata (Env = variabili `DB_USER`/`DB_PASSWORD`
    come il sito / Windows / SQL login) + database sito, usata dall'editor Settaggi sito; config **web
    server** (tipo XAMPP/IIS, path, URL health).
+8. **🔑 Key Rotation** — rotazione delle chiavi di sicurezza (`ClientSecret`/`TokenSecret`/`PatchKeyHex` in
+   `GMSecurity.ini`), ri-cifratura di `update.sah` nelle `.patch`, invalidazione delle sessioni di gioco.
+   L'Hub è **autosufficiente**: la crypto ESAH (AES-256-GCM) è integrata (`Core\SahCrypt.cs`) ed esposta come
+   CLI (`--sah-encrypt/--sah-decrypt`), quindi niente più `sahcrypt.exe` esterno — lo `Rotate-ShaiyaKeys.ps1`
+   (editabile con **✎ Modifica**) la richiama. **▶ Ruota ora** esegue la rotazione e **riavvia solo
+   `ps_game`+`ps_login`** (che rileggono `GMSecurity.ini`) → **nessun reboot del server**. **🕑 Installa task
+   04:00** pianifica la rotazione notturna con la stessa logica. Le chiavi correnti sono mostrate come
+   **fingerprint SHA-256** (mai in chiaro). Ha una card dedicata in Dashboard.
 
 > I "job del sito" (EXP notice, ecc.) sono normali script pianificati: mettili in `scripts\` e usa
 > **▶ Pianifica** / la vista **Pianificati** come qualsiasi altro task. Non c'è una vista dedicata separata.

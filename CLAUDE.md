@@ -36,6 +36,7 @@ ShaiyaServerHub\
     scripts\{sql,ps1}      area "Script" principale
     functions\psm_cmd-scc\ area "Funzioni" (una sottocartella per scheda)
     testsuite\{sql,ps1}    area "Test Suite" (audit sicurezza 01→NN)
+    keyrotation\ps1        area "Key Rotation" (Rotate-ShaiyaKeys.ps1: rotazione chiavi + reload ps_game/ps_login)
 ```
 
 ## Viste (nav) — `MainWindow`
@@ -52,6 +53,7 @@ RadioButton `NavXxx` con `Tag` → handler `Nav_Checked` → `ShowView(tag)`; na
 | `web` | `PanelWeb` | web server XAMPP/IIS + health/cert |
 | `functions` | `PanelFunctions` | schede funzione (PSM_Cmd-SCC, Windows Firewall) |
 | `testsuite` | `PanelTestSuite` | test suite sicurezza (`ScriptAreaControl`) |
+| `keyrotation` | `PanelKeyRotation` | rotazione chiavi (`KeyRotationControl`): stato task 04:00, "Ruota ora", fingerprint chiavi |
 | `log` | `PanelLog` | log globale UI |
 
 ## Core (`ShaiyaServerHub\Core\`)
@@ -67,12 +69,20 @@ RadioButton `NavXxx` con `Tag` → handler `Nav_Checked` → `ShowView(tag)`; na
 | `ScriptRunner.cs` | esegue SQL (sqlcmd), PS1 (powershell), BAT (cmd); emette marker `[sqlcmd]/[powershell]/[cmd] <name>` + `RESULT:`/exit |
 | `AreaLogParser.cs` | **parser condiviso**: `ParsePerScript(log)`→`{nomeFile:{Status,Log}}` (ultimo run vince). Usato da badge finestra E card Dashboard |
 | `TestSuiteReport.cs` | conta PASS/WARN/FAIL per la card Dashboard (usa `AreaLogParser`) |
+| `SahCrypt.cs` | crypto ESAH (AES-256-GCM via bcrypt.dll), byte-compat con sahcrypt.exe; chiave sempre esplicita (mai hardcoded). Esposta via CLI `--sah-encrypt/--sah-decrypt` — vedi [[keyrotation-hub-integration]] |
+| `KeyRotationReport.cs` | stato rotazione (task 04:00 + ultima rotazione da GMSecurity.ini) per la card Dashboard |
 | `CommandChannel.cs` `PsmCmd*.cs` | canale comandi PSM_Cmd (usp_RunCommand); auth Windows forzata — vedi [[funzioni-forced-windows-auth]] |
 | `FirewallManager.cs` `FirewallModels.cs` | stato/regole Windows Firewall (+ simplewall) — vedi [[firewall-posture-simplewall]] |
 | `WebServer\` | `IWebServer`, `WebProbe` (health/cert TLS), `WebSettingsRepo` (PS_WebSite.dbo.Web_Settings via `Ernoweb@`) |
 | `ProcessRunner.cs` | `Run`/`RunCapture` wrapper processi con streaming del log |
 
 ## Controls (`ShaiyaServerHub\Controls\`)
+- `KeyRotationControl` — **vista Key Rotation**: stato del task pianificato 04:00 (installa/abilita/disabilita),
+  "Ruota ora" (esegue `keyrotation\ps1\Rotate-ShaiyaKeys.ps1` via `ScriptRunner`), fingerprint SHA-256 delle
+  chiavi correnti (mai in chiaro), "Modifica" ps1. Il **reload dei servizi è NEL ps1** (stop→verifica→5s→start
+  di `ps_game`/`ps_login`): stessa logica per "Ruota ora" e per il task 04:00 (`--run`), **niente reboot del
+  server**. Il ps1 emette il marker `RIAVVIO-RICHIESTO` solo se un servizio non riparte → banner fallback.
+  Modello: `FirewallControl`. Vedi [[keyrotation-hub-integration]].
 - `ScriptAreaControl` — **area script riusabile** (Test Suite + Funzioni): lista con badge esito per riga,
   toolbar (Reload/Apri cartelle/Log/Nuovo file), log embedded, slot `Actions` iniettato dall'host.
   `Reload()` → `HydrateOutcomes()` ripopola i badge dal log persistito (via `AreaLogParser`).
@@ -81,9 +91,10 @@ RadioButton `NavXxx` con `Tag` → handler `Nav_Checked` → `ShowView(tag)`; na
 
 ## Dashboard (vista di default)
 4 tessere KPI cliccabili (Servizi · Task tot+pallini ●OK/●errore · Script · Web) + corpo: card Servizi (sx) e
-**griglia 2×2** dx (Web · Firewall · PSM_Cmd · **Test Suite** con ●PASS/●WARN/●FAIL) + Azioni rapide.
+**griglia 2×2** dx (Web · Firewall · PSM_Cmd · **Test Suite** con ●PASS/●WARN/●FAIL) + **card Key Rotation**
+full-width (stato task 04:00 + ultima rotazione + esito) + Azioni rapide.
 **Anti-lag (NON regredire):** dati veloci sincroni + timer 3s; roba pesante (schtasks, probe web/firewall,
-`AreaLogParser`) **off-thread** (`RefreshDashboardHeavyAsync`/`…WebAsync`/`…FirewallAsync`/`ApplyTestSuiteCard`)
+`AreaLogParser`, `KeyRotationReport`) **off-thread** (`RefreshDashboardHeavyAsync`/`…WebAsync`/`…FirewallAsync`/`…KeyRotAsync`/`ApplyTestSuiteCard`/`ApplyKeyRotationCard`)
 con **throttle TTL 20s** (`_dashHeavyAt`); `↻ Aggiorna` forza. Dettagli in [[hub-dashboard-default]].
 **REGOLA:** ogni nuova vista/funzione ⇒ valuta una card Dashboard "a colpo d'occhio" e chiedi consiglio su come inserirla.
 
@@ -107,7 +118,8 @@ Per le combo/selettori: legare per **indice**, non per testo (il testo cambia co
 
 ## Modalità headless (Task Scheduler)
 `ShaiyaServerHub.exe --run "<script>" [--log "<path>"] [--auth win|sql]` → esegue senza UI, `exit N`
-(`App.RunHeadless`). Guardia [[hub-exe-cmd-redirect-zombie-lock]]: l'exe del Hub va usato SOLO con `--run`
+(`App.RunHeadless`). Inoltre CLI crypt (rimpiazza sahcrypt.exe, usata dal ps1 di rotazione):
+`--sah-encrypt|--sah-decrypt <in> <out> <64hex>` → ESAH via `Core.SahCrypt`, `exit 0/1/2` (0 ok · 1 uso/IO · 2 crypto). Guardia [[hub-exe-cmd-redirect-zombie-lock]]: l'exe del Hub va usato SOLO con `--run`
 (senza, partirebbe la UI in background → task appeso, log lockato).
 
 ## Convenzioni progetto

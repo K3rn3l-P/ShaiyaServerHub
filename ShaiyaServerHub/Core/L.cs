@@ -97,6 +97,60 @@ namespace ShaiyaServerHub
         public static string DashTsSummary(int total, DateTime when) => S(
             $"{total} controlli · {when:dd/MM HH:mm}",
             $"{total} checks · {when:MM/dd HH:mm}");
+        // Key Rotation — card Dashboard
+        public static string DashKrNotInstalled => S("Rotazione non pianificata", "Rotation not scheduled");
+        public static string DashKrError => S("🔴  Ultima rotazione in ERRORE", "🔴  Last rotation FAILED");
+        public static string DashKrDisabled => S("🟠  Task disabilitato", "🟠  Task disabled");
+        public static string DashKrOn => S("🟢  Rotazione pianificata attiva", "🟢  Rotation scheduled");
+        public static string DashKrSub(DateTime? last, string next)
+        {
+            string l = last.HasValue
+                ? S($"ultima rotazione {last.Value:dd/MM HH:mm}", $"last rotation {last.Value:MM/dd HH:mm}")
+                : S("mai eseguita", "never run");
+            string n = string.IsNullOrWhiteSpace(next) ? "" : S($" · prossimo {next}", $" · next {next}");
+            return l + n;
+        }
+
+        // ── Key Rotation (vista) ─────────────────────────────
+        public static string KrTitle => S("Key Rotation", "Key Rotation");
+        public static string KrChecking => S("verifica…", "checking…");
+        public static string KrTaskNotInstalled => S("Task 04:00 non installato", "04:00 task not installed");
+        public static string KrTaskState(bool enabled, Core.TaskLogState last)
+        {
+            string en = enabled ? S("Task 04:00 abilitato", "04:00 task enabled")
+                                : S("Task 04:00 disabilitato", "04:00 task disabled");
+            string lr = last == Core.TaskLogState.Error ? S(" · ultimo run: ERRORE", " · last run: ERROR")
+                      : last == Core.TaskLogState.Ok ? S(" · ultimo run: OK", " · last run: OK")
+                      : "";
+            return en + lr;
+        }
+        public static string KrNextRun(string next) =>
+            string.IsNullOrWhiteSpace(next) ? "" : S($"prossimo: {next}", $"next: {next}");
+        public static string KrKeyLine(string name, string fp) =>
+            fp == null ? S($"{name,-13} — assente", $"{name,-13} — missing")
+                       : $"{name,-13} #{fp}";
+        public static string KrSahNote => S("(rotazione manuale)", "(manual rotation)");
+        public static string KrKeysMeta(DateTime m) => S(
+            $"GMSecurity.ini · ultima modifica {m:dd/MM/yyyy HH:mm}",
+            $"GMSecurity.ini · last modified {m:MM/dd/yyyy HH:mm}");
+        public static string KrIniMissing(string p) => S(
+            $"GMSecurity.ini non trovato: {p}", $"GMSecurity.ini not found: {p}");
+        public static string KrScriptMissing(string p) => S(
+            $"Script di rotazione non trovato: {p}", $"Rotation script not found: {p}");
+        public static string KrConfirmRotate => S(
+            "Rigenerare ORA le chiavi in PRODUZIONE?\n\nVengono rigenerate ClientSecret/TokenSecret/PatchKeyHex, ri-cifrate le patch e invalidate le sessioni di gioco. Il server NON viene riavviato: dovrai riavviarlo per applicare le nuove chiavi.",
+            "Regenerate the keys in PRODUCTION NOW?\n\nClientSecret/TokenSecret/PatchKeyHex are regenerated, patches are re-encrypted and game sessions invalidated. The server is NOT rebooted: you must restart it to apply the new keys.");
+        public static string KrRotating => S("Rotazione chiavi in corso", "Rotating keys");
+        public static string KrRotateDone => S("✓ Rotazione completata.", "✓ Rotation completed.");
+        public static string KrRotateErr(int rc) => S(
+            $"✗ Operazione fallita (exit {rc}, vedi log).", $"✗ Operation failed (exit {rc}, see log).");
+        public static string KrConfirmInstall => S(
+            "Installare/aggiornare il task pianificato 'KeyRotation' (ogni giorno alle 04:00)?\n\nEsegue la rotazione headless via l'Hub e riavvia SOLO i servizi ps_game/ps_login (nessun reboot del server). Disabilita il vecchio task esterno 'ShaiyaKeyRotation-Riavvio' per evitare doppie rotazioni.",
+            "Install/update the scheduled task 'KeyRotation' (every day at 04:00)?\n\nRuns the rotation headless via the Hub and restarts ONLY the ps_game/ps_login services (no server reboot). Disable the old external task 'ShaiyaKeyRotation-Riavvio' to avoid double rotations.");
+        public static string KrInstalling => S("Installazione task 04:00", "Installing 04:00 task");
+        public static string KrInstallDone => S("✓ Task 04:00 installato/aggiornato (rotazione + riavvio servizi).", "✓ 04:00 task installed/updated (rotation + service restart).");
+        public static string KrNoLog => S(
+            "(nessun log: esegui prima 'Ruota ora' o il task)", "(no log: run 'Rotate now' or the task first)");
 
         // ── Stato servizi (lista) ────────────────────────────
         public static string SvcNotInstalled => S("— non installato", "— not installed");

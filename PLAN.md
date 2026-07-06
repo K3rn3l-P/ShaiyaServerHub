@@ -54,6 +54,8 @@ ShaiyaServerHub\
       NewTaskControl.xaml/.cs   (form task riusabile: trigger principale + lista trigger extra, azione, ☑ log, ❓ guida)
       CadencePicker.xaml/.cs    (selettore cadenza/trigger riusabile: combo+orario/giorni/MONTHLY(giorni-del-mese+mesi)/EVENT+🧩 genera evento)
       ScriptAreaControl.xaml/.cs(area script riusabile Funzioni/Test Suite + editor/nuovo file per riga; badge PASS/WARN/FAIL per riga idratati da log via AreaLogParser in Reload)
+      FirewallControl.xaml/.cs  (scheda Windows Firewall dentro Funzioni)
+      KeyRotationControl.xaml/.cs (vista Key Rotation: stato task 04:00, "Ruota ora" via ps1, fingerprint chiavi, install/enable/disable task)
     Core\AreaLogParser.cs         (parse per-script del log d'area → esito+blocco ultimo run; usato da badge finestra E card Dashboard/TestSuiteReport)
     SettingsWindow.xaml / .cs   (⚙ config SQL/percorsi/canale comandi)
     L.cs                        (localizzazione: switch dizionari + stringhe di codice)
@@ -74,8 +76,10 @@ ShaiyaServerHub\
       ProcessRunner.cs          (Process live; RunPowerShellEncoded per quoting robusto via -EncodedCommand)
       ServiceMonitor.cs         (ServiceController: Query/Start/Stop/StartAll)
       CommandChannel.cs         (registra login in PSM_Cmd.GmCallerProfile tier ECONOMY)
+      SahCrypt.cs               (crypto ESAH AES-256-GCM via bcrypt.dll; byte-compat sahcrypt.exe; chiave sempre esplicita; CLI --sah-encrypt/-decrypt in App)
+      KeyRotationReport.cs      (stato rotazione per card Dashboard: task 04:00 + mtime GMSecurity.ini)
   (a runtime, accanto all'exe:)
-    sql\   ps1\   hub.settings.xml   hub.log
+    scripts\ functions\ testsuite\ keyrotation\ ...   hub.settings.xml   hub.log
 ```
 
 ---
@@ -242,6 +246,17 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
       (`Core/TestSuiteReport.cs`) e mostra ●PASS/●WARN/●FAIL dell'ultimo run. Dati veloci sul timer 3s;
       sonde pesanti off-thread con throttle TTL 20s → apertura istantanea, nessun re-probe ad ogni switch di
       vista. Localizzata IT/EN (chiavi `Dash*`/`NavDashboard` in it.xaml **e** en.xaml + testi dinamici in `L.cs`).
+- [x] **Key Rotation** (`KeyRotationControl`, nav "🔑 Key Rotation", **vista dedicata** + card Dashboard
+      full-width): rotazione delle chiavi di sicurezza (`ClientSecret`/`TokenSecret`/`PatchKeyHex` in
+      `GMSecurity.ini`, ri-cifratura `update.sah` nei `.patch`, invalidazione `GameSecuritySessions`).
+      **Hub autosufficiente**: crypto ESAH portata in C# (`Core/SahCrypt.cs`, AES-256-GCM via bcrypt.dll,
+      byte-compat con `sahcrypt.exe`) ed esposta come CLI `--sah-encrypt/--sah-decrypt <in> <out> <64hex>`
+      (`App.RunSahCrypt`, exit 0/1/2). Lo `Rotate-ShaiyaKeys.ps1` (bundled in `keyrotation\ps1\`, editabile
+      via "Modifica") orchestra e chiama quella CLI (niente più `sahcrypt.exe` esterno). **Niente reboot del
+      server**: il ps1, a fine rotazione, riavvia SOLO `ps_game`+`ps_login` (stop→verifica `Stopped`→5s→start),
+      che rileggono `GMSecurity.ini`. Stessa logica per "Ruota ora" e per il task 04:00 (`--run` del ps1;
+      nessuna azione `shutdown /r`). Fingerprint chiavi in vista = SHA-256[:8] (mai in chiaro). Card Dashboard
+      via `Core/KeyRotationReport.cs` (stato task + mtime `GMSecurity.ini`), off-thread come le altre.
 
 > **NB — pivot 2026-07-05:** la vista "Web jobs" (coda DB `Web_TaskJobs`) è stata **RIMOSSA** perché
 > ridondante con Script + Pianificati. I job del sito sono normali script pianificati (metti in `scripts\`,
@@ -361,6 +376,16 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
   `TaskLogging.IsHubExe(program)`; in `NewTaskControl` create/edit si RIFIUTA l'exe del Hub senza `--run`
   (`L.HubExeNeedsRun`); in `Create` (schtasks) e `BuildTaskXml` (COM) l'exe del Hub non è **mai** avvolto in
   `cmd > log` (i task hub loggano via `--log`, non col redirect). Se ricapita: killa lo zombie in session 0.
+- **Key Rotation — crypto ESAH lato Hub (no segreti nel client)**: la crypto dei `.sah` è AES-256-GCM con
+  header **ESAH** a 64 byte (magic `ESAH`, ver 1, flag 1, nonce 12, tag 16). Portata in `Core/SahCrypt.cs`
+  (P/Invoke `bcrypt.dll`, byte-compat con `SahCryptTool/sahcrypt.exe`), chiave **sempre esplicita** (mai
+  hardcoded — l'Hub è lato server, chiave da `GMSecurity.ini`). Il tool C++ `SahCryptTool` ha rimosso
+  `kFixedKey` di proposito (commit `1a30a7c`, hardening): **NON ripristinarlo** (era chiave hardcoded =
+  bypass permanente). L'exe del Hub ha manifest `requireAdministrator` → la CLI crypt
+  (`--sah-encrypt/--sah-decrypt`) va invocata da processo **già elevato** (l'Hub) o dal task SYSTEM, altrimenti
+  "operazione richiede privilegi elevati". **Niente reboot** per applicare le chiavi: basta riavviare
+  `ps_game`+`ps_login` (rileggono `GMSecurity.ini`) — logica nel `Rotate-ShaiyaKeys.ps1`, usata sia da
+  "Ruota ora" sia dal task 04:00. Test su `.patch`/DB reali SOLO sul server, su **copia** in temp (produzione).
 
 ---
 

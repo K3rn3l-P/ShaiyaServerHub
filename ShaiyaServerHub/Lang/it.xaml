@@ -14,6 +14,7 @@
     <s:String x:Key="NavWeb">🌐  Web server</s:String>
     <s:String x:Key="NavFunctions">🛠  Funzioni</s:String>
     <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
+    <s:String x:Key="NavKeyRotation">🔑  Key Rotation</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
 
     <!-- Dashboard -->
@@ -29,11 +30,13 @@
     <s:String x:Key="DashCardFirewall">🛡  SICUREZZA · FIREWALL</s:String>
     <s:String x:Key="DashCardPsm">🔐  PSM_Cmd — CANALE COMANDI</s:String>
     <s:String x:Key="DashCardTestSuite">🛡  TEST SUITE</s:String>
+    <s:String x:Key="DashCardKeyRotation">🔑  KEY ROTATION</s:String>
     <s:String x:Key="DashOpenServices">Gestisci servizi →</s:String>
     <s:String x:Key="DashOpenWeb">Apri web server →</s:String>
     <s:String x:Key="DashOpenFirewall">Apri firewall →</s:String>
     <s:String x:Key="DashOpenPsm">Apri funzioni →</s:String>
     <s:String x:Key="DashOpenTestSuite">Apri test suite →</s:String>
+    <s:String x:Key="DashOpenKeyRotation">Apri →</s:String>
     <s:String x:Key="DashQuickActions">AZIONI RAPIDE</s:String>
     <s:String x:Key="DashActNewTask">＋ Nuovo task</s:String>
     <s:String x:Key="DashActTestSuite">🛡 Test Suite</s:String>
@@ -293,6 +296,17 @@
     <s:String x:Key="PsmGPracticeH">In pratica</s:String>
     <s:String x:Key="PsmGPracticeP">Per abilitare al worker un nuovo comando economico (es. /exp2xenable): in Allowlist metti Abilitato = on e verifica che ShaiyaTaskAgent abbia Tier massimo ≥ ECONOMY nei Profili. Salva. Controlla poi il Log DB che il comando risulti OK e non DENIED.</s:String>
     <s:String x:Key="PsmGGotIt">Ho capito</s:String>
+
+    <!-- Key Rotation -->
+    <s:String x:Key="GbKeyRotation">KEY ROTATION — ROTAZIONE CHIAVI</s:String>
+    <s:String x:Key="KrBtnRotateNow">🔑 Ruota ora</s:String>
+    <s:String x:Key="KrBtnEdit">✎ Modifica script</s:String>
+    <s:String x:Key="KrBtnInstall">🕑 Installa task 04:00</s:String>
+    <s:String x:Key="KrBtnEnable">Abilita</s:String>
+    <s:String x:Key="KrBtnDisable">Disabilita</s:String>
+    <s:String x:Key="KrBtnOpenData">📂 Cartella Data</s:String>
+    <s:String x:Key="KrRebootWarn">⚠ Chiavi ruotate ma i servizi non sono ripartiti: riavvia ps_game/ps_login (o il server) per applicarle.</s:String>
+    <s:String x:Key="KrKeysTitle">CHIAVI CORRENTI (fingerprint SHA-256, mai in chiaro)</s:String>
 
     <!-- Windows Firewall -->
     <s:String x:Key="FwEnableAll">🛡 Abilita firewall</s:String>

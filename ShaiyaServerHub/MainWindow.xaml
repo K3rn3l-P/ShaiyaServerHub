@@ -200,6 +200,8 @@
                                      Tag="functions" Content="{DynamicResource NavFunctions}" Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavTestSuite" Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="testsuite" Content="{DynamicResource NavTestSuite}" Checked="Nav_Checked"/>
+                        <RadioButton x:Name="NavKeyRotation" Style="{StaticResource NavItem}" GroupName="nav"
+                                     Tag="keyrotation" Content="{DynamicResource NavKeyRotation}" Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavLog"      Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="log"      Content="{DynamicResource NavLog}"      Checked="Nav_Checked"/>
                     </StackPanel>
@@ -333,6 +335,8 @@
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="8"/>
                                         <RowDefinition Height="*"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <!-- Card Web server (0,0) -->
@@ -444,6 +448,35 @@
                                                     Style="{StaticResource MiniButton}"
                                                     Content="{DynamicResource DashOpenTestSuite}"
                                                     Tag="testsuite" Click="DashOpen_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Card Key Rotation (riga 4, full-width): ultima rotazione · prossimo run · esito -->
+                                    <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource DashCard}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="#0EE8C881" CornerRadius="7,0,0,7" Padding="12,7"
+                                                    VerticalAlignment="Stretch">
+                                                <TextBlock Text="{DynamicResource DashCardKeyRotation}" Foreground="#B8E8C881"
+                                                           FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Margin="12,7" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse x:Name="DashKrDot" Width="8" Height="8" VerticalAlignment="Center" Fill="#66707A"/>
+                                                    <TextBlock x:Name="TbDashKrState" Margin="6,0,0,0" Foreground="#E8C881"
+                                                               FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="TbDashKrSub" Margin="0,3,0,0" FontSize="10"
+                                                           Foreground="#88E0E0E0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2" VerticalAlignment="Center" Margin="8,0,8,0"
+                                                    Style="{StaticResource MiniButton}"
+                                                    Content="{DynamicResource DashOpenKeyRotation}"
+                                                    Tag="keyrotation" Click="DashOpen_Click"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -738,6 +771,11 @@
                                 </StackPanel>
                             </controls:ScriptAreaControl.Actions>
                         </controls:ScriptAreaControl>
+                    </GroupBox>
+
+                    <!-- Key Rotation -->
+                    <GroupBox x:Name="PanelKeyRotation" Header="{DynamicResource GbKeyRotation}" Visibility="Collapsed">
+                        <controls:KeyRotationControl x:Name="KeyRotArea"/>
                     </GroupBox>
 
                     <!-- Log -->

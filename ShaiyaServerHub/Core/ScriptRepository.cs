@@ -52,6 +52,9 @@ namespace ShaiyaServerHub.Core
         // Ogni area ha la sua cartella con dentro sql\ e ps1\ (progetto ordinato).
         public static ScriptRepository Main => new ScriptRepository(Path.Combine(AppRoot, "scripts"));
         public static ScriptRepository TestSuite => new ScriptRepository(Path.Combine(AppRoot, "testsuite"));
+        // Area "Key Rotation": <AppRoot>\keyrotation\{sql,ps1}. Contiene Rotate-ShaiyaKeys.ps1
+        // (editabile dall'Hub come gli altri script). Vedi KeyRotationControl.
+        public static ScriptRepository KeyRotation => new ScriptRepository(Path.Combine(AppRoot, "keyrotation"));
 
         // Radice comune di tutte le funzioni (una sottocartella per scheda/tab).
         public static string FunctionsRoot => Path.Combine(AppRoot, "functions");
@@ -69,6 +72,7 @@ namespace ShaiyaServerHub.Core
             Main.EnsureFolders();
             Function("psm_cmd-scc").EnsureFolders();
             TestSuite.EnsureFolders();
+            KeyRotation.EnsureFolders();
         }
     }
 }

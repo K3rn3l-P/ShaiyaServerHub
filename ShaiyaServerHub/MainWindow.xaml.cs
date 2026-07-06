@@ -55,6 +55,7 @@ namespace ShaiyaServerHub
             TestArea.AreaTitle = "Test Suite";
             TestArea.Runner = _runner;
             TestArea.Init(ScriptRepository.TestSuite, L.HintTestSuite);
+            KeyRotArea.Init(_settings);   // vista Key Rotation (rotazione chiavi)
 
             ShowView("dashboard");
 
@@ -89,12 +90,15 @@ namespace ShaiyaServerHub
             PanelWeb.Visibility = view == "web" ? Visibility.Visible : Visibility.Collapsed;
             PanelFunctions.Visibility = view == "functions" ? Visibility.Visible : Visibility.Collapsed;
             PanelTestSuite.Visibility = view == "testsuite" ? Visibility.Visible : Visibility.Collapsed;
+            PanelKeyRotation.Visibility = view == "keyrotation" ? Visibility.Visible : Visibility.Collapsed;
             PanelLog.Visibility = view == "log" ? Visibility.Visible : Visibility.Collapsed;
 
             // Entrando nella vista Web: refresh completo (servizi + sonda health/cert).
             if (view == "web") RefreshWeb();
             // Entrando nella Dashboard: panoramica completa (dati veloci + sonde async).
             if (view == "dashboard") RefreshDashboard();
+            // Entrando in Key Rotation: aggiorna stato pianificazione + fingerprint chiavi.
+            if (view == "keyrotation") KeyRotArea.RefreshAll();
         }
 
         private void SelectLog() { if (NavLog != null) NavLog.IsChecked = true; }
@@ -113,6 +117,7 @@ namespace ShaiyaServerHub
                 case "web": NavWeb.IsChecked = true; break;
                 case "functions": NavFunctions.IsChecked = true; break;
                 case "testsuite": NavTestSuite.IsChecked = true; break;
+                case "keyrotation": NavKeyRotation.IsChecked = true; break;
                 case "log": NavLog.IsChecked = true; break;
             }
         }
@@ -148,6 +153,52 @@ namespace ShaiyaServerHub
             RefreshDashboardWebAsync();
             RefreshDashboardFirewallAsync();
             RefreshDashboardPsmAsync();
+            RefreshDashboardKeyRotAsync();
+        }
+
+        /// <summary>Card Key Rotation: stato task 4:00 + esito ultimo run + data ultima rotazione (off-thread).</summary>
+        private async void RefreshDashboardKeyRotAsync()
+        {
+            if (TbDashKrState == null) return;
+            TbDashKrState.Text = L.KrChecking;
+            TbDashKrState.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xC8, 0x81));
+            TbDashKrSub.Text = "";
+
+            string iniPath = System.IO.Path.Combine(_settings.ServerBinPath ?? "", "Data", "GMSecurity.ini");
+            var rep = await Task.Run(() => KeyRotationReport.Load(iniPath));
+            if (TbDashKrState == null) return;
+            ApplyKeyRotationCard(rep);
+        }
+
+        private void ApplyKeyRotationCard(KeyRotationReport rep)
+        {
+            if (TbDashKrState == null || rep == null) return;
+
+            Color dot; string state;
+            if (!rep.TaskInstalled)
+            {
+                dot = Color.FromRgb(0x66, 0x70, 0x7A);
+                state = L.DashKrNotInstalled;
+            }
+            else if (rep.LastRun == TaskLogState.Error)
+            {
+                dot = Color.FromRgb(0xF4, 0x6A, 0x6A);
+                state = L.DashKrError;
+            }
+            else if (!rep.TaskEnabled)
+            {
+                dot = Color.FromRgb(0xE8, 0xB0, 0x40);
+                state = L.DashKrDisabled;
+            }
+            else
+            {
+                dot = Color.FromRgb(0x4D, 0xC8, 0x70);
+                state = L.DashKrOn;
+            }
+            DashKrDot.Fill = new SolidColorBrush(dot);
+            TbDashKrState.Text = state;
+            TbDashKrState.Foreground = new SolidColorBrush(dot);
+            TbDashKrSub.Text = L.DashKrSub(rep.HasIni ? rep.LastRotation : (DateTime?)null, rep.NextRun);
         }
 
         /// <summary>Task (schtasks) + script (filesystem) calcolati off-thread, poi in UI.</summary>
@@ -375,6 +426,7 @@ namespace ShaiyaServerHub
                 _webServer = WebServerFactory.Create(_settings);
                 FuncArea.Runner = new ScriptRunner(_settings, forceWindowsAuth: true); // Funzioni: sempre -E
                 TestArea.Runner = _runner;
+                KeyRotArea.Init(_settings);   // percorso GMSecurity.ini dipende da ServerBinPath
                 Log(L.SettingsSaved);
             }
         }

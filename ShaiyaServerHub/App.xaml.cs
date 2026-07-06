@@ -53,6 +53,24 @@ namespace ShaiyaServerHub
         {
             ScriptRepository.EnsureAll();
 
+            // ── Modalità CLI crypt (rimpiazza sahcrypt.exe): usata dal ps1 di rotazione ──
+            // --sah-encrypt <in> <out> <64hex>  (SAH → ESAH)
+            // --sah-decrypt <in> <out> <64hex>  (ESAH → SAH)
+            // Mirror di sahcrypt.exe (argc==5); exit: 0 ok · 1 uso/chiave/IO · 2 crypto/formato.
+            int cidx = Array.FindIndex(e.Args, a =>
+                a.Equals("--sah-encrypt", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("--sah-decrypt", StringComparison.OrdinalIgnoreCase));
+            if (cidx >= 0)
+            {
+                bool enc = e.Args[cidx].Equals("--sah-encrypt", StringComparison.OrdinalIgnoreCase);
+                int rc = RunSahCrypt(enc,
+                    cidx + 1 < e.Args.Length ? e.Args[cidx + 1] : null,
+                    cidx + 2 < e.Args.Length ? e.Args[cidx + 2] : null,
+                    cidx + 3 < e.Args.Length ? e.Args[cidx + 3] : null);
+                Shutdown(rc);
+                return;
+            }
+
             // ── Modalità headless per i task pianificati: --run "<scriptPath>" ──
             int idx = Array.FindIndex(e.Args, a => a.Equals("--run", StringComparison.OrdinalIgnoreCase));
             if (idx >= 0 && idx + 1 < e.Args.Length)
@@ -126,6 +144,44 @@ namespace ShaiyaServerHub
                 WriteLog("RUN-ERR", ex.ToString());
                 return -1;
             }
+        }
+
+        /// <summary>
+        /// CLI crypt headless (rimpiazza sahcrypt.exe). Byte-compatibile col formato ESAH.
+        /// Exit: 0 ok · 1 uso/chiave/IO · 2 crypto/formato (stessi codici di sahcrypt.exe).
+        /// </summary>
+        private static int RunSahCrypt(bool encrypt, string inPath, string outPath, string hexKey)
+        {
+            if (string.IsNullOrWhiteSpace(inPath) || string.IsNullOrWhiteSpace(outPath) || string.IsNullOrWhiteSpace(hexKey))
+            {
+                WriteLog("SAHCRYPT", "uso: --sah-encrypt|--sah-decrypt <in> <out> <64hex>");
+                return 1;
+            }
+
+            byte[] key;
+            try { key = SahCrypt.ParseHexKey(hexKey); }
+            catch (Exception ex) { WriteLog("SAHCRYPT", "chiave non valida: " + ex.Message); return 1; }
+
+            byte[] input;
+            try { input = File.ReadAllBytes(inPath); }
+            catch (Exception ex) { WriteLog("SAHCRYPT", "lettura input fallita: " + ex.Message); return 1; }
+
+            byte[] output;
+            try
+            {
+                output = encrypt ? SahCrypt.EncryptBuffer(input, key) : SahCrypt.DecryptBuffer(input, key);
+            }
+            catch (Exception ex)
+            {
+                // Magic mancante / tag GCM non valido (chiave sbagliata) / formato → codice 2, come sahcrypt.exe.
+                WriteLog("SAHCRYPT", (encrypt ? "encrypt" : "decrypt") + " fallito: " + ex.Message);
+                return 2;
+            }
+
+            try { File.WriteAllBytes(outPath, output); }
+            catch (Exception ex) { WriteLog("SAHCRYPT", "scrittura output fallita: " + ex.Message); return 1; }
+
+            return 0;
         }
 
     }

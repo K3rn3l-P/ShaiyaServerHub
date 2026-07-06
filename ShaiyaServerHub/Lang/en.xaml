@@ -14,6 +14,7 @@
     <s:String x:Key="NavWeb">🌐  Web server</s:String>
     <s:String x:Key="NavFunctions">🛠  Functions</s:String>
     <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
+    <s:String x:Key="NavKeyRotation">🔑  Key Rotation</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
 
     <!-- Dashboard -->
@@ -29,11 +30,13 @@
     <s:String x:Key="DashCardFirewall">🛡  SECURITY · FIREWALL</s:String>
     <s:String x:Key="DashCardPsm">🔐  PSM_Cmd — COMMAND CHANNEL</s:String>
     <s:String x:Key="DashCardTestSuite">🛡  TEST SUITE</s:String>
+    <s:String x:Key="DashCardKeyRotation">🔑  KEY ROTATION</s:String>
     <s:String x:Key="DashOpenServices">Manage services →</s:String>
     <s:String x:Key="DashOpenWeb">Open web server →</s:String>
     <s:String x:Key="DashOpenFirewall">Open firewall →</s:String>
     <s:String x:Key="DashOpenPsm">Open functions →</s:String>
     <s:String x:Key="DashOpenTestSuite">Open test suite →</s:String>
+    <s:String x:Key="DashOpenKeyRotation">Open →</s:String>
     <s:String x:Key="DashQuickActions">QUICK ACTIONS</s:String>
     <s:String x:Key="DashActNewTask">＋ New task</s:String>
     <s:String x:Key="DashActTestSuite">🛡 Test Suite</s:String>
@@ -293,6 +296,17 @@
     <s:String x:Key="PsmGPracticeH">In practice</s:String>
     <s:String x:Key="PsmGPracticeP">To enable a new economy command for the worker (e.g. /exp2xenable): in Allowlist set Enabled = on and check that ShaiyaTaskAgent has max Tier ≥ ECONOMY in Profiles. Save. Then check DB Log that the command shows OK, not DENIED.</s:String>
     <s:String x:Key="PsmGGotIt">Got it</s:String>
+
+    <!-- Key Rotation -->
+    <s:String x:Key="GbKeyRotation">KEY ROTATION</s:String>
+    <s:String x:Key="KrBtnRotateNow">🔑 Rotate now</s:String>
+    <s:String x:Key="KrBtnEdit">✎ Edit script</s:String>
+    <s:String x:Key="KrBtnInstall">🕑 Install 04:00 task</s:String>
+    <s:String x:Key="KrBtnEnable">Enable</s:String>
+    <s:String x:Key="KrBtnDisable">Disable</s:String>
+    <s:String x:Key="KrBtnOpenData">📂 Data folder</s:String>
+    <s:String x:Key="KrRebootWarn">⚠ Keys rotated but services did not restart: restart ps_game/ps_login (or the server) to apply them.</s:String>
+    <s:String x:Key="KrKeysTitle">CURRENT KEYS (SHA-256 fingerprint, never in cleartext)</s:String>
 
     <!-- Windows Firewall -->
     <s:String x:Key="FwEnableAll">🛡 Enable firewall</s:String>
