@@ -26,13 +26,13 @@
     <s:String x:Key="DashKpiScripts">AVAILABLE SCRIPTS</s:String>
     <s:String x:Key="DashKpiWeb">WEB SERVER</s:String>
     <s:String x:Key="DashCardServices">🖥  GAME SERVICES</s:String>
-    <s:String x:Key="DashCardWeb">🌐  WEB SERVER</s:String>
+    <s:String x:Key="DashCardMaintenance">🚧  MAINTENANCE</s:String>
+    <s:String x:Key="MntBtnRekick">🔁 Re-kick now</s:String>
     <s:String x:Key="DashCardFirewall">🛡  SECURITY · FIREWALL</s:String>
     <s:String x:Key="DashCardPsm">🔐  PSM_Cmd — COMMAND CHANNEL</s:String>
     <s:String x:Key="DashCardTestSuite">🛡  TEST SUITE</s:String>
     <s:String x:Key="DashCardKeyRotation">🔑  KEY ROTATION</s:String>
     <s:String x:Key="DashOpenServices">Manage services →</s:String>
-    <s:String x:Key="DashOpenWeb">Open web server →</s:String>
     <s:String x:Key="DashOpenFirewall">Open firewall →</s:String>
     <s:String x:Key="DashOpenPsm">Open functions →</s:String>
     <s:String x:Key="DashOpenTestSuite">Open test suite →</s:String>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace ShaiyaServerHub
         private ScriptRunner _runner;
         private IWebServer _webServer;
         private DispatcherTimer _svcTimer;
+        private DispatcherTimer _headerStatusTimer;
 
         public MainWindow()
         {
@@ -72,6 +74,16 @@ namespace ShaiyaServerHub
                 if (PanelDashboard.Visibility == Visibility.Visible) RefreshDashboardFast();
             };
             _svcTimer.Start();
+
+            // Timer di stato header + ri-kick manutenzione: gira SEMPRE (non solo a Dashboard aperta,
+            // a differenza delle altre sonde) — pilota la barra persistente nell'header (visibile in
+            // OGNI vista: banner manutenzione, player online, salute sistema) e il ri-kick automatico
+            // (copre il caso di un player fermo al Character Screen che /kickuid non "vede" finché non
+            // rientra in game). Vedi HeaderStatusTick.
+            _headerStatusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(15) };
+            _headerStatusTimer.Tick += (s, e) => HeaderStatusTick();
+            _headerStatusTimer.Start();
+            HeaderStatusTick();   // primo giro subito, non aspettare 15s per popolare la barra
         }
 
         // ── Navigazione viste ─────────────────────────────────
@@ -157,6 +169,7 @@ namespace ShaiyaServerHub
             RefreshDashboardFirewallAsync();
             RefreshDashboardPsmAsync();
             RefreshDashboardKeyRotAsync();
+            RefreshDashboardMaintenanceAsync();
         }
 
         /// <summary>Card Key Rotation: stato task 4:00 + esito ultimo run + data ultima rotazione (off-thread).</summary>
@@ -271,14 +284,13 @@ namespace ShaiyaServerHub
             TbDashUpdated.Text = L.DashUpdated(DateTime.Now);
         }
 
+        /// <summary>Solo la tessera KPI "Web" in alto (la card dettagliata Web è stata sostituita
+        /// dalla card Manutenzione — vedi <see cref="RefreshDashboardMaintenanceAsync"/>).</summary>
         private async void RefreshDashboardWebAsync()
         {
             if (_webServer == null) _webServer = WebServerFactory.Create(_settings);
             TbKpiWeb.Text = L.DashWebProbing;
             TbKpiWeb.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xC8, 0x81));
-            TbDashWebKind.Text = _webServer.DisplayName;
-            TbDashWebHealth.Text = L.DashWebProbing;
-            TbDashWebCert.Text = "";
 
             var res = await Task.Run(() => WebProbe.Probe(_webServer));
             if (TbKpiWeb == null) return;
@@ -288,23 +300,264 @@ namespace ShaiyaServerHub
                          : res.AppServer ? Color.FromRgb(0x4D, 0xC8, 0x70)
                                          : Color.FromRgb(0xE8, 0xC8, 0x81);
             TbKpiWeb.Foreground = new SolidColorBrush(webColor);
-            TbDashWebHealth.Text = res.Summary();
-            TbDashWebHealth.Foreground = new SolidColorBrush(webColor);
 
             if (res.CertExpiry.HasValue)
             {
                 int days = (int)(res.CertExpiry.Value.Date - DateTime.Now.Date).TotalDays;
-                TbDashWebCert.Text = L.WebCert(res.CertExpiry.Value, days);
-                TbDashWebCert.Foreground = new SolidColorBrush(days <= 14
-                    ? Color.FromRgb(0xF4, 0x6A, 0x6A) : Color.FromArgb(0x66, 0xE0, 0xE0, 0xE0));
                 TbKpiWebSub.Text = L.WebCert(res.CertExpiry.Value, days);
             }
             else
             {
-                TbDashWebCert.Text = L.WebCertNone;
-                TbDashWebCert.Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x7A));
                 TbKpiWebSub.Text = _webServer.DisplayName;
             }
+        }
+
+        // ── Card Manutenzione ────────────────────────────────
+        // Stato cachato dall'ultimo Load, usato dal click del toggle per decidere Enter/Exit
+        // senza dover rileggere il DB in modo sincrono sul thread UI.
+        private bool _mntEnabled;
+        private bool _mntHasTable;
+
+        /// <summary>Card Manutenzione: stato normale/attiva da PS_UserData.dbo.MaintenanceMode (off-thread).</summary>
+        private async void RefreshDashboardMaintenanceAsync()
+        {
+            if (TbDashMntState == null) return;
+            TbDashMntState.Text = L.MntChecking;
+            TbDashMntState.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xC8, 0x81));
+            TbDashMntSub.Text = "";
+            TbDashMntPlayers.Text = "";
+
+            var rep = await Task.Run(() => MaintenanceReport.Load(_settings));
+            if (TbDashMntState == null) return;
+            ApplyMaintenanceCard(rep);
+        }
+
+        private void ApplyMaintenanceCard(MaintenanceReport rep)
+        {
+            if (TbDashMntState == null || rep == null) return;
+
+            _mntHasTable = rep.HasTable;
+            _mntEnabled = rep.Enabled;
+
+            Color dot; string state;
+            if (!rep.HasTable)
+            {
+                dot = Color.FromRgb(0x66, 0x70, 0x7A);
+                state = L.MntNotInstalled;
+            }
+            else if (rep.Enabled)
+            {
+                dot = Color.FromRgb(0xF4, 0x6A, 0x6A);
+                state = L.MntActive;
+            }
+            else
+            {
+                dot = Color.FromRgb(0x4D, 0xC8, 0x70);
+                state = L.MntNormal;
+            }
+            DashMntDot.Fill = new SolidColorBrush(dot);
+            TbDashMntState.Text = state;
+            TbDashMntState.Foreground = new SolidColorBrush(dot);
+            TbDashMntPlayers.Text = rep.CountsOk ? L.MntPlayers(rep.AdminOnline, rep.NormalOnline) : L.MntPlayersUnknown;
+            TbDashMntSub.Text = L.MntSub(rep.HasTable, rep.ChangedAt, rep.ChangedBy);
+
+            BtnMaintenanceToggle.Content = rep.Enabled ? L.MntBtnExit : L.MntBtnEnter;
+            BtnMaintenanceToggle.IsEnabled = rep.HasTable;
+
+            // Ri-kick manuale: ha senso solo a manutenzione attiva.
+            BtnMaintenanceRekick.Visibility = rep.Enabled ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        /// <summary>Attiva/termina la manutenzione. Azione sensibile (kick giocatori / blocco
+        /// login): conferma sempre con MessageBox. Auth SPLIT (vedi feedback utente):
+        /// - scrittura tabella (UPDATE MaintenanceMode) → SOLO Windows auth (-E/system):
+        ///   ShaiyaTaskAgent non ha permessi di scrittura tabelle.
+        /// - comandi slash (/nt, /kickuid via usp_SendNotice/usp_RunCommand, notice-*.sql/
+        ///   kick-normals.sql in ScriptRepository.Maintenance) → account configurato in
+        ///   Impostazioni (default ShaiyaTaskAgent, tier ECONOMY): può SOLO eseguire i wrapper
+        ///   allowlist, MAI scrivere tabelle. Stesso principio di FuncArea/TestArea (due
+        ///   ScriptRunner distinti) — vedi [[funzioni-forced-windows-auth]].</summary>
+        private async void BtnMaintenanceToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_mntHasTable)
+            {
+                Log(L.MntMissingTable);
+                SelectLog();
+                return;
+            }
+
+            bool entering = !_mntEnabled;
+            string confirmText = entering ? L.MntConfirmEnter : L.MntConfirmExit;
+            if (MessageBox.Show(confirmText, L.MntConfirmTitle, MessageBoxButton.YesNo,
+                    entering ? MessageBoxImage.Warning : MessageBoxImage.Question) != MessageBoxResult.Yes)
+                return;
+
+            var repo = ScriptRepository.Maintenance;
+            string noticePath = Path.Combine(repo.SqlDir, entering ? "notice-enter.sql" : "notice-exit.sql");
+            if (!File.Exists(noticePath)) { Log(L.MntScriptMissing(Path.GetFileName(noticePath))); SelectLog(); return; }
+
+            SelectLog();
+            BtnMaintenanceToggle.IsEnabled = false;
+
+            var sysRunner = new ScriptRunner(_settings, forceWindowsAuth: true);   // tabella + lettura Chars/Users_Master: sempre -E
+            var taskRunner = new ScriptRunner(_settings);                          // SOLO comandi slash (usp_RunCommand/usp_SendNotice): auth configurata (ShaiyaTaskAgent)
+
+            bool ok = true;
+            await RunAsync(() =>
+            {
+                Log(entering ? L.MntTogglingOn : L.MntTogglingOff);
+                string upd = "UPDATE PS_UserData.dbo.MaintenanceMode SET Enabled=" + (entering ? "1" : "0") +
+                             ", ChangedAt=GETDATE(), ChangedBy=SUSER_SNAME();";
+                if (sysRunner.RunSqlQuery(upd, out _, Log) != 0) { ok = false; return; }
+
+                Log(L.MntSendingNotice);
+                if (taskRunner.RunSql(noticePath, Log) != 0) Log(L.MntNoticeFailed);
+
+                if (entering)
+                {
+                    Log(L.MntKicking);
+                    if (!RunMaintenanceKickPass(verbose: true)) ok = false;
+                }
+            });
+
+            Log(ok ? (entering ? L.MntEnterDone : L.MntExitDone) : L.MntActionFailed);
+            RefreshDashboardMaintenanceAsync();
+        }
+
+        /// <summary>Pulsante di sicurezza sulla card: ri-kick manuale a domanda (es. un player
+        /// rimasto al Character Screen non viene "visto" da /kickuid finché non rientra in game —
+        /// limite noto). Visibile solo a manutenzione attiva (vedi ApplyMaintenanceCard). Vedi anche
+        /// <see cref="MaintenanceAutoKickTick"/> (stesso ri-kick, automatico ogni 15s).</summary>
+        private async void BtnMaintenanceRekick_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_mntEnabled) return;   // il bottone è comunque nascosto se non attiva
+            SelectLog();
+            BtnMaintenanceRekick.IsEnabled = false;
+            Log(L.MntKicking);
+            await RunAsync(() => RunMaintenanceKickPass(verbose: true));
+            BtnMaintenanceRekick.IsEnabled = true;
+        }
+
+        /// <summary>Kick di tutti i player normali online (riusato da: attivazione manutenzione,
+        /// pulsante "Ri-kick ora", timer automatico <see cref="MaintenanceAutoKickTick"/>).
+        /// verbose=false (timer) non logga nulla se non c'è nessuno da kickare, per non spammare
+        /// il log ogni 15s — logga comunque se kicka qualcuno (straggler al Character Screen).</summary>
+        private bool RunMaintenanceKickPass(bool verbose)
+        {
+            var uids = GetOnlineNormalPlayerUIDs();
+            if (uids.Count == 0)
+            {
+                if (verbose) Log(L.MntKickCount(0));
+                return true;
+            }
+            Log(verbose ? L.MntKickCount(uids.Count) : L.MntAutoKicked(uids.Count));
+
+            // L'invio del comando slash /kickuid resta SEMPRE sull'account configurato
+            // (ShaiyaTaskAgent): può SOLO eseguire i wrapper allowlist, mai leggere tabelle.
+            var taskRunner = new ScriptRunner(_settings);
+            bool ok = true;
+            foreach (var uid in uids)
+            {
+                string cmd = "EXEC [PSM_Cmd].[dbo].[usp_RunCommand] @service=N'ps_game', @command=N'/kickuid " + uid + "';";
+                if (taskRunner.RunSqlQuery(cmd, out _, verbose ? Log : (Action<string>)null) != 0) ok = false;
+            }
+            return ok;
+        }
+
+        /// <summary>Timer automatico (indipendente dalla vista aperta — NON legato a PanelDashboard
+        /// Visibility come le altre sonde): ogni 15s (1) controlla se la manutenzione è attiva e, se
+        /// sì, ri-kicka eventuali player normali rimasti online (copre il caso di un player fermo al
+        /// Character Screen: /kickuid non lo "vede" lì, ma appena rientra in game questo timer lo
+        /// becca al giro successivo); (2) calcola la salute complessiva del sistema (servizi/firewall/
+        /// web) e aggiorna la barra di stato persistente nell'header (visibile in OGNI vista).
+        /// _headerBusy evita sovrapposizioni se un giro impiega più di 15s (rete lenta ecc.).</summary>
+        private bool _headerBusy;
+        private async void HeaderStatusTick()
+        {
+            if (_headerBusy) return;
+            _headerBusy = true;
+            try
+            {
+                MaintenanceReport rep = null;
+                bool svcOk = false, fwOk = false, webOk = false;
+                await RunAsync(() =>
+                {
+                    rep = MaintenanceReport.Load(_settings);
+                    if (rep.HasTable && rep.Enabled) RunMaintenanceKickPass(verbose: false);
+
+                    var svc = ServiceMonitor.Query();
+                    int total = svc.Count(s => s.Installed);
+                    if (total == 0) total = svc.Count;
+                    svcOk = total > 0 && svc.Count(s => s.Running) >= total;
+
+                    var fw = new FirewallManager().GetStatus();
+                    fwOk = fw != null && fw.Profiles.Count > 0 && fw.AllEnabled;
+
+                    if (_webServer == null) _webServer = WebServerFactory.Create(_settings);
+                    var web = WebProbe.Probe(_webServer);
+                    webOk = web != null && web.Reachable;
+                });
+
+                ApplyHeaderStatus(rep, svcOk, fwOk, webOk);
+                // Se la Dashboard è aperta, aggiorna anche la card (contatori online) senza aspettare il TTL 20s.
+                if (rep != null && PanelDashboard != null && PanelDashboard.Visibility == Visibility.Visible)
+                    ApplyMaintenanceCard(rep);
+            }
+            finally { _headerBusy = false; }
+        }
+
+        /// <summary>Applica lo stato alla barra persistente nell'header (visibile in ogni vista).</summary>
+        private void ApplyHeaderStatus(MaintenanceReport rep, bool svcOk, bool fwOk, bool webOk)
+        {
+            if (HeaderMntBanner == null) return;
+
+            bool mntActive = rep != null && rep.HasTable && rep.Enabled;
+            HeaderMntBanner.Visibility = mntActive ? Visibility.Visible : Visibility.Collapsed;
+            if (mntActive) TbHeaderMnt.Text = L.HeaderMntBanner;
+
+            TbHeaderPlayers.Text = (rep != null && rep.CountsOk)
+                ? L.MntPlayers(rep.AdminOnline, rep.NormalOnline)
+                : L.MntPlayersUnknown;
+
+            bool allOk = svcOk && fwOk && webOk;
+            HeaderSysDot.Fill = new SolidColorBrush(allOk
+                ? Color.FromRgb(0x4D, 0xC8, 0x70) : Color.FromRgb(0xF4, 0x6A, 0x6A));
+            TbHeaderSys.Text = allOk ? L.HeaderSysOk : L.HeaderSysWarn(svcOk, fwOk, webOk);
+        }
+
+        /// <summary>UserUID dei player normali (non-GM) attualmente online. Stessa definizione admin
+        /// del gate in usp_Try_GameLogin_Taiwan (Status IN 16/32/48/64/80). Lettura diretta ADO.NET,
+        /// SEMPRE Windows auth: ShaiyaTaskAgent non ha grant su PS_GameData/PS_UserData (solo sui
+        /// wrapper PSM_Cmd) — vedi BtnMaintenanceToggle_Click.</summary>
+        private List<int> GetOnlineNormalPlayerUIDs()
+        {
+            var list = new List<int>();
+            try
+            {
+                var csb = new SqlConnectionStringBuilder
+                {
+                    DataSource = _settings?.SqlServer ?? "localhost",
+                    InitialCatalog = "PS_GameData",
+                    IntegratedSecurity = true,
+                    TrustServerCertificate = true,
+                    ConnectTimeout = 5,
+                    ApplicationName = "ShaiyaServerHub"
+                };
+                using (var c = new SqlConnection(csb.ConnectionString))
+                {
+                    c.Open();
+                    using (var cmd = new SqlCommand(
+                        "SELECT DISTINCT c.UserUID FROM [PS_GameData].[dbo].[Chars] c " +
+                        "JOIN [PS_UserData].[dbo].[Users_Master] u ON u.UserUID = c.UserUID " +
+                        "WHERE c.LoginStatus = 1 AND c.Del = 0 AND u.[Status] NOT IN (16,32,48,64,80);", c))
+                    using (var rd = cmd.ExecuteReader())
+                    {
+                        while (rd.Read()) list.Add(rd.GetInt32(0));
+                    }
+                }
+            }
+            catch (Exception ex) { App.WriteLog("MAINTENANCE", ex.ToString()); }
+            return list;
         }
 
         private async void RefreshDashboardFirewallAsync()
@@ -823,6 +1076,7 @@ namespace ShaiyaServerHub
         protected override void OnClosed(EventArgs e)
         {
             _svcTimer?.Stop();
+            _headerStatusTimer?.Stop();
             L.Changed -= UpdateLangButtons;
             base.OnClosed(e);
         }

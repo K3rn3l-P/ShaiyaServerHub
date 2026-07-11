@@ -37,7 +37,19 @@ ShaiyaServerHub\
     functions\psm_cmd-scc\ area "Funzioni" (una sottocartella per scheda)
     testsuite\{sql,ps1}    area "Test Suite" (audit sicurezza 01→NN)
     keyrotation\ps1        area "Key Rotation" (Rotate-ShaiyaKeys.ps1: rotazione chiavi + reload ps_game/ps_login)
+    manutenzione\sql       area "Manutenzione" (notice-enter/exit.sql; orchestrazione IN C# —
+                           MainWindow.BtnMaintenanceToggle_Click, NON ps1: lettura Chars/Users_Master +
+                           UPDATE tabella SEMPRE -E; EXEC usp_RunCommand/usp_SendNotice SEMPRE account
+                           configurato (ShaiyaTaskAgent). DDL tabella+gate proc a parte — vedi [[maintenance-mode-dashboard]] [[sql-auth-slash-vs-table]])
 ```
+
+## Barra di stato persistente (header, visibile in OGNI vista)
+Nell'header (sotto il titolo "SHAIYA SERVER HUB", stessa `Border`, sempre presente qualunque vista sia
+aperta): banner rosso scuro "🚧 MANUTENZIONE ATTIVA" (solo se `MaintenanceMode.Enabled=1`) + conteggio
+player online admin/normal (sempre) + pallino salute sistema (servizi/firewall/web, sempre). Pilotata da
+`MainWindow.HeaderStatusTick()` (timer `_headerStatusTimer`, 15s, **indipendente da quale pannello è
+visibile** — a differenza delle altre sonde legate a `Visibility`). Stesso timer fa anche il ri-kick
+automatico manutenzione. Vedi [[maintenance-mode-dashboard]].
 
 ## Viste (nav) — `MainWindow`
 RadioButton `NavXxx` con `Tag` → handler `Nav_Checked` → `ShowView(tag)`; navigazione programmatica via
@@ -71,6 +83,7 @@ RadioButton `NavXxx` con `Tag` → handler `Nav_Checked` → `ShowView(tag)`; na
 | `TestSuiteReport.cs` | conta PASS/WARN/FAIL per la card Dashboard (usa `AreaLogParser`) |
 | `SahCrypt.cs` | crypto ESAH (AES-256-GCM via bcrypt.dll), byte-compat con sahcrypt.exe; chiave sempre esplicita (mai hardcoded). Esposta via CLI `--sah-encrypt/--sah-decrypt` — vedi [[keyrotation-hub-integration]] |
 | `KeyRotationReport.cs` | stato rotazione (task 04:00 + ultima rotazione da GMSecurity.ini) per la card Dashboard |
+| `MaintenanceReport.cs` | stato modalità manutenzione (PS_UserData.dbo.MaintenanceMode) per la card Dashboard — vedi [[maintenance-mode-dashboard]] |
 | `CommandChannel.cs` `PsmCmd*.cs` | canale comandi PSM_Cmd (usp_RunCommand); auth Windows forzata — vedi [[funzioni-forced-windows-auth]] |
 | `FirewallManager.cs` `FirewallModels.cs` | stato/regole Windows Firewall (+ simplewall) — vedi [[firewall-posture-simplewall]] |
 | `WebServer\` | `IWebServer`, `WebProbe` (health/cert TLS), `WebSettingsRepo` (PS_WebSite.dbo.Web_Settings via `Ernoweb@`) |
@@ -91,10 +104,14 @@ RadioButton `NavXxx` con `Tag` → handler `Nav_Checked` → `ShowView(tag)`; na
 
 ## Dashboard (vista di default)
 4 tessere KPI cliccabili (Servizi · Task tot+pallini ●OK/●errore · Script · Web) + corpo: card Servizi (sx) e
-**griglia 2×2** dx (Web · Firewall · PSM_Cmd · **Test Suite** con ●PASS/●WARN/●FAIL) + **card Key Rotation**
-full-width (stato task 04:00 + ultima rotazione + esito) + Azioni rapide.
+**griglia 2×2** dx (**Manutenzione** · Firewall · PSM_Cmd · **Test Suite** con ●PASS/●WARN/●FAIL) + **card Key
+Rotation** full-width (stato task 04:00 + ultima rotazione + esito) + Azioni rapide. La card Web dedicata è
+stata **rimossa** (era doppione della tessera KPI "Web" in alto, che resta) e sostituita dalla card
+**Manutenzione** (●verde Normale / ●rosso ATTIVA / ●grigio non installata, toggle Attiva/Termina) — vedi
+[[maintenance-mode-dashboard]].
 **Anti-lag (NON regredire):** dati veloci sincroni + timer 3s; roba pesante (schtasks, probe web/firewall,
-`AreaLogParser`, `KeyRotationReport`) **off-thread** (`RefreshDashboardHeavyAsync`/`…WebAsync`/`…FirewallAsync`/`…KeyRotAsync`/`ApplyTestSuiteCard`/`ApplyKeyRotationCard`)
+`AreaLogParser`, `KeyRotationReport`, `MaintenanceReport`) **off-thread**
+(`RefreshDashboardHeavyAsync`/`…WebAsync`/`…FirewallAsync`/`…KeyRotAsync`/`…MaintenanceAsync`/`ApplyTestSuiteCard`/`ApplyKeyRotationCard`/`ApplyMaintenanceCard`)
 con **throttle TTL 20s** (`_dashHeavyAt`); `↻ Aggiorna` forza. Dettagli in [[hub-dashboard-default]].
 **REGOLA:** ogni nuova vista/funzione ⇒ valuta una card Dashboard "a colpo d'occhio" e chiedi consiglio su come inserirla.
 

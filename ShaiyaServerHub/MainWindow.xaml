@@ -100,50 +100,81 @@
             <Border Grid.Row="0" Margin="0,0,0,8" Padding="16,10"
                     CornerRadius="6" BorderThickness="1" BorderBrush="#2DE8C881" Background="#0F0F14">
                 <Grid>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
-                                MouseLeftButtonDown="DragWindow">
-                        <TextBlock Text="SHAIYA SERVER HUB" Foreground="#E8C881"
-                                   FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                        <Rectangle Width="1" Height="14" Fill="#2DE8C881" Margin="12,0"/>
-                        <TextBlock Text="{DynamicResource AppSubtitle}" Foreground="#50E8C881"
-                                   FontSize="11" VerticalAlignment="Center"/>
-                        <TextBlock Text="  ·  by K3rn3l" Foreground="#28E8C881"
-                                   FontSize="10" VerticalAlignment="Center" FontStyle="Italic"/>
-                    </StackPanel>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Border x:Name="BtnSettings" CornerRadius="3" Padding="9,3" Cursor="Hand"
-                                BorderThickness="1" Background="Transparent"
-                                MouseLeftButtonUp="BtnSettings_Click"
-                                MouseEnter="BtnChromeBtn_MouseEnter" MouseLeave="BtnChromeBtn_MouseLeave">
-                            <Border.BorderBrush><SolidColorBrush Color="#20E8C881"/></Border.BorderBrush>
-                            <TextBlock Text="⚙" FontSize="13" Foreground="#60E8C881"
-                                       VerticalAlignment="Center" IsHitTestVisible="False"/>
-                        </Border>
-                        <Rectangle Width="1" Height="14" Fill="#15E8C881" Margin="8,0"/>
-                        <Border x:Name="BtnLangIt" CornerRadius="3" Padding="10,3" Cursor="Hand"
-                                BorderThickness="1" MouseLeftButtonUp="BtnLangIt_Click">
-                            <TextBlock x:Name="TbLangIt" Text="IT" FontSize="10" FontWeight="Bold"/>
-                        </Border>
-                        <TextBlock Text=" │ " Foreground="#20E8C881" VerticalAlignment="Center" FontSize="10" Margin="1,0"/>
-                        <Border x:Name="BtnLangEn" CornerRadius="3" Padding="10,3" Cursor="Hand"
-                                BorderThickness="1" MouseLeftButtonUp="BtnLangEn_Click">
-                            <TextBlock x:Name="TbLangEn" Text="EN" FontSize="10" FontWeight="Bold"/>
-                        </Border>
-                        <Rectangle Width="1" Height="14" Fill="#15E8C881" Margin="8,0"/>
-                        <Border x:Name="BtnMin" CornerRadius="3" Padding="10,3" Cursor="Hand"
-                                Background="Transparent" MouseLeftButtonUp="BtnMin_Click"
-                                MouseEnter="BtnChromeBtn_MouseEnter" MouseLeave="BtnChromeBtn_MouseLeave">
-                            <TextBlock Text="─" FontSize="11" Foreground="#60E8C881"
-                                       VerticalAlignment="Center" IsHitTestVisible="False"/>
-                        </Border>
-                        <Border x:Name="BtnClose" CornerRadius="3" Padding="10,3" Cursor="Hand"
-                                Background="Transparent" MouseLeftButtonUp="BtnClose_Click"
-                                MouseEnter="BtnCloseChromeBtn_MouseEnter" MouseLeave="BtnChromeBtn_MouseLeave">
-                            <TextBlock Text="✕" FontSize="11" Foreground="#60E8C881"
-                                       VerticalAlignment="Center" IsHitTestVisible="False"/>
-                        </Border>
-                    </StackPanel>
+                    <Grid Grid.Row="0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                    MouseLeftButtonDown="DragWindow">
+                            <TextBlock Text="SHAIYA SERVER HUB" Foreground="#E8C881"
+                                       FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Rectangle Width="1" Height="14" Fill="#2DE8C881" Margin="12,0"/>
+                            <TextBlock Text="{DynamicResource AppSubtitle}" Foreground="#50E8C881"
+                                       FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="  ·  by K3rn3l" Foreground="#28E8C881"
+                                       FontSize="10" VerticalAlignment="Center" FontStyle="Italic"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Border x:Name="BtnSettings" CornerRadius="3" Padding="9,3" Cursor="Hand"
+                                    BorderThickness="1" Background="Transparent"
+                                    MouseLeftButtonUp="BtnSettings_Click"
+                                    MouseEnter="BtnChromeBtn_MouseEnter" MouseLeave="BtnChromeBtn_MouseLeave">
+                                <Border.BorderBrush><SolidColorBrush Color="#20E8C881"/></Border.BorderBrush>
+                                <TextBlock Text="⚙" FontSize="13" Foreground="#60E8C881"
+                                           VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            </Border>
+                            <Rectangle Width="1" Height="14" Fill="#15E8C881" Margin="8,0"/>
+                            <Border x:Name="BtnLangIt" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                                    BorderThickness="1" MouseLeftButtonUp="BtnLangIt_Click">
+                                <TextBlock x:Name="TbLangIt" Text="IT" FontSize="10" FontWeight="Bold"/>
+                            </Border>
+                            <TextBlock Text=" │ " Foreground="#20E8C881" VerticalAlignment="Center" FontSize="10" Margin="1,0"/>
+                            <Border x:Name="BtnLangEn" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                                    BorderThickness="1" MouseLeftButtonUp="BtnLangEn_Click">
+                                <TextBlock x:Name="TbLangEn" Text="EN" FontSize="10" FontWeight="Bold"/>
+                            </Border>
+                            <Rectangle Width="1" Height="14" Fill="#15E8C881" Margin="8,0"/>
+                            <Border x:Name="BtnMin" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                                    Background="Transparent" MouseLeftButtonUp="BtnMin_Click"
+                                    MouseEnter="BtnChromeBtn_MouseEnter" MouseLeave="BtnChromeBtn_MouseLeave">
+                                <TextBlock Text="─" FontSize="11" Foreground="#60E8C881"
+                                           VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            </Border>
+                            <Border x:Name="BtnClose" CornerRadius="3" Padding="10,3" Cursor="Hand"
+                                    Background="Transparent" MouseLeftButtonUp="BtnClose_Click"
+                                    MouseEnter="BtnCloseChromeBtn_MouseEnter" MouseLeave="BtnChromeBtn_MouseLeave">
+                                <TextBlock Text="✕" FontSize="11" Foreground="#60E8C881"
+                                           VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Barra di stato persistente (visibile in OGNI vista): banner manutenzione
+                         (solo se attiva) + player online admin/normal (sempre) + salute sistema
+                         complessiva servizi/firewall/web (sempre). Aggiornata da HeaderStatusTick
+                         ogni 15s, indipendente dalla vista aperta — vedi MainWindow.xaml.cs. -->
+                    <Border x:Name="HeaderStatusBar" Grid.Row="1" Margin="0,8,0,0" Padding="10,6"
+                            CornerRadius="4" Background="#141420" BorderThickness="1" BorderBrush="#1CE8C881">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border x:Name="HeaderMntBanner" CornerRadius="3" Padding="8,3" Margin="0,0,10,0"
+                                        Background="#7A1414" Visibility="Collapsed">
+                                    <TextBlock x:Name="TbHeaderMnt" Foreground="#FFD8D8" FontSize="11"
+                                               FontWeight="Bold" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock x:Name="TbHeaderPlayers" Foreground="#CFE0E0E0" FontSize="11"
+                                           FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Ellipse x:Name="HeaderSysDot" Width="8" Height="8" VerticalAlignment="Center" Fill="#66707A"/>
+                                <TextBlock x:Name="TbHeaderSys" Margin="6,0,0,0" Foreground="#CFE0E0E0"
+                                           FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -324,7 +355,7 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Colonna destra: griglia 2×2 (Web · Firewall · PSM_Cmd · Test Suite) -->
+                                <!-- Colonna destra: griglia 2×2 (Manutenzione · Firewall · PSM_Cmd · Test Suite) -->
                                 <Grid Grid.Column="1" Margin="5,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -339,7 +370,8 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Card Web server (0,0) -->
+                                    <!-- Card Manutenzione (0,0): sostituisce la ex Card Web server (doppione
+                                         con la tessera KPI "Web" in alto). Stato normale/attiva + toggle. -->
                                     <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource DashCard}">
                                         <Grid>
                                             <Grid.RowDefinitions>
@@ -347,23 +379,30 @@
                                                 <RowDefinition Height="*"/>
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
-                                            <Border Grid.Row="0" Background="#0E5BD16A" CornerRadius="7,7,0,0" Padding="12,7">
-                                                <TextBlock Text="{DynamicResource DashCardWeb}" Foreground="#8FD69A"
+                                            <Border Grid.Row="0" Background="#0EF46A6A" CornerRadius="7,7,0,0" Padding="12,7">
+                                                <TextBlock Text="{DynamicResource DashCardMaintenance}" Foreground="#F0A8A8"
                                                            FontSize="10" FontWeight="Bold"/>
                                             </Border>
                                             <StackPanel Grid.Row="1" Margin="12,8" VerticalAlignment="Center">
-                                                <TextBlock x:Name="TbDashWebKind" Foreground="#9BE0E0E0" FontSize="11"
-                                                           TextWrapping="Wrap"/>
-                                                <TextBlock x:Name="TbDashWebHealth" Margin="0,5,0,0" FontFamily="Consolas"
-                                                           FontSize="11" FontWeight="SemiBold" Foreground="#E8C881"
-                                                           TextWrapping="Wrap"/>
-                                                <TextBlock x:Name="TbDashWebCert" Margin="0,4,0,0" FontSize="10"
-                                                           Foreground="#66E0E0E0" TextWrapping="Wrap"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse x:Name="DashMntDot" Width="8" Height="8" VerticalAlignment="Center" Fill="#66707A"/>
+                                                    <TextBlock x:Name="TbDashMntState" Margin="6,0,0,0" Foreground="#E8C881"
+                                                               FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="TbDashMntPlayers" Margin="0,4,0,0" FontSize="11"
+                                                           FontWeight="SemiBold" Foreground="#CFE0E0E0" TextWrapping="Wrap"/>
+                                                <TextBlock x:Name="TbDashMntSub" Margin="0,3,0,0" FontSize="10"
+                                                           Foreground="#88E0E0E0" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <Button Grid.Row="2" HorizontalAlignment="Right" Margin="8,0,8,8"
-                                                    Style="{StaticResource MiniButton}"
-                                                    Content="{DynamicResource DashOpenWeb}"
-                                                    Tag="web" Click="DashOpen_Click"/>
+                                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8,0,8,8">
+                                                <Button x:Name="BtnMaintenanceRekick" Margin="0,0,6,0"
+                                                        Style="{StaticResource MiniButton}"
+                                                        Content="{DynamicResource MntBtnRekick}"
+                                                        Click="BtnMaintenanceRekick_Click"/>
+                                                <Button x:Name="BtnMaintenanceToggle"
+                                                        Style="{StaticResource MiniButton}"
+                                                        Click="BtnMaintenanceToggle_Click"/>
+                                            </StackPanel>
                                         </Grid>
                                     </Border>
 

@@ -55,6 +55,14 @@ namespace ShaiyaServerHub.Core
         // Area "Key Rotation": <AppRoot>\keyrotation\{sql,ps1}. Contiene Rotate-ShaiyaKeys.ps1
         // (editabile dall'Hub come gli altri script). Vedi KeyRotationControl.
         public static ScriptRepository KeyRotation => new ScriptRepository(Path.Combine(AppRoot, "keyrotation"));
+        // Area "Manutenzione": <AppRoot>\manutenzione\{sql,ps1}. sql\ contiene notice-enter.sql,
+        // notice-exit.sql, kick-normals.sql (editabili dall'Hub come gli altri script). L'orchestrazione
+        // (toggle tabella + notice + kick) è in C# (MainWindow.BtnMaintenanceToggle_Click), NON in ps1:
+        // serve auth SPLIT fra scrittura tabella (-E/system) e comandi slash (account configurato,
+        // default ShaiyaTaskAgent) — un ps1 standalone non ha accesso a HubSettings per farlo senza
+        // duplicare credenziali su disco. Le modifiche DDL (tabella + gate nel login) sono a parte,
+        // eseguite manualmente dall'admin — vedi guida install SQL. Card Dashboard: vedi MaintenanceReport.
+        public static ScriptRepository Maintenance => new ScriptRepository(Path.Combine(AppRoot, "manutenzione"));
 
         // Radice comune di tutte le funzioni (una sottocartella per scheda/tab).
         public static string FunctionsRoot => Path.Combine(AppRoot, "functions");
@@ -73,6 +81,7 @@ namespace ShaiyaServerHub.Core
             Function("psm_cmd-scc").EnsureFolders();
             TestSuite.EnsureFolders();
             KeyRotation.EnsureFolders();
+            Maintenance.EnsureFolders();
         }
     }
 }

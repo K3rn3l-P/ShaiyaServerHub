@@ -12,9 +12,10 @@ if (-not (Test-Path -Path $logFolder)) {
 # Percorsi da pulire
 $logDirectories = @(
     "C:\ShaiyaServer\PSM_Client\Bin\Log",
+    "C:\ShaiyaServer\Logs",
     "C:\xampp\htdocs\config\logs",
-    "C:\xampp\apache\logs",
-    "F:\BackupAutomatici\log"
+    "C:\xampp\htdocs\Updater\logs",
+    "C:\xampp\apache\logs"
 )
 
 # Funzione per pulire i file di log

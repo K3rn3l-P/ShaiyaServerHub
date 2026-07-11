@@ -22,7 +22,7 @@ DECLARE @BackupPath       NVARCHAR(500),
         @FolderExists     INT;
 
 -- Percorso di backup
-SET @BackupPath = 'F:\BackupAutomatici\AutoBackUp\NEW\';
+SET @BackupPath = 'c:\AutoBackUp\';
 
 -- Timestamp
 SET @CurrentDateTime = FORMAT(GETDATE(), 'dd-MM-yyyy-HH.mm.ss');
@@ -33,7 +33,7 @@ EXEC xp_fileexist @BackupPath, @FolderExists OUTPUT;
 -- Se non esiste, la crea
 IF @FolderExists = 0
 BEGIN
-    EXEC xp_cmdshell 'mkdir "F:\BackupAutomatici\AutoBackUp\NEW"';
+    EXEC xp_cmdshell 'mkdir "c:\AutoBackUp"';
 END
 
 -- 2. Backup di ciascun database online (escluse di sistema)
@@ -65,7 +65,17 @@ CLOSE db_cursor;
 DEALLOCATE db_cursor;
 
 GO
--- 3. Disabilita xp_cmdshell
+
+-- 3. PULIZIA: Cancella backup più vecchi di 7 giorni (PRIMA di disabilitare xp_cmdshell!)
+PRINT 'Inizio pulizia file vecchi...';
+
+EXEC xp_cmdshell 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path ''c:\AutoBackUp\'' -Filter ''*.bak'' | Where-Object { $_.CreationTime -lt (Get-Date).AddDays(-7) } | Remove-Item -Force"';
+
+PRINT 'Pulizia completata!';
+
+GO
+
+-- 4. Disabilita xp_cmdshell
 EXEC sp_configure 'xp_cmdshell', 0;  
 RECONFIGURE WITH OVERRIDE;
 EXEC sp_configure 'show advanced options', 0;  

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 
 namespace ShaiyaServerHub
@@ -110,6 +111,66 @@ namespace ShaiyaServerHub
             string n = string.IsNullOrWhiteSpace(next) ? "" : S($" · prossimo {next}", $" · next {next}");
             return l + n;
         }
+
+        // Manutenzione — card Dashboard (sostituisce la ex card Web, doppione con tessera KPI Web)
+        public static string MntChecking => S("verifica…", "checking…");
+        public static string MntNotInstalled => S("⚪  Non installata (vedi guida SQL)", "⚪  Not installed (see SQL guide)");
+        public static string MntActive => S("🔴  MANUTENZIONE ATTIVA", "🔴  MAINTENANCE ACTIVE");
+        public static string MntNormal => S("🟢  Normale", "🟢  Normal");
+        public static string MntPlayers(int admin, int normal) => S(
+            $"👤 Admin online: {admin} · Normali online: {normal}",
+            $"👤 Admins online: {admin} · Normal online: {normal}");
+        public static string MntPlayersUnknown => S("Conteggio online non disponibile", "Online count unavailable");
+        public static string MntSub(bool hasTable, DateTime? changedAt, string changedBy)
+        {
+            if (!hasTable)
+                return S("Esegui i file 8. e 9. nella guida install SQL", "Run files 8. and 9. in the SQL install guide");
+            if (!changedAt.HasValue)
+                return S("mai modificata", "never changed");
+            string who = string.IsNullOrWhiteSpace(changedBy) ? "" : $" ({changedBy})";
+            return S($"ultima modifica {changedAt.Value:dd/MM HH:mm}{who}", $"last change {changedAt.Value:MM/dd HH:mm}{who}");
+        }
+        public static string MntBtnEnter => S("Attiva manutenzione", "Enter maintenance");
+        public static string MntBtnExit => S("Termina manutenzione", "Exit maintenance");
+        public static string MntConfirmTitle => S("Modalità Manutenzione", "Maintenance Mode");
+        public static string MntConfirmEnter => S(
+            "Attivare la modalità manutenzione?\n\nI player normali online verranno kickati SUBITO e il login " +
+            "verrà negato ai non-admin fino a disattivazione. Gli admin whitelisted continuano a entrare.",
+            "Enable maintenance mode?\n\nNormal players currently online will be kicked IMMEDIATELY and login " +
+            "will be denied to non-admins until disabled. Whitelisted admins can still log in.");
+        public static string MntConfirmExit => S(
+            "Terminare la modalità manutenzione?\n\nIl login normale verrà riabilitato subito per tutti i player.",
+            "Exit maintenance mode?\n\nNormal login will be re-enabled for all players immediately.");
+        public static string MntMissingTable => S(
+            "✗ Modalità Manutenzione non installata: esegui prima i file 8. e 9. nella guida install SQL (1.DB-SICURO-login server-client).",
+            "✗ Maintenance Mode not installed: run files 8. and 9. in the SQL install guide (1.DB-SICURO-login server-client) first.");
+        public static string MntScriptMissing(string script) => S(
+            $"✗ Script non trovato in manutenzione\\sql: {script}", $"✗ Script not found in manutenzione\\sql: {script}");
+        public static string MntTogglingOn => S("Attivo MaintenanceMode (tabella, auth Windows)...", "Enabling MaintenanceMode (table, Windows auth)...");
+        public static string MntTogglingOff => S("Disattivo MaintenanceMode (tabella, auth Windows)...", "Disabling MaintenanceMode (table, Windows auth)...");
+        public static string MntSendingNotice => S("Invio notice (account configurato)...", "Sending notice (configured account)...");
+        public static string MntNoticeFailed => S("WARN: notice fallito (manutenzione resta comunque applicata).", "WARN: notice failed (maintenance state still applied).");
+        public static string MntKicking => S("Kick dei player normali online (account configurato)...", "Kicking normal players online (configured account)...");
+        public static string MntKickCount(int n) => S($"{n} player normali online da kickare.", $"{n} normal players online to kick.");
+        public static string MntAutoKicked(int n) => S($"🔁 Ri-kick automatico: {n} player normali rimasti online (es. Character Screen) espulsi.", $"🔁 Auto re-kick: {n} normal players still online (e.g. Character Screen) kicked.");
+
+        // Barra di stato persistente nell'header (visibile in ogni vista) — vedi HeaderStatusTick
+        public static string HeaderMntBanner => S(
+            "🚧 MODALITÀ MANUTENZIONE ATTIVA — login player normali bloccato",
+            "🚧 MAINTENANCE MODE ACTIVE — normal player login blocked");
+        public static string HeaderSysOk => S("● Sistema OK", "● System OK");
+        public static string HeaderSysWarn(bool svcOk, bool fwOk, bool webOk)
+        {
+            var bad = new List<string>();
+            if (!svcOk) bad.Add(S("servizi", "services"));
+            if (!fwOk) bad.Add(S("firewall", "firewall"));
+            if (!webOk) bad.Add(S("web", "web"));
+            string list = string.Join(S(", ", ", "), bad);
+            return S($"⚠ Problema: {list}", $"⚠ Issue: {list}");
+        }
+        public static string MntEnterDone => S("Modalità manutenzione ATTIVA.", "Maintenance mode ACTIVE.");
+        public static string MntExitDone => S("Modalità manutenzione terminata.", "Maintenance mode ended.");
+        public static string MntActionFailed => S("✗ Azione manutenzione non completata: verifica il log sopra.", "✗ Maintenance action not completed: check the log above.");
 
         // ── Key Rotation (vista) ─────────────────────────────
         public static string KrTitle => S("Key Rotation", "Key Rotation");
