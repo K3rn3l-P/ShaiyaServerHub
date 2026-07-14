@@ -5,7 +5,7 @@
 #   [A] Default inbound = Block su ogni profilo abilitato (base della posture).
 #   [B] CRITICO/FAIL: canale comandi PSM (40900/40901) + porte interne ps_* (30900/30901/30911/30912)
 #       NON devono avere allow pubblico: vanno raggiunte solo da localhost/processi locali.
-#   [C] WARN: porte admin (135/445/3389/5985/5986/1433, ≠1433) con allow pubblico -> restringere a LAN.
+#   [C] WARN: porte admin (135/445/3389/5985/5986/1433, !=1433) con allow pubblico -> restringere a LAN.
 #   [D] WARN: qualsiasi ALTRA porta TCP pubblica oltre a quelle attese (game 30800/30810, web 80/443)
 #       -> fuga (es. Syncthing/MSMPI/app varie): restringere a LAN o disabilitare la regola.
 #   WARN anche se Windows Firewall e' interamente disattivo (enforcement solo via simplewall: non verificabile qui).
@@ -47,7 +47,7 @@ function Is-PublicPort([int]$port) { return $publicTcpPorts.ContainsKey($port) }
 $internalExposed = @()
 foreach ($p in $internalPorts) { if (Is-PublicPort $p) { $internalExposed += $p } }
 
-# [C] porte admin (≠1433) in ascolto su non-loopback con allow pubblico
+# [C] porte admin (!=1433) in ascolto su non-loopback con allow pubblico
 $adminListen = $listen | Where-Object { $_.LocalPort -in $adminPorts } | Sort-Object LocalPort, LocalAddress -Unique
 $adminNonLoop = $adminListen | Where-Object { $_.LocalPort -ne 1433 -and $_.LocalAddress -notin $loop } |
                 Select-Object -ExpandProperty LocalPort -Unique

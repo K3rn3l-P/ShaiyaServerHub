@@ -1,7 +1,11 @@
--- Created by GitHub Copilot in SSMS - review carefully before executing
--- Abilita SQLCMD Mode in SSMS: Query > SQLCMD Mode
-:OUT C:\SecurityAudit_AllDBs.txt
-
+-- security_audit_all_dbs_nosqlcmd.sql
+-- Audit diagnostico esteso (utenti/ruoli/permessi/moduli EXECUTE AS+dynamic SQL per ogni DB PS_*, flag
+-- TRUSTWORTHY/db_chaining, superficie xp_cmdshell/OLE/CLR) - dump informativo PRINT/SELECT PIU' un
+-- verdetto RESULT: calcolato in fondo.
+-- FIX: le righe ":OUT C:\SecurityAudit_AllDBs.txt" / ":OUT STDOUT" originali (scritto per uso manuale in
+-- SSMS con SQLCMD Mode) redirigevano TUTTO l'output verso un file locale fisso invece che su stdout -
+-- per questo nella Test Suite risultava sempre "INFO" senza contenuto (lo stream catturato dal Hub era
+-- vuoto). Rimosse: ora l'output arriva nel log della Test Suite come tutti gli altri script.
 SET NOCOUNT ON;
 
 DECLARE @DbPattern sysname = N'PS[_]%';  -- metti N'%' per tutti i DB utente
@@ -189,4 +193,41 @@ FROM sys.configurations
 WHERE name IN (N'xp_cmdshell',N'Ole Automation Procedures',N'clr enabled')
 ORDER BY name;
 
-:OUT STDOUT
+-- ── Verdetto (nuovo — mancava nello script originale) ──
+DECLARE @status varchar(10) = 'PASS', @detail varchar(1000) = '';
+
+-- sysadmin oltre l'insieme noto (Administrator locale, ojkndsaouin = sa rinominato, service account SQL)
+DECLARE @unexpectedSysadmin int;
+SELECT @unexpectedSysadmin = COUNT(*)
+FROM sys.server_role_members srm
+JOIN sys.server_principals r ON r.principal_id = srm.role_principal_id
+JOIN sys.server_principals m ON m.principal_id = srm.member_principal_id
+WHERE r.name = N'sysadmin'
+  AND m.name NOT LIKE '%\Administrator'
+  AND m.name <> 'ojkndsaouin'
+  AND m.name NOT LIKE 'NT SERVICE\%'
+  AND m.name NOT LIKE 'NT AUTHORITY\%'
+  AND m.name <> 'sa';
+IF @unexpectedSysadmin > 0
+BEGIN
+    SET @status = 'WARN';
+    SET @detail = @detail + CAST(@unexpectedSysadmin AS varchar) + ' membro/i sysadmin inatteso/i; ';
+END
+
+-- TRUSTWORTHY / db_chaining su un DB PS_* = anti-pattern noto
+IF EXISTS (SELECT 1 FROM sys.databases WHERE database_id > 4 AND name LIKE @DbPattern AND (is_trustworthy_on = 1 OR is_db_chaining_on = 1))
+BEGIN
+    SET @status = 'WARN';
+    SET @detail = @detail + 'TRUSTWORTHY o db_chaining attivo su un DB PS_*; ';
+END
+
+-- xp_cmdshell / OLE Automation abilitati = superficie di attacco inutile per questo server (CLR e'
+-- volutamente escluso: serve a PSM_Cmd, atteso ON - vedi 07_clr_assemblies.sql per il controllo dedicato)
+IF EXISTS (SELECT 1 FROM sys.configurations WHERE name IN (N'xp_cmdshell', N'Ole Automation Procedures') AND value_in_use = 1)
+BEGIN
+    SET @status = 'WARN';
+    SET @detail = @detail + 'xp_cmdshell o OLE Automation Procedures abilitati; ';
+END
+
+IF @detail = '' SET @detail = 'nessun anti-pattern noto (sysadmin/TRUSTWORTHY/xp_cmdshell/OLE) sui DB PS_*';
+PRINT 'RESULT: ' + @status + ' - ' + @detail;

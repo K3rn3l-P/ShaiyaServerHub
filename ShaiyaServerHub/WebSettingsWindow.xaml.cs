@@ -40,13 +40,19 @@ namespace ShaiyaServerHub
 
         private async void BtnSaveRow_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var st = ((FrameworkElement)sender).DataContext as WebSetting;
             if (st == null) return;
-            SetStatus($"salvo {st.Key}…", 0xE8, 0xC8, 0x81);
-            string err = null;
-            await Task.Run(() => err = WebSettingsRepo.SaveSetting(_settings, st.Key, st.Value, _log));
-            if (err == null) SetStatus($"✓ {st.Key} salvato", 0x4D, 0xC8, 0x70);
-            else SetStatus($"✗ {st.Key}: {err}", 0xF4, 0x6A, 0x6A);
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                SetStatus($"salvo {st.Key}…", 0xE8, 0xC8, 0x81);
+                string err = null;
+                await Task.Run(() => err = WebSettingsRepo.SaveSetting(_settings, st.Key, st.Value, _log));
+                if (err == null) SetStatus($"✓ {st.Key} salvato", 0x4D, 0xC8, 0x70);
+                else SetStatus($"✗ {st.Key}: {err}", 0xF4, 0x6A, 0x6A);
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void SetStatus(string text, byte r, byte g, byte b)

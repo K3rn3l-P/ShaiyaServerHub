@@ -15,6 +15,7 @@
     <s:String x:Key="NavFunctions">🛠  Funzioni</s:String>
     <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
     <s:String x:Key="NavKeyRotation">🔑  Key Rotation</s:String>
+    <s:String x:Key="NavAi">🧠  AI</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
 
     <!-- Dashboard -->
@@ -37,6 +38,8 @@
     <s:String x:Key="DashOpenPsm">Apri funzioni →</s:String>
     <s:String x:Key="DashOpenTestSuite">Apri test suite →</s:String>
     <s:String x:Key="DashOpenKeyRotation">Apri →</s:String>
+    <s:String x:Key="DashCardAi">🧠  AI</s:String>
+    <s:String x:Key="DashOpenAi">Apri →</s:String>
     <s:String x:Key="DashQuickActions">AZIONI RAPIDE</s:String>
     <s:String x:Key="DashActNewTask">＋ Nuovo task</s:String>
     <s:String x:Key="DashActTestSuite">🛡 Test Suite</s:String>
@@ -53,6 +56,11 @@
     <s:String x:Key="BtnPsmSettings">⚙ Impostazioni DB</s:String>
     <s:String x:Key="BtnPsmLog">📋 Log DB</s:String>
     <s:String x:Key="BtnRunTestSuite">▶ Esegui tutto</s:String>
+    <s:String x:Key="BtnInstallSqlAudit">⚙ Installa/Verifica SQL Audit</s:String>
+    <s:String x:Key="TipInstallSqlAudit">Installa (o verifica/ripara) il SQL Server Audit nativo per login SQL falliti e modifiche di schema — idempotente, sicuro da rilanciare. Vedi script 23_sql_audit_install.sql.</s:String>
+    <s:String x:Key="GbExternalTools">🔧 Strumenti esterni</s:String>
+    <s:String x:Key="BtnDownloadTools">⬇ Scarica/Aggiorna Autoruns</s:String>
+    <s:String x:Key="TipDownloadTools">Scarica autorunsc.exe (Sysinternals) da live.sysinternals.com — usato dal controllo 22_autoruns_baseline per rilevare nuovi punti di autostart (persistenza).</s:String>
     <s:String x:Key="BtnOpenLog">📋 Log</s:String>
     <s:String x:Key="TipScriptLog">Apri il log di questo script</s:String>
     <s:String x:Key="AreaLogTitle">LOG</s:String>
@@ -200,6 +208,54 @@
     <s:String x:Key="SetGbChannel">CANALE COMANDI (PSM_Cmd)</s:String>
     <s:String x:Key="HintChannel">In Windows auth (sysadmin) gli script che usano usp_RunCommand (/mmake, /exp2xenable) vengono negati (-3): sysadmin non è in GmCallerProfile. Registra il login corrente con tier ECONOMY per farli funzionare.</s:String>
     <s:String x:Key="BtnRegisterCaller">Abilita questo login nel canale comandi (ECONOMY)</s:String>
+
+    <!-- Settings window: schede -->
+    <s:String x:Key="TabSetServer">Server</s:String>
+    <s:String x:Key="TabSetWeb">Web</s:String>
+    <s:String x:Key="TabSetChannel">Canale comandi</s:String>
+    <s:String x:Key="TabSetAi">AI</s:String>
+
+    <s:String x:Key="SetGbAi">AI (HUB BRAIN)</s:String>
+    <s:String x:Key="LblAiEnabled">Attiva l'AI (interruttore principale)</s:String>
+    <s:String x:Key="SetGbAiConnection">CONNESSIONE OPENROUTER</s:String>
+    <s:String x:Key="LblOpenRouterKey">API key OpenRouter:</s:String>
+    <s:String x:Key="LblOpenRouterEndpoint">Endpoint:</s:String>
+    <s:String x:Key="SetGbAiModels">MODELLI</s:String>
+    <s:String x:Key="HintAiModels">3 slot: "Critico" per incidenti reali/mitigazioni (default openrouter/auto, consuma credito vero — usalo solo quando serve davvero); "Default" per uso ordinario/routine/controllo "buchi" (di norma un modello free scelto per affidabilità — con l'auto-update sotto, si ri-verifica da solo contro il catalogo OpenRouter reale invece di restare fisso su un ID che potrebbe sparire); "Fallback" usato in automatico se il modello scelto fallisce (crediti finiti, errore API, modello rimosso) — di norma openrouter/free come rete di sicurezza. Puoi mettere qualsiasi modello supportato da OpenRouter (openrouter.ai/models).</s:String>
+    <s:String x:Key="LblAiModelCritical">Modello critico:</s:String>
+    <s:String x:Key="LblAiModelDefault">Modello default:</s:String>
+    <s:String x:Key="LblAiModelFallback">Modello fallback:</s:String>
+    <s:String x:Key="LblAiMaxPerDay">Richieste/giorno:</s:String>
+    <s:String x:Key="LblAiMaxPerHour">Richieste/ora:</s:String>
+    <s:String x:Key="ChkAiModelAutoUpdate">Aggiorna automaticamente il modello Default (consigliato — verifica ogni 24h contro il catalogo OpenRouter)</s:String>
+    <s:String x:Key="BtnAiModelRefresh">🔄 Verifica ora</s:String>
+    <s:String x:Key="SetGbAiTelegram">TELEGRAM (NOTIFICHE)</s:String>
+    <s:String x:Key="HintTelegram">Notifiche/approvazioni via bot Telegram. Come crearne uno: apri Telegram, cerca @BotFather, invia /newbot e segui le istruzioni → copia il Token qui sotto. Poi scrivi un messaggio al tuo bot (es. /start) e premi 🔎 Rileva: il Chat ID si compila da solo.</s:String>
+    <s:String x:Key="LblTelegramToken">Bot token:</s:String>
+    <s:String x:Key="LblTelegramChatId">Chat ID:</s:String>
+    <s:String x:Key="BtnDetectChatId">🔎 Rileva</s:String>
+    <s:String x:Key="SetGbAiSqlSearx">DATI (SQL READ-ONLY + RICERCA WEB)</s:String>
+    <s:String x:Key="HintAiSql">Login SQL dedicato, SOLA LETTURA (mai le credenziali principali del Hub) — crealo prima con lo script nella guida install MSSQL (ShaiyaAiReader).</s:String>
+    <s:String x:Key="LblAiSqlUser">Utente:</s:String>
+    <s:String x:Key="LblAiSqlPass">Password:</s:String>
+    <s:String x:Key="LblSearxMode">Modalità:</s:String>
+    <s:String x:Key="SearxModeMcp">Server MCP</s:String>
+    <s:String x:Key="SearxModeRest">Endpoint REST</s:String>
+    <s:String x:Key="LblSearxUrl">URL:</s:String>
+    <s:String x:Key="HintSearxMcp">Server MCP SearXNG (protocollo JSON-RPC, es. http://host:porta/mcp) — lo stesso canale usato per le ricerche web in sviluppo. Precompilato con l'istanza nota di questo ambiente; funziona già così.</s:String>
+    <s:String x:Key="HintSearxRest">Endpoint REST di una tua istanza SearXNG (es. http://host:porta, senza /search). Richiede search: formats: [html, json] abilitato in settings.yml (SearXNG lo disabilita per default → altrimenti 403).</s:String>
+    <s:String x:Key="SetGbAiBan">BAN ESECUTIVO (T3 — IRREVERSIBILE)</s:String>
+    <s:String x:Key="HintAiBan">Login SQL dedicato con SOLO il permesso EXECUTE su sp_BanUser (mai le credenziali principali del Hub) — crealo prima con lo script 3.1.Login-BanExecutor-AI.sql sulla guida install MSSQL (ShaiyaAiBanExecutor). Senza password qui, il tool ban_player rifiuta sempre esplicitamente.</s:String>
+    <s:String x:Key="LblAiBanUser">Utente:</s:String>
+    <s:String x:Key="LblAiBanPass">Password:</s:String>
+    <s:String x:Key="SetGbAiAutoruns">AUTORUN / PERSISTENZA (autorunsc)</s:String>
+    <s:String x:Key="LblAiAutorunsCheck">Ogni quanto controlla (minuti):</s:String>
+    <s:String x:Key="LblAiAutorunsRunEvery">Scansione completa ogni (ore):</s:String>
+    <s:String x:Key="LblAiAutorunsGrace">Grazia dopo avvio Hub (minuti):</s:String>
+    <s:String x:Key="HintAiAutoruns">"Ogni quanto controlla" = frequenza del risveglio interno (basta un valore piccolo). "Scansione completa ogni" = ogni quante ore rilancia davvero autorunsc. "Grazia" = attesa dopo l'avvio del Hub prima del primo giro (evita falsi allarmi a servizi ancora in partenza).</s:String>
+    <s:String x:Key="SetGbAiSafety">SICUREZZA — CIRCUIT BREAKER</s:String>
+    <s:String x:Key="HintCircuitBreaker">Se troppe azioni T1+ scattano in poco tempo (possibile loop/anomalia), l'AI si ferma da sola e resta ferma finché non resetti qui manualmente — non si riapre da sola col tempo.</s:String>
+    <s:String x:Key="BtnResetCircuitBreaker">Resetta</s:String>
     <s:String x:Key="BtnSave">Salva</s:String>
     <s:String x:Key="BtnCancel">Annulla</s:String>
 
@@ -307,6 +363,19 @@
     <s:String x:Key="KrBtnOpenData">📂 Cartella Data</s:String>
     <s:String x:Key="KrRebootWarn">⚠ Chiavi ruotate ma i servizi non sono ripartiti: riavvia ps_game/ps_login (o il server) per applicarle.</s:String>
     <s:String x:Key="KrKeysTitle">CHIAVI CORRENTI (fingerprint SHA-256, mai in chiaro)</s:String>
+
+    <!-- AI (Hub Brain) -->
+    <s:String x:Key="GbAi">AI — HUB BRAIN</s:String>
+    <s:String x:Key="AiBtnClear">🧹 Pulisci</s:String>
+    <s:String x:Key="AiBtnSettings">Impostazioni AI</s:String>
+    <s:String x:Key="AiBtnSend">Invia ▶</s:String>
+    <s:String x:Key="AiFeedTitle">TOOL LETTI DALL'AI</s:String>
+    <s:String x:Key="AiBtnCopyChat">Copia chat</s:String>
+    <s:String x:Key="AiBtnCopyFeed">Copia</s:String>
+    <s:String x:Key="AiBtnStop">⏹ Stop</s:String>
+    <s:String x:Key="AiLblMode">Modello:</s:String>
+    <s:String x:Key="AiModeDefault">Default (free)</s:String>
+    <s:String x:Key="AiModeCritical">Critico (auto)</s:String>
 
     <!-- Windows Firewall -->
     <s:String x:Key="FwEnableAll">🛡 Abilita firewall</s:String>

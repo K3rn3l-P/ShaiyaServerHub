@@ -137,25 +137,28 @@ namespace ShaiyaServerHub.Controls
 
             RebootBanner.Visibility = Visibility.Collapsed;
             BtnRotateNow.IsEnabled = false;
-            Log("── " + L.KrRotating + " ──");
-
-            bool rebootNeeded = false;
-            int rc = -1;
-            await Task.Run(() =>
+            try
             {
-                rc = _runner.RunPowerShell(_ps1Path, line =>
-                {
-                    Log(line);
-                    // Il ps1 emette questo marker solo se NON è riuscito a riavviare i servizi.
-                    if (line != null && line.IndexOf("RIAVVIO-RICHIESTO", StringComparison.OrdinalIgnoreCase) >= 0)
-                        rebootNeeded = true;
-                });
-            });
+                Log("── " + L.KrRotating + " ──");
 
-            Log(rc == 0 ? L.KrRotateDone : L.KrRotateErr(rc));
-            if (rebootNeeded) RebootBanner.Visibility = Visibility.Visible;
-            BtnRotateNow.IsEnabled = true;
-            RefreshAll();
+                bool rebootNeeded = false;
+                int rc = -1;
+                await Task.Run(() =>
+                {
+                    rc = _runner.RunPowerShell(_ps1Path, line =>
+                    {
+                        Log(line);
+                        // Il ps1 emette questo marker solo se NON è riuscito a riavviare i servizi.
+                        if (line != null && line.IndexOf("RIAVVIO-RICHIESTO", StringComparison.OrdinalIgnoreCase) >= 0)
+                            rebootNeeded = true;
+                    });
+                });
+
+                Log(rc == 0 ? L.KrRotateDone : L.KrRotateErr(rc));
+                if (rebootNeeded) RebootBanner.Visibility = Visibility.Visible;
+                RefreshAll();
+            }
+            finally { BtnRotateNow.IsEnabled = true; }
         }
 
         // ── Modifica ps1 ─────────────────────────────────────
@@ -178,34 +181,52 @@ namespace ShaiyaServerHub.Controls
             if (MessageBox.Show(Window.GetWindow(this), L.KrConfirmInstall, L.KrTitle,
                 MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
 
-            // Azione: ShaiyaServerHub.exe --run "<ps1>" --log "<log\KeyRotation.log>" (headless, esito leggibile).
-            string exe = TaskSchedulerService.ExePath;
-            string logFile = TaskLogReader.LogPathFor(TaskName);
-            string args = $"--run \"{_ps1Path}\" --log \"{logFile}\"";
-            var spec = new ScheduleSpec { Type = "DAILY", Time = "04:00" };
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                // Azione: ShaiyaServerHub.exe --run "<ps1>" --log "<log\KeyRotation.log>" (headless, esito leggibile).
+                string exe = TaskSchedulerService.ExePath;
+                string logFile = TaskLogReader.LogPathFor(TaskName);
+                string args = $"--run \"{_ps1Path}\" --log \"{logFile}\"";
+                var spec = new ScheduleSpec { Type = "DAILY", Time = "04:00" };
 
-            Log("── " + L.KrInstalling + " ──");
-            int rc = -1;
-            // Il task esegue il ps1 headless (--run): rotazione + riavvio ps_game/ps_login gestiti DAL ps1.
-            // Nessuna azione di reboot del server: bastano i due servizi.
-            await Task.Run(() => rc = TaskSchedulerService.Create(
-                TaskName, spec, exe, args, TaskSchedulerService.ExeDir, Log));
-            Log(rc == 0 ? L.KrInstallDone : L.KrRotateErr(rc));
-            RefreshAll();
+                Log("── " + L.KrInstalling + " ──");
+                int rc = -1;
+                // Il task esegue il ps1 headless (--run): rotazione + riavvio ps_game/ps_login gestiti DAL ps1.
+                // Nessuna azione di reboot del server: bastano i due servizi.
+                await Task.Run(() => rc = TaskSchedulerService.Create(
+                    TaskName, spec, exe, args, TaskSchedulerService.ExeDir, Log));
+                Log(rc == 0 ? L.KrInstallDone : L.KrRotateErr(rc));
+                RefreshAll();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnEnableTask_Click(object sender, RoutedEventArgs e)
         {
-            int rc = -1;
-            await Task.Run(() => rc = TaskSchedulerService.SetEnabled(TaskFullName, true, Log));
-            RefreshAll();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                int rc = -1;
+                await Task.Run(() => rc = TaskSchedulerService.SetEnabled(TaskFullName, true, Log));
+                RefreshAll();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnDisableTask_Click(object sender, RoutedEventArgs e)
         {
-            int rc = -1;
-            await Task.Run(() => rc = TaskSchedulerService.SetEnabled(TaskFullName, false, Log));
-            RefreshAll();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                int rc = -1;
+                await Task.Run(() => rc = TaskSchedulerService.SetEnabled(TaskFullName, false, Log));
+                RefreshAll();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         // ── Apri log / cartella Data ─────────────────────────

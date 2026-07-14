@@ -56,6 +56,87 @@ namespace ShaiyaServerHub.Core
         // ── UI ───────────────────────────────────────────────
         public string Language { get; set; } = "It";
 
+        // ── AI (Hub Brain) ────────────────────────────────────
+        // Tutti i segreti AI seguono lo stesso pattern DPAPI di SqlPasswordEnc: MAI in chiaro su disco.
+        public bool AiMasterEnabled { get; set; } = false;    // kill-switch principale: AI spenta di default
+        public string OpenRouterEndpoint { get; set; } = "https://openrouter.ai/api/v1/chat/completions";
+        public string OpenRouterApiKeyEnc { get; set; } = "";  // DPAPI base64
+
+        [XmlIgnore]
+        public string OpenRouterApiKey
+        {
+            get { return Unprotect(OpenRouterApiKeyEnc); }
+            set { OpenRouterApiKeyEnc = Protect(value); }
+        }
+
+        // Bot Telegram 2-vie (notifiche + approvazioni remote). Vedi mini-guida BotFather in AiControl.
+        public string TelegramBotTokenEnc { get; set; } = "";  // DPAPI base64
+        public string TelegramChatId { get; set; } = "";       // non segreto, ma privato: resta in chiaro
+
+        [XmlIgnore]
+        public string TelegramBotToken
+        {
+            get { return Unprotect(TelegramBotTokenEnc); }
+            set { TelegramBotTokenEnc = Protect(value); }
+        }
+
+        // Login SQL dedicato, read-only (ShaiyaAiReader) — vedi script guida MSSQL.
+        public string AiSqlReadUser { get; set; } = "ShaiyaAiReader";
+        public string AiSqlReadPassEnc { get; set; } = "";     // DPAPI base64
+
+        [XmlIgnore]
+        public string AiSqlReadPass
+        {
+            get { return Unprotect(AiSqlReadPassEnc); }
+            set { AiSqlReadPassEnc = Protect(value); }
+        }
+
+        // Login SQL dedicato per il tool T3 "ban_player" (ShaiyaAiBanExecutor) — SEPARATO sia da
+        // ShaiyaAiReader (sola lettura) sia da SqlUser/ShaiyaTaskAgent (PSM_Cmd). Un solo permesso lato
+        // server: EXECUTE su PS_UserData.dbo.sp_BanUser, nient'altro — vedi script
+        // 3.1.Login-BanExecutor-AI.sql sulla guida NAS. Se non configurato, il tool ban_player rifiuta
+        // esplicitamente invece di tentare con credenziali sbagliate.
+        public string AiBanSqlUser { get; set; } = "ShaiyaAiBanExecutor";
+        public string AiBanSqlPassEnc { get; set; } = "";     // DPAPI base64
+
+        [XmlIgnore]
+        public string AiBanSqlPass
+        {
+            get { return Unprotect(AiBanSqlPassEnc); }
+            set { AiBanSqlPassEnc = Protect(value); }
+        }
+
+        // Ricerca web per l'AI (mitigazioni/CVE/best-practice) — non segreto. Due modalità:
+        // "Mcp"  → server MCP (JSON-RPC su HTTP, Core\Ai\McpSearxngClient). Default: istanza nota di
+        //          questo ambiente, verificata (initialize → notifications/initialized → tools/call).
+        // "Rest" → endpoint SearXNG REST classico (/search?format=json) per chi ha/vorrà in futuro
+        //          un'istanza SearXNG propria con l'API JSON abilitata in settings.yml.
+        public string AiWebSearchMode { get; set; } = "Mcp";       // "Mcp" | "Rest"
+        public string AiWebSearchUrl { get; set; } = DefaultAiWebSearchUrl;
+        public const string DefaultAiWebSearchUrl = "http://10.10.19.4:3030/mcp";
+
+        // Digest esteso (P4 — sorveglianza Windows/SQL/web completa, vedi SecurityDigestScheduler).
+        // Soglia minima di gravità che genera un turno LLM + notifica Telegram — "Low"/"Medium"/"High".
+        // Default Medium: i finding Low restano SOLO nell'audit log (hub.log), mai su Telegram (anti-spam).
+        public string AiDigestTelegramMinSeverity { get; set; } = "Medium";
+        // Spazio disco: sotto questa percentuale libera → finding High/Medium.
+        public double AiDigestDiskFreePctHigh { get; set; } = 5;
+        public double AiDigestDiskFreePctMedium { get; set; } = 10;
+        // Login falliti OS (Security 4625/4740) con IP reale, conteggio per singolo IP nella finestra.
+        public int AiDigestOsFailedLogonMedium { get; set; } = 20;
+        public int AiDigestOsFailedLogonHigh { get; set; } = 100;
+        // Blocco SQL sostenuto (secondi) oltre cui diventa un finding Medium.
+        public int AiDigestSqlBlockingSecondsMedium { get; set; } = 30;
+
+        // Audit persistenza/ASEP (autorunsc, vedi AutorunsAuditScheduler) — default 30min/24h/30min.
+        public int AiAutorunsCheckIntervalMinutes { get; set; } = 30;
+        public int AiAutorunsRunEveryHours { get; set; } = 24;
+        public int AiAutorunsStartupGraceMinutes { get; set; } = 30;
+
+        // Login SQL falliti a livello server (SqlAuditSensor) — conteggio per singolo IP che fa scattare Medium/High.
+        public int AiDigestSqlFailedLoginMedium { get; set; } = 5;
+        public int AiDigestSqlFailedLoginHigh { get; set; } = 20;
+
         // ── Password in chiaro (runtime, NON serializzata) ──
         [XmlIgnore]
         public string SqlPassword
@@ -78,7 +159,17 @@ namespace ShaiyaServerHub.Core
                     {
                         var ser = new XmlSerializer(typeof(HubSettings));
                         var s = ser.Deserialize(fs) as HubSettings;
-                        if (s != null) return s;
+                        if (s != null)
+                        {
+                            // Migrazione: un hub.settings.xml salvato PRIMA che questo default esistesse
+                            // contiene <AiWebSearchUrl /> vuoto esplicito, che altrimenti vincerebbe sempre
+                            // sul default della proprietà (la deserializzazione imposta ciò che TROVA nel
+                            // file). Ripristina il default solo se il campo è vuoto, mai se l'utente ha
+                            // scelto qualcos'altro.
+                            if (string.IsNullOrWhiteSpace(s.AiWebSearchUrl)) s.AiWebSearchUrl = DefaultAiWebSearchUrl;
+                            if (string.IsNullOrWhiteSpace(s.AiWebSearchMode)) s.AiWebSearchMode = "Mcp";
+                            return s;
+                        }
                     }
                 }
             }

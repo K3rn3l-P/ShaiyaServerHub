@@ -118,10 +118,10 @@ foreach ($relativePath in $templates.Keys) {
         if ($Apply) {
             Add-Action -List $actions -Type 'create_htaccess' -Target $relativePath -Status 'applied' -Message 'Creato file hardening mancante.'
         } else {
-            Add-Action -List $actions -Type 'create_htaccess' -Target $relativePath -Status 'planned' -Message 'File mancante: verrà creato con -Apply.'
+            Add-Action -List $actions -Type 'create_htaccess' -Target $relativePath -Status 'planned' -Message "File mancante: verra' creato con -Apply."
         }
     } else {
-        Add-Action -List $actions -Type 'create_htaccess' -Target $relativePath -Status 'skipped' -Message 'File già presente: nessuna modifica.'
+        Add-Action -List $actions -Type 'create_htaccess' -Target $relativePath -Status 'skipped' -Message 'File gia'' presente: nessuna modifica.'
     }
 }
 
@@ -139,11 +139,11 @@ RewriteRule ^(?:^|/)\.(?!well-known(?:/|$)) - [F,L]
         if ($Apply) {
             Add-Action -List $actions -Type 'create_htaccess' -Target '.htaccess' -Status 'applied' -Message 'Creato root .htaccess baseline.'
         } else {
-            Add-Action -List $actions -Type 'create_htaccess' -Target '.htaccess' -Status 'planned' -Message 'Root .htaccess mancante: verrà creato con -Apply.'
+            Add-Action -List $actions -Type 'create_htaccess' -Target '.htaccess' -Status 'planned' -Message "Root .htaccess mancante: verra' creato con -Apply."
         }
     }
 } else {
-    Add-Action -List $actions -Type 'create_htaccess' -Target '.htaccess' -Status 'skipped' -Message 'Root .htaccess già presente: nessuna modifica.'
+    Add-Action -List $actions -Type 'create_htaccess' -Target '.htaccess' -Status 'skipped' -Message 'Root .htaccess gia'' presente: nessuna modifica.'
 }
 
 $summary = [ordered]@{

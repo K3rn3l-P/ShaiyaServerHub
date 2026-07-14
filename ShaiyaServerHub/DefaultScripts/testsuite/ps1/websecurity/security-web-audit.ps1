@@ -1,11 +1,11 @@
 param(
     # Default = hostname pubblico tailscale del sito. NON usare 'https://127.0.0.1':
-    #   - il cert TLS e' Let's Encrypt per CN=duff.pinto-lime.ts.net → IWR verifica il nome host
+    #   - il cert TLS e' Let's Encrypt per CN=duff.pinto-lime.ts.net -> IWR verifica il nome host
     #     e con 127.0.0.1 fallisce l'handshake ("Could not create SSL/TLS secure channel"),
-    #     azzerando OGNI probe (statusCode=0 → tutti i check saltano) e generando falsi HIGH availability.
+    #     azzerando OGNI probe (statusCode=0 -> tutti i check saltano) e generando falsi HIGH availability.
     #   - Apache e' name-based vhost: con Host=127.0.0.1 servirebbe il vhost default, non il sito reale.
     # Il server risolve l'hostname via tailscale MagicDNS e lo raggiunge (verificato: 200, cert valido).
-    # Param con default → la Test Suite lo lancia senza prompt.
+    # Param con default -> la Test Suite lo lancia senza prompt.
     [string]$TargetUrl = 'https://duff.pinto-lime.ts.net',
     [string[]]$AuditPaths = @('/', '/admin', '/account'),
     [string[]]$SensitivePaths = @(
@@ -50,7 +50,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Il sito e' servito via tailscale serve e negozia SOLO TLS 1.3 → forzare solo Tls12
+# Il sito e' servito via tailscale serve e negozia SOLO TLS 1.3 -> forzare solo Tls12
 # faceva fallire OGNI handshake ("Could not create SSL/TLS secure channel"), azzerando l'audit.
 # Abilita Tls12+Tls13; se l'enum Tls13 non esiste su questa build .NET, usa il default di sistema.
 try {

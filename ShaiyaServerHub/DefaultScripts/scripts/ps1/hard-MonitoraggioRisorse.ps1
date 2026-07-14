@@ -47,7 +47,7 @@ if ($usedPct -gt $threshold) {
       ForEach-Object {
         try {
             Stop-Process -Id $_.Id -Force
-            Log "Killed heavy process $($_.Name) (PID: $($_.Id)) – $([math]::Round($_.WorkingSet64/1MB,1)) MB"
+            Log "Killed heavy process $($_.Name) (PID: $($_.Id)) - $([math]::Round($_.WorkingSet64/1MB,1)) MB"
         } catch {
             Log "Error stopping $($_.Name) (PID: $($_.Id)): $_"
         }
@@ -66,7 +66,7 @@ Get-Process |
   Where-Object {
     $important -contains $_.Name -and
     $_.HandleCount -gt 0         -and  # ha handle validi
-    $_.SessionId -ne 0           -and  # non è kernel/sessione di sistema
+    $_.SessionId -ne 0           -and  # non e' kernel/sessione di sistema
     $_.Path                       # ha un eseguibile (skip di processi senza Path)
   } |
   ForEach-Object {

@@ -55,11 +55,27 @@ namespace ShaiyaServerHub.Core
             ("ps_game",         "Game server"),
         };
 
-        // Ordine di avvio "Avvia servizi" (SQL + agenti prima, poi i servizi di gioco).
+        // Ordine di avvio "Avvia servizi" — ps_userLog PRIMA di ps_session: confermato leggendo i log
+        // REALI del servizio (non supposizione) — ps_session, se ps_userLog non è già in ascolto,
+        // logga "userlog connect failed" → "initserver() failed" → shutdown entro 2s dall'avvio. L'ordine
+        // precedente (ps_session prima) aveva questo bug anche qui; probabilmente mascherato dal ritmo
+        // naturale dei click manuali o da un retry automatico di Windows (Recovery del servizio) — con
+        // l'ordine corretto non serve contare su nessuno dei due.
         private static readonly string[] StartOrder =
         {
             "MSSQLSERVER", "PSM_AgentServer", "PSM_AgentClient",
-            "ps_session", "ps_userLog", "ps_login", "ps_gameLog", "ps_dbAgent", "ps_game"
+            "ps_userLog", "ps_session", "ps_login", "ps_gameLog", "ps_dbAgent", "ps_game"
+        };
+
+        // Sottosequenza di StartOrder: solo i servizi di GIOCO (mai infrastruttura), stesso ordine —
+        // i servizi Shaiya hanno dipendenze reali all'avvio (es. ps_game si connette a dbAgent/gameLog/
+        // session appena parte: vedi log "connect dbagent"/"connect gamelog"), avviarli fuori ordine li
+        // fa ricadere giù pochi secondi dopo anche se lo Service Control Manager riporta "Running" per
+        // un istante. Unica fonte di verità sull'ordine corretto — riusata da Invariants (whitelist) e
+        // dal tool AI di auto-heal multiplo (mai duplicare questo elenco altrove).
+        public static readonly string[] GameServiceStartOrder =
+        {
+            "ps_userLog", "ps_session", "ps_login", "ps_gameLog", "ps_dbAgent", "ps_game"
         };
 
         public static List<ServiceStatus> Query() => Query(Watched);

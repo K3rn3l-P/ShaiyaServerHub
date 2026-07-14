@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="ShaiyaServerHub — Settings" Icon="icon.ico"
-        Width="620" SizeToContent="Height"
+        Width="640" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
@@ -27,138 +27,367 @@
                 </Border>
             </Grid>
 
-            <!-- SQL -->
-            <GroupBox Header="{DynamicResource SetGbSql}">
-                <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="90"/>
-                            <ColumnDefinition Width="130"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Content="{DynamicResource LblServer}"/>
-                        <TextBox Grid.Column="1" x:Name="TbServer"/>
-                        <Label Grid.Column="2" Content="{DynamicResource LblDb}"/>
-                        <TextBox Grid.Column="3" x:Name="TbDb"/>
-                    </Grid>
-                    <StackPanel Orientation="Horizontal" Margin="4,6,0,0">
-                        <Label Content="{DynamicResource LblAuth}"/>
-                        <RadioButton x:Name="RbWin" Content="{DynamicResource AuthWindows}" GroupName="auth"
-                                     Checked="AuthMode_Changed"/>
-                        <RadioButton x:Name="RbSql" Content="{DynamicResource AuthSql}" GroupName="auth"
-                                     Checked="AuthMode_Changed"/>
+            <!-- Impostazioni a schede: ogni scheda resta una pagina corta e leggibile -->
+            <TabControl x:Name="SetTabs" MinHeight="360" MaxHeight="560">
+
+                <!-- ══ Server (SQL di gioco + percorsi) ══ -->
+                <TabItem Header="{DynamicResource TabSetServer}">
+                    <StackPanel Margin="0,8,0,0">
+                        <GroupBox Header="{DynamicResource SetGbSql}">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="130"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{DynamicResource LblServer}"/>
+                                    <TextBox Grid.Column="1" x:Name="TbServer"/>
+                                    <Label Grid.Column="2" Content="{DynamicResource LblDb}"/>
+                                    <TextBox Grid.Column="3" x:Name="TbDb"/>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Margin="4,6,0,0">
+                                    <Label Content="{DynamicResource LblAuth}"/>
+                                    <RadioButton x:Name="RbWin" Content="{DynamicResource AuthWindows}" GroupName="auth"
+                                                 Checked="AuthMode_Changed"/>
+                                    <RadioButton x:Name="RbSql" Content="{DynamicResource AuthSql}" GroupName="auth"
+                                                 Checked="AuthMode_Changed"/>
+                                </StackPanel>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{DynamicResource LblSqlUser}"/>
+                                    <TextBox Grid.Column="1" x:Name="TbSqlUser"/>
+                                    <Label Grid.Column="2" Content="{DynamicResource LblSqlPass}"/>
+                                    <PasswordBox Grid.Column="3" x:Name="PbSqlPass"/>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Margin="2,6,0,0">
+                                    <Button Content="{DynamicResource BtnTestSql}" Click="BtnTestSql_Click"/>
+                                    <TextBlock x:Name="TbSqlStatus" VerticalAlignment="Center" Margin="12,0"
+                                               FontSize="11" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="{DynamicResource SetGbPaths}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" Content="{DynamicResource LblBinPath}"/>
+                                <TextBox Grid.Column="1" x:Name="TbBinPath"/>
+                                <Button Grid.Column="2" Content="{DynamicResource BtnBrowse}" Click="BtnBrowseBin_Click"/>
+                            </Grid>
+                        </GroupBox>
                     </StackPanel>
-                    <Grid Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Content="{DynamicResource LblSqlUser}"/>
-                        <TextBox Grid.Column="1" x:Name="TbSqlUser"/>
-                        <Label Grid.Column="2" Content="{DynamicResource LblSqlPass}"/>
-                        <PasswordBox Grid.Column="3" x:Name="PbSqlPass"/>
-                    </Grid>
-                    <StackPanel Orientation="Horizontal" Margin="2,6,0,0">
-                        <Button Content="{DynamicResource BtnTestSql}" Click="BtnTestSql_Click"/>
-                        <TextBlock x:Name="TbSqlStatus" VerticalAlignment="Center" Margin="12,0"
-                                   FontSize="11" FontWeight="SemiBold"/>
+                </TabItem>
+
+                <!-- ══ Web (sito + web server) ══ -->
+                <TabItem Header="{DynamicResource TabSetWeb}">
+                    <StackPanel Margin="0,8,0,0">
+                        <GroupBox Header="{DynamicResource SetGbWebSql}">
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource HintWebSql}" Foreground="#66E0E0E0"
+                                           FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                                    <Label Content="{DynamicResource LblWebAuth}"/>
+                                    <RadioButton x:Name="RbWebEnv" Content="{DynamicResource WebAuthEnv}" GroupName="webauth" Checked="WebAuth_Changed"/>
+                                    <RadioButton x:Name="RbWebWin" Content="{DynamicResource WebAuthWindows}" GroupName="webauth" Checked="WebAuth_Changed"/>
+                                    <RadioButton x:Name="RbWebSqlLogin" Content="{DynamicResource WebAuthSql}" GroupName="webauth" Checked="WebAuth_Changed"/>
+                                </StackPanel>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{DynamicResource LblWebSqlUser}"/>
+                                    <TextBox Grid.Column="1" x:Name="TbWebSqlUser"/>
+                                    <Label Grid.Column="2" Content="{DynamicResource LblWebSqlPass}"/>
+                                    <PasswordBox Grid.Column="3" x:Name="PbWebSqlPass"/>
+                                </Grid>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{DynamicResource LblWebDb}"/>
+                                    <TextBox Grid.Column="1" x:Name="TbWebDb"/>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="{DynamicResource SetGbWeb}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                                    <Label Content="{DynamicResource LblWebKind}"/>
+                                    <RadioButton x:Name="RbWebXampp" Content="{DynamicResource WebKindXampp}" GroupName="webkind"/>
+                                    <RadioButton x:Name="RbWebIis" Content="{DynamicResource WebKindIis}" GroupName="webkind"/>
+                                </StackPanel>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{DynamicResource LblXamppRoot}"/>
+                                    <TextBox Grid.Column="1" x:Name="TbXamppRoot"/>
+                                    <Label Grid.Column="2" Content="{DynamicResource LblWebRoot}"/>
+                                    <TextBox Grid.Column="3" x:Name="TbWebRoot"/>
+                                </Grid>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{DynamicResource LblWebHealth}"/>
+                                    <TextBox Grid.Column="1" x:Name="TbWebHealth"/>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
-                </StackPanel>
-            </GroupBox>
+                </TabItem>
 
-            <!-- Paths -->
-            <GroupBox Header="{DynamicResource SetGbPaths}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0" Content="{DynamicResource LblBinPath}"/>
-                    <TextBox Grid.Column="1" x:Name="TbBinPath"/>
-                    <Button Grid.Column="2" Content="{DynamicResource BtnBrowse}" Click="BtnBrowseBin_Click"/>
-                </Grid>
-            </GroupBox>
-
-            <!-- Web site SQL connection -->
-            <GroupBox Header="{DynamicResource SetGbWebSql}">
-                <StackPanel>
-                    <TextBlock Text="{DynamicResource HintWebSql}" Foreground="#66E0E0E0"
-                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
-                    <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                        <Label Content="{DynamicResource LblWebAuth}"/>
-                        <RadioButton x:Name="RbWebEnv" Content="{DynamicResource WebAuthEnv}" GroupName="webauth" Checked="WebAuth_Changed"/>
-                        <RadioButton x:Name="RbWebWin" Content="{DynamicResource WebAuthWindows}" GroupName="webauth" Checked="WebAuth_Changed"/>
-                        <RadioButton x:Name="RbWebSqlLogin" Content="{DynamicResource WebAuthSql}" GroupName="webauth" Checked="WebAuth_Changed"/>
+                <!-- ══ Canale comandi (PSM_Cmd) ══ -->
+                <TabItem Header="{DynamicResource TabSetChannel}">
+                    <StackPanel Margin="0,8,0,0">
+                        <GroupBox Header="{DynamicResource SetGbChannel}">
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource HintChannel}" Foreground="#66E0E0E0"
+                                           FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                                <Button HorizontalAlignment="Left" Style="{StaticResource AccentButton}"
+                                        Content="{DynamicResource BtnRegisterCaller}" Click="BtnRegisterCaller_Click"/>
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
-                    <Grid Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Content="{DynamicResource LblWebSqlUser}"/>
-                        <TextBox Grid.Column="1" x:Name="TbWebSqlUser"/>
-                        <Label Grid.Column="2" Content="{DynamicResource LblWebSqlPass}"/>
-                        <PasswordBox Grid.Column="3" x:Name="PbWebSqlPass"/>
-                    </Grid>
-                    <Grid Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Content="{DynamicResource LblWebDb}"/>
-                        <TextBox Grid.Column="1" x:Name="TbWebDb"/>
-                    </Grid>
-                </StackPanel>
-            </GroupBox>
+                </TabItem>
 
-            <!-- Web server -->
-            <GroupBox Header="{DynamicResource SetGbWeb}">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                        <Label Content="{DynamicResource LblWebKind}"/>
-                        <RadioButton x:Name="RbWebXampp" Content="{DynamicResource WebKindXampp}" GroupName="webkind"/>
-                        <RadioButton x:Name="RbWebIis" Content="{DynamicResource WebKindIis}" GroupName="webkind"/>
-                    </StackPanel>
-                    <Grid Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Content="{DynamicResource LblXamppRoot}"/>
-                        <TextBox Grid.Column="1" x:Name="TbXamppRoot"/>
-                        <Label Grid.Column="2" Content="{DynamicResource LblWebRoot}"/>
-                        <TextBox Grid.Column="3" x:Name="TbWebRoot"/>
-                    </Grid>
-                    <Grid Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Content="{DynamicResource LblWebHealth}"/>
-                        <TextBox Grid.Column="1" x:Name="TbWebHealth"/>
-                    </Grid>
-                </StackPanel>
-            </GroupBox>
+                <!-- ══ AI (Hub Brain) ══ -->
+                <TabItem Header="{DynamicResource TabSetAi}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="500">
+                        <StackPanel Margin="0,8,0,0">
+                            <CheckBox x:Name="CbAiEnabled" Content="{DynamicResource LblAiEnabled}" Margin="4,0,0,10"/>
 
-            <!-- Command channel -->
-            <GroupBox Header="{DynamicResource SetGbChannel}">
-                <StackPanel>
-                    <TextBlock Text="{DynamicResource HintChannel}" Foreground="#66E0E0E0"
-                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
-                    <Button HorizontalAlignment="Left" Style="{StaticResource AccentButton}"
-                            Content="{DynamicResource BtnRegisterCaller}" Click="BtnRegisterCaller_Click"/>
-                </StackPanel>
-            </GroupBox>
+                            <GroupBox Header="{DynamicResource SetGbAiConnection}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblOpenRouterKey}"/>
+                                        <PasswordBox Grid.Column="1" x:Name="PbOpenRouterKey"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblOpenRouterEndpoint}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbOpenRouterEndpoint"/>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
 
-            <!-- Buttons -->
+                            <GroupBox Header="{DynamicResource SetGbAiModels}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource HintAiModels}" Foreground="#66E0E0E0"
+                                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiModelCritical}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiModelCritical"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiModelDefault}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiModelDefault"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiModelFallback}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiModelFallback"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiMaxPerDay}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiMaxPerDay"/>
+                                        <Label Grid.Column="2" Content="{DynamicResource LblAiMaxPerHour}"/>
+                                        <TextBox Grid.Column="3" x:Name="TbAiMaxPerHour"/>
+                                    </Grid>
+                                    <CheckBox x:Name="CbAiModelAutoUpdate" Content="{DynamicResource ChkAiModelAutoUpdate}"
+                                              Margin="4,6,4,2"/>
+                                    <Grid Margin="0,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" x:Name="TbAiModelUpdateInfo" Foreground="#66E0E0E0"
+                                                    FontSize="10" TextWrapping="Wrap" VerticalAlignment="Center"
+                                                    Margin="4,2,8,0"/>
+                                        <Button Grid.Column="1" x:Name="BtnAiModelRefreshNow"
+                                                Content="{DynamicResource BtnAiModelRefresh}"
+                                                Style="{StaticResource MiniButton}" Click="BtnAiModelRefreshNow_Click"/>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="{DynamicResource SetGbAiTelegram}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource HintTelegram}" Foreground="#66E0E0E0"
+                                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblTelegramToken}"/>
+                                        <PasswordBox Grid.Column="1" x:Name="PbTelegramToken"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblTelegramChatId}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbTelegramChatId"/>
+                                        <Button Grid.Column="2" x:Name="BtnDetectChatId" Content="{DynamicResource BtnDetectChatId}" Click="BtnDetectChatId_Click"/>
+                                    </Grid>
+                                    <TextBlock x:Name="TbTelegramStatus" FontSize="10" TextWrapping="Wrap" Margin="4,0,4,0"/>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="{DynamicResource SetGbAiSqlSearx}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource HintAiSql}" Foreground="#66E0E0E0"
+                                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiSqlUser}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiSqlUser"/>
+                                        <Label Grid.Column="2" Content="{DynamicResource LblAiSqlPass}"/>
+                                        <PasswordBox Grid.Column="3" x:Name="PbAiSqlPass"/>
+                                    </Grid>
+
+                                    <StackPanel Orientation="Horizontal" Margin="4,0,0,4">
+                                        <Label Content="{DynamicResource LblSearxMode}"/>
+                                        <RadioButton x:Name="RbSearxMcp" Content="{DynamicResource SearxModeMcp}" GroupName="searxmode" Checked="SearxMode_Changed"/>
+                                        <RadioButton x:Name="RbSearxRest" Content="{DynamicResource SearxModeRest}" GroupName="searxmode" Checked="SearxMode_Changed"/>
+                                    </StackPanel>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblSearxUrl}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbSearxUrl"/>
+                                    </Grid>
+                                    <TextBlock x:Name="TbSearxHint" Foreground="#66E0E0E0"
+                                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,0"/>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="{DynamicResource SetGbAiBan}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource HintAiBan}" Foreground="#66E0E0E0"
+                                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiBanUser}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiBanSqlUser"/>
+                                        <Label Grid.Column="2" Content="{DynamicResource LblAiBanPass}"/>
+                                        <PasswordBox Grid.Column="3" x:Name="PbAiBanSqlPass"/>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="{DynamicResource SetGbAiAutoruns}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="80"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiAutorunsCheck}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiAutorunsCheckInterval"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="80"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiAutorunsRunEvery}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiAutorunsRunEvery"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="80"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{DynamicResource LblAiAutorunsGrace}"/>
+                                        <TextBox Grid.Column="1" x:Name="TbAiAutorunsStartupGrace"/>
+                                    </Grid>
+                                    <TextBlock Text="{DynamicResource HintAiAutoruns}" Foreground="#66E0E0E0"
+                                               FontSize="10" TextWrapping="Wrap" Margin="4,4,4,0"/>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="{DynamicResource SetGbAiSafety}">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource HintCircuitBreaker}" Foreground="#66E0E0E0"
+                                               FontSize="10" TextWrapping="Wrap" Margin="4,0,4,6"/>
+                                    <Grid Margin="0,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" x:Name="TbCircuitBreakerStatus" FontSize="11"
+                                                   TextWrapping="Wrap" VerticalAlignment="Center" Margin="4,0,8,0"/>
+                                        <Button Grid.Column="1" x:Name="BtnResetCircuitBreaker" Style="{StaticResource DangerButton}"
+                                                Content="{DynamicResource BtnResetCircuitBreaker}" Click="BtnResetCircuitBreaker_Click"/>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+
+            <!-- Buttons (sempre visibili, fuori dalle schede) -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                 <Button Content="{DynamicResource BtnCancel}" Click="BtnCancel_Click" MinWidth="90"/>
                 <Button Style="{StaticResource AccentButton}" Content="{DynamicResource BtnSave}"

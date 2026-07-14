@@ -78,8 +78,12 @@ ShaiyaServerHub\
       CommandChannel.cs         (registra login in PSM_Cmd.GmCallerProfile tier ECONOMY)
       SahCrypt.cs               (crypto ESAH AES-256-GCM via bcrypt.dll; byte-compat sahcrypt.exe; chiave sempre esplicita; CLI --sah-encrypt/-decrypt in App)
       KeyRotationReport.cs      (stato rotazione per card Dashboard: task 04:00 + mtime GMSecurity.ini)
+      Ai\                       (modulo AI — Hub Brain, P1: IAiTool/ToolRegistry/AgentBrain/OpenRouterClient/
+                                 ModelRouter/KnowledgeStore/AiSqlReader/AiReport/AiPaths + Ai\Tools\*.cs)
+    Controls\
+      AiControl.xaml/.cs        (vista AI: chat + feed tool, ⚙ apre Impostazioni)
   (a runtime, accanto all'exe:)
-    scripts\ functions\ testsuite\ keyrotation\ ...   hub.settings.xml   hub.log
+    scripts\ functions\ testsuite\ keyrotation\ ai\ ...   hub.settings.xml   hub.log
 ```
 
 ---
@@ -257,6 +261,32 @@ l'app chiede UAC (admin); `hub.settings.xml`/`hub.log` si creano accanto all'exe
       che rileggono `GMSecurity.ini`. Stessa logica per "Ruota ora" e per il task 04:00 (`--run` del ps1;
       nessuna azione `shutdown /r`). Fingerprint chiavi in vista = SHA-256[:8] (mai in chiaro). Card Dashboard
       via `Core/KeyRotationReport.cs` (stato task + mtime `GMSecurity.ini`), off-thread come le altre.
+
+- [x] **AI (Hub Brain) — P1 + P2 + P3, tutti i blocchi pianificati chiusi** (`Core/Ai/`, nav "🧠 AI",
+      `AiControl`): assistente LLM via **OpenRouter** (tool-calling) in chat. **P1**: SOLO tool T0
+      (osservazione — `services_status`, `firewall_status`, `web_health`, `testsuite_status`,
+      `scheduled_tasks_status`, `sql_read_query` via login dedicato read-only `ShaiyaAiReader`,
+      `list_game_commands`, `web_search` via SearXNG). **P2**: `PolicyGate`+`Invariants` (guardrail nel
+      codice, mai nel prompt) governano ogni tool che muta stato — T1 auto-heal (`restart_crashed_service`,
+      `heal_game_services`, binario via `Authorize`), T2 difesa (`kick_player`, reversibile) e **T3
+      rischioso** (`ban_player`, `Reversible=false` → sempre approvazione Telegram per costruzione via
+      `EscalationEngine`) passano da `Evaluate` (coda/immediato/grace dinamico). `WatchLoop` (sweep
+      proattivo ogni 3 min, agisce anche senza chat), `ApprovalWatchdog` (bottoni Telegram ✅/❌/🙋),
+      circuit breaker sticky + `OutcomeTracker` persistito. **P3** (5 blocchi, tutti verificati dal vivo):
+      sensori attacco (`connection_census`/`security_telemetry`, query fisse verificate — mai SQL libero
+      generato dal modello su tabelle non note); playbook di risposta incidenti (`ai\instructions\
+      playbooks\*.md`, onesti sui limiti — mai un'azione inventata dove non esiste un tool); contenimento
+      IP (`temp_block_ip` T2/`unblock_ip` T1, UNA regola firewall dinamica `Shaiya-AI-TempBlock` — mai una
+      per IP, non scala); task-autofix (`run_scheduled_task` T3 sempre approvazione + `read_hub_file` T0
+      per leggere script/log del Hub, MAI scrittura su ciò che gira senza supervisione); testsuite
+      proattiva (`write_ai_test_script` T1/`run_ai_test_script` T0, script AI ristretti a UNA query
+      SELECT/WITH eseguita col login read-only, MAI con l'auth elevata della Test Suite reale); auto-
+      apprendimento (`write_learned_note` T1, scrive/aggiunge prosa in `ai\knowledge\learned\*.md`,
+      riletta automaticamente dal `KnowledgeStore` nei turni futuri — chiude il loop "impara dai propri
+      esiti" previsto dal piano). Tool scoperti via **reflection** (`ToolRegistry`) — nuova capability = nuova classe `IAiTool`, nessun'altra
+      modifica. Istruzioni/knowledge/config in `ai\` accanto all'exe (file esterni editabili). Card
+      Dashboard dedicata (`AiReport`). Piano completo (dettaglio blocchi, roadmap futura) in
+      `~\.claude\plans\ok-valutiamo-di-inserire-fluttering-rossum.md`.
 
 > **NB — pivot 2026-07-05:** la vista "Web jobs" (coda DB `Web_TaskJobs`) è stata **RIMOSSA** perché
 > ridondante con Script + Pianificati. I job del sito sono normali script pianificati (metti in `scripts\`,

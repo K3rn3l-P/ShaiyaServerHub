@@ -58,6 +58,11 @@ namespace ShaiyaServerHub
         public static string SettingsSaved => S("Impostazioni salvate.", "Settings saved.");
         public static string Err(string m) => S("ERRORE: ", "ERROR: ") + m;
         public static string RegisterCallerDone => S("Login registrato nel canale comandi (tier ECONOMY).", "Login registered in command channel (ECONOMY tier).");
+
+        // ── Strumenti esterni (Sysinternals) ──────────────────
+        public static string ToolsAutorunsMissing => S("Autoruns: ⚠ non scaricato", "Autoruns: ⚠ not downloaded");
+        public static string ToolsAutorunsPresent(long kb, DateTime updated) =>
+            S($"Autoruns: ✓ presente ({kb} KB, {updated:yyyy-MM-dd})", $"Autoruns: ✓ present ({kb} KB, {updated:yyyy-MM-dd})");
         public static string SqlTesting => S("test in corso…", "testing…");
         public static string SqlTestOk => S("✓ Connessione riuscita", "✓ Connected");
         public static string SqlTestFail(int rc) => S($"✗ Connessione fallita (exit {rc}, vedi Log)", $"✗ Connection failed (exit {rc}, see Log)");
@@ -111,6 +116,32 @@ namespace ShaiyaServerHub
             string n = string.IsNullOrWhiteSpace(next) ? "" : S($" · prossimo {next}", $" · next {next}");
             return l + n;
         }
+
+        // AI (Hub Brain) — card Dashboard
+        public static string DashAiOff => S("⚪  AI disattivata", "⚪  AI disabled");
+        public static string DashAiNotConfigured => S("🟠  Da configurare (API key)", "🟠  Needs setup (API key)");
+        public static string DashAiOn => S("🟢  AI attiva", "🟢  AI on");
+        public static string DashAiSub(int tools, bool sqlReader, bool telegram) => S(
+            $"{tools} strumenti disponibili" + (sqlReader ? "" : " · login SQL AI non configurato") + (telegram ? "" : " · Telegram non configurato"),
+            $"{tools} tools available" + (sqlReader ? "" : " · AI SQL login not configured") + (telegram ? "" : " · Telegram not configured"));
+
+        // AI (Hub Brain) — vista chat
+        public static string AiStatusOff => S("AI disattivata (vedi Impostazioni)", "AI disabled (see Settings)");
+        public static string AiStatusNotConfigured => S("AI attiva ma non configurata (API key mancante)", "AI enabled but not configured (missing API key)");
+        public static string AiStatusReady(int tools) => S($"AI pronta · {tools} strumenti", $"AI ready · {tools} tools");
+        public static string AiModelInfo(string modelUsed) => S($"risposto da: {modelUsed}", $"answered by: {modelUsed}");
+        public static string AiCancelled => S("⏹ Richiesta interrotta dall'utente.", "⏹ Request stopped by user.");
+        public static string AiModelNeverChecked => S("mai verificato contro il catalogo OpenRouter.", "never checked against the OpenRouter catalog.");
+        public static string AiModelChecking => S("verifica catalogo OpenRouter…", "checking OpenRouter catalog…");
+        public static string AiModelLastCheck(string when, string note) => S($"ultima verifica {when}: {note}", $"last checked {when}: {note}");
+        public static string CircuitBreakerOk => S("● Circuit breaker chiuso (nessuna anomalia rilevata).", "● Circuit breaker closed (no anomaly detected).");
+        public static string CircuitBreakerTripped(System.DateTime? at) => S(
+            $"🚨 Circuit breaker APERTO dalle {(at.HasValue ? at.Value.ToString("dd/MM HH:mm") : "?")} — tutte le azioni T1+ sono sospese finché non resetti.",
+            $"🚨 Circuit breaker OPEN since {(at.HasValue ? at.Value.ToString("MM/dd HH:mm") : "?")} — all T1+ actions are suspended until reset.");
+
+        // Telegram — rilevamento Chat ID
+        public static string TgDetecting => S("ricerca chat…", "looking up chat…");
+        public static string TgDetectOk(string chatId) => S($"✓ Chat ID trovato: {chatId}", $"✓ Chat ID found: {chatId}");
 
         // Manutenzione — card Dashboard (sostituisce la ex card Web, doppione con tessera KPI Web)
         public static string MntChecking => S("verifica…", "checking…");

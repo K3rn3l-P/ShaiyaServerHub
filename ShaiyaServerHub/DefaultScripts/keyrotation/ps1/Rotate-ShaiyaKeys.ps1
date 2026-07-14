@@ -7,7 +7,7 @@ param(
     [string]$CryptTool  = '',
     # Servizi di gioco che rileggono GMSecurity.ini SOLO al riavvio del servizio (CSV).
     [string]$GameServices = 'ps_game,ps_login',
-    # Se presente, salta il riavvio dei servizi (la rotazione resta "da applicare" → serve reboot manuale).
+    # Se presente, salta il riavvio dei servizi (la rotazione resta "da applicare" -> serve reboot manuale).
     [switch]$SkipServiceRestart
 )
 
@@ -119,7 +119,7 @@ try {
             $tmpDec = Join-Path $tmpDir 'update.sah.dec'
             $tmpZip = $tmpDir + '.zip'
             try {
-                # Espandi-Archive richiede estensione .zip in PS 5.1 — copia .patch → .zip temp
+                # Espandi-Archive richiede estensione .zip in PS 5.1 - copia .patch -> .zip temp
                 New-Item -ItemType Directory -Path $tmpDir | Out-Null
                 Copy-Item $f.FullName $tmpZip -Force
                 Expand-Archive -Path $tmpZip -DestinationPath $tmpDir -Force
@@ -146,7 +146,7 @@ try {
                 }
 
                 # Ricostruisci .patch: Compress-Archive vuole output .zip in PS 5.1
-                # → crea .zip in temp, poi copia sul .patch originale
+                # -> crea .zip in temp, poi copia sul .patch originale
                 $bakPath    = $f.FullName + '.bak'
                 $newZipPath = $tmpDir + '_new.zip'
                 Copy-Item $f.FullName $bakPath -Force
@@ -178,7 +178,7 @@ try {
         Log ('Re-cifratura saltata (cryptTool=' + $ct + ' PatchDir=' + $pd + ' OldKey=' + $ok + ')')
     }
 
-    # 4b. Invalida GameSecuritySessions — secToken client legati alle vecchie chiavi.
+    # 4b. Invalida GameSecuritySessions - secToken client legati alle vecchie chiavi.
     # launchToken diventa invalido automaticamente (HMAC con ClientSecret cambiato).
     # secToken sono random+DB: non dipendono dalle chiavi, vanno eliminati manualmente.
     # Al prossimo login dall'updater, un nuovo secToken viene generato automaticamente.

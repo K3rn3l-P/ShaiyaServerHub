@@ -52,6 +52,7 @@ namespace ShaiyaServerHub
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             ScriptRepository.EnsureAll();
+            Core.Ai.AiPaths.EnsureFolders();   // ai\config, instructions, knowledge, scripts, sessions
 
             // ── Modalità CLI crypt (rimpiazza sahcrypt.exe): usata dal ps1 di rotazione ──
             // --sah-encrypt <in> <out> <64hex>  (SAH → ESAH)
@@ -100,6 +101,23 @@ namespace ShaiyaServerHub
             };
 
             WriteLog("STARTUP", "UI avviata. Log: " + LogPath);
+
+            // Auto-update slot modello Default (best-effort, non-bloccante): OpenRouter cambia spesso
+            // il roster free, ri-verifica contro il catalogo reale invece di restare pinnati a un ID
+            // che potrebbe sparire. TTL 24h dentro TryAutoUpdateDefault, mai tocca Critical.
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    var settings = HubSettings.Load();
+                    if (!settings.AiMasterEnabled || string.IsNullOrWhiteSpace(settings.OpenRouterApiKey)) return;
+                    var router = new Core.Ai.ModelRouter();
+                    if (router.TryAutoUpdateDefault(settings, force: false, out var note))
+                        WriteLog("AI-MODEL-AUTOUPDATE", note);
+                }
+                catch (Exception ex) { WriteLog("AI-MODEL-AUTOUPDATE", "errore: " + ex.Message); }
+            });
+
             var win = new MainWindow();
             win.Show();
         }

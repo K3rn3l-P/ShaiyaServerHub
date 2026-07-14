@@ -60,7 +60,9 @@ namespace ShaiyaServerHub
             // principale (es. ShaiyaTaskAgent, limitato a PSM_Cmd). Impostazioni SQL invariate.
             TestArea.Runner = new ScriptRunner(_settings, forceWindowsAuth: true);
             TestArea.Init(ScriptRepository.TestSuite, L.HintTestSuite);
+            RefreshExternalToolsStatus();
             KeyRotArea.Init(_settings);   // vista Key Rotation (rotazione chiavi)
+            AiArea.Init(_settings);       // vista AI (Hub Brain, P1: chat read-only)
 
             ShowView("dashboard");
 
@@ -106,6 +108,7 @@ namespace ShaiyaServerHub
             PanelFunctions.Visibility = view == "functions" ? Visibility.Visible : Visibility.Collapsed;
             PanelTestSuite.Visibility = view == "testsuite" ? Visibility.Visible : Visibility.Collapsed;
             PanelKeyRotation.Visibility = view == "keyrotation" ? Visibility.Visible : Visibility.Collapsed;
+            PanelAi.Visibility = view == "ai" ? Visibility.Visible : Visibility.Collapsed;
             PanelLog.Visibility = view == "log" ? Visibility.Visible : Visibility.Collapsed;
 
             // Entrando nella vista Web: refresh completo (servizi + sonda health/cert).
@@ -133,6 +136,7 @@ namespace ShaiyaServerHub
                 case "functions": NavFunctions.IsChecked = true; break;
                 case "testsuite": NavTestSuite.IsChecked = true; break;
                 case "keyrotation": NavKeyRotation.IsChecked = true; break;
+                case "ai": NavAi.IsChecked = true; break;
                 case "log": NavLog.IsChecked = true; break;
             }
         }
@@ -170,6 +174,42 @@ namespace ShaiyaServerHub
             RefreshDashboardPsmAsync();
             RefreshDashboardKeyRotAsync();
             RefreshDashboardMaintenanceAsync();
+            RefreshDashboardAiAsync();
+        }
+
+        /// <summary>Card AI: cosa è configurato (P1 non ha ancora un "verdetto" di salute — arriva in P2 con ActionQueue).</summary>
+        private async void RefreshDashboardAiAsync()
+        {
+            if (TbDashAiState == null) return;
+            var rep = await Task.Run(() => Core.Ai.AiReport.Load(_settings));
+            if (TbDashAiState == null) return;
+            ApplyAiCard(rep);
+        }
+
+        private void ApplyAiCard(Core.Ai.AiReport rep)
+        {
+            if (TbDashAiState == null || rep == null) return;
+
+            Color dot; string state;
+            if (!rep.MasterEnabled)
+            {
+                dot = Color.FromRgb(0x66, 0x70, 0x7A);
+                state = L.DashAiOff;
+            }
+            else if (!rep.ApiKeyConfigured)
+            {
+                dot = Color.FromRgb(0xE8, 0xB0, 0x40);
+                state = L.DashAiNotConfigured;
+            }
+            else
+            {
+                dot = Color.FromRgb(0x4D, 0xC8, 0x70);
+                state = L.DashAiOn;
+            }
+            DashAiDot.Fill = new SolidColorBrush(dot);
+            TbDashAiState.Text = state;
+            TbDashAiState.Foreground = new SolidColorBrush(dot);
+            TbDashAiSub.Text = L.DashAiSub(rep.ToolCount, rep.SqlReaderConfigured, rep.TelegramConfigured);
         }
 
         /// <summary>Card Key Rotation: stato task 4:00 + esito ultimo run + data ultima rotazione (off-thread).</summary>
@@ -690,24 +730,36 @@ namespace ShaiyaServerHub
         // ── Funzioni: PSM_Cmd ─────────────────────────────────
         private async void BtnVerifyPsmCmd_Click(object sender, RoutedEventArgs e)
         {
-            FuncArea.Log("── Verifica PSM_Cmd ──");
-            await FuncArea.RunAsync(() =>
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
             {
-                bool ok = CommandChannel.VerifyPsmCmd(FuncArea.Runner, FuncArea.Log);
-                FuncArea.Log(ok
-                    ? "✓ PSM_Cmd ATTIVO e funzionante."
-                    : "✗ PSM_Cmd NON attivo/incompleto → usa 'Installa/Ripara' (metti gli script 00→07 in functions\\psm_cmd-scc\\sql).");
-            });
+                FuncArea.Log("── Verifica PSM_Cmd ──");
+                await FuncArea.RunAsync(() =>
+                {
+                    bool ok = CommandChannel.VerifyPsmCmd(FuncArea.Runner, FuncArea.Log);
+                    FuncArea.Log(ok
+                        ? "✓ PSM_Cmd ATTIVO e funzionante."
+                        : "✗ PSM_Cmd NON attivo/incompleto → usa 'Installa/Ripara' (metti gli script 00→07 in functions\\psm_cmd-scc\\sql).");
+                });
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnInstallPsmCmd_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show(L.ConfirmInstallPsm, "ShaiyaServerHub",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            FuncArea.Log("── Installa/Ripara PSM_Cmd ──");
-            FuncArea.Log("Prerequisiti: PSMagent.signed.dll in C:\\ShaiyaServer\\PSM_Client, login sysadmin, password aggiornate in 01/04.");
-            await FuncArea.RunAllSqlAsync();
-            FuncArea.Log("Suggerito: ora premi 'Verifica PSM_Cmd' per confermare.");
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                FuncArea.Log("── Installa/Ripara PSM_Cmd ──");
+                FuncArea.Log("Prerequisiti: PSMagent.signed.dll in C:\\ShaiyaServer\\PSM_Client, login sysadmin, password aggiornate in 01/04.");
+                await FuncArea.RunAllSqlAsync();
+                FuncArea.Log("Suggerito: ora premi 'Verifica PSM_Cmd' per confermare.");
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void BtnPsmCmdSettings_Click(object sender, RoutedEventArgs e)
@@ -723,10 +775,45 @@ namespace ShaiyaServerHub
         }
 
         // ── Test Suite ────────────────────────────────────────
+        // Bug reale osservato: un doppio click avviava DUE RunAllAsync() in parallelo — gli script SQL
+        // che usano tabelle temp (##nome, ora #nome per essere session-scoped) collidevano tra loro
+        // ("Invalid object name"/"already exists"), causando ERRORE spuri nel riepilogo. Disabilitare
+        // il bottone per la durata dell'esecuzione blocca il doppio click alla radice.
         private async void BtnRunTestSuite_Click(object sender, RoutedEventArgs e)
         {
-            TestArea.Log("── Esecuzione test suite (SQL + PS1/BAT) ──");
-            await TestArea.RunAllAsync();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                TestArea.Log("── Esecuzione test suite (SQL + PS1/BAT) ──");
+                await TestArea.RunAllAsync();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
+        }
+
+        // ── SQL Server Audit (config-drift DB + login SQL falliti) ──
+        private async void BtnInstallSqlAudit_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try { await TestArea.RunByNameAsync("23_sql_audit_install.sql"); }
+            finally { if (btn != null) btn.IsEnabled = true; }
+        }
+
+        // ── Strumenti esterni (Sysinternals autorunsc) ────────
+        private void RefreshExternalToolsStatus() => TbAutorunsStatus.Text = ExternalToolsManager.AutorunscStatusText();
+
+        private async void BtnDownloadTools_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                TestArea.Log("── Download autorunsc.exe (Sysinternals) ──");
+                await ExternalToolsManager.DownloadAutorunscAsync(TestArea.Log);
+                RefreshExternalToolsStatus();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         // ── Scripts ───────────────────────────────────────────
@@ -750,11 +837,17 @@ namespace ShaiyaServerHub
 
         private async void BtnRunScript_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var item = ((FrameworkElement)sender).DataContext as ScriptItem;
             if (item == null) return;
-            SelectLog();
-            Log(L.RunningScript(item.Name));
-            await RunAsync(() => _runner.RunScript(item, Log));
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                SelectLog();
+                Log(L.RunningScript(item.Name));
+                await RunAsync(() => _runner.RunScript(item, Log));
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void BtnScheduleScript_Click(object sender, RoutedEventArgs e)
@@ -834,41 +927,59 @@ namespace ShaiyaServerHub
 
         private async void BtnEnableTask_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
             if (t == null) return;
-            int rc = -1;
-            await RunAsync(() => rc = TaskSchedulerService.SetEnabled(t.FullName, true, Log));
-            SetTaskStatus(rc == 0 ? L.TaskEnabled(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
-            ReloadTasks();
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                int rc = -1;
+                await RunAsync(() => rc = TaskSchedulerService.SetEnabled(t.FullName, true, Log));
+                SetTaskStatus(rc == 0 ? L.TaskEnabled(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
+                ReloadTasks();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
         private async void BtnDisableTask_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
             if (t == null) return;
-            int rc = -1;
-            await RunAsync(() => rc = TaskSchedulerService.SetEnabled(t.FullName, false, Log));
-            SetTaskStatus(rc == 0 ? L.TaskDisabled(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
-            ReloadTasks();
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                int rc = -1;
+                await RunAsync(() => rc = TaskSchedulerService.SetEnabled(t.FullName, false, Log));
+                SetTaskStatus(rc == 0 ? L.TaskDisabled(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
+                ReloadTasks();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
         private async void BtnRunNowTask_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
             if (t == null) return;
-            DateTime before = TaskLogReader.LastWrite(t.Name);   // mtime log prima del run
-            int rc = -1;
-            await RunAsync(() => rc = TaskSchedulerService.RunNow(t.FullName, Log));
-            SetTaskStatus(rc == 0 ? L.TaskRun(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
-            if (rc != 0) return;
-            // schtasks /Run è async: attendo che il log si aggiorni (max ~8s), poi ricarico → colore fresco.
-            await Task.Run(() =>
+            if (btn != null) btn.IsEnabled = false;
+            try
             {
-                for (int i = 0; i < 32; i++)
+                DateTime before = TaskLogReader.LastWrite(t.Name);   // mtime log prima del run
+                int rc = -1;
+                await RunAsync(() => rc = TaskSchedulerService.RunNow(t.FullName, Log));
+                SetTaskStatus(rc == 0 ? L.TaskRun(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
+                if (rc != 0) return;
+                // schtasks /Run è async: attendo che il log si aggiorni (max ~8s), poi ricarico → colore fresco.
+                await Task.Run(() =>
                 {
-                    if (TaskLogReader.LastWrite(t.Name) > before) break;
-                    System.Threading.Thread.Sleep(250);
-                }
-            });
-            ReloadTasks();
+                    for (int i = 0; i < 32; i++)
+                    {
+                        if (TaskLogReader.LastWrite(t.Name) > before) break;
+                        System.Threading.Thread.Sleep(250);
+                    }
+                });
+                ReloadTasks();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
         private async void BtnRemoveTask_Click(object sender, RoutedEventArgs e)
         {
@@ -876,26 +987,38 @@ namespace ShaiyaServerHub
             if (t == null) return;
             if (MessageBox.Show(L.ConfirmRemoveTask(t.Name), "ShaiyaServerHub",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            int rc = -1;
-            await RunAsync(() => rc = TaskSchedulerService.Delete(t.FullName, Log));
-            SetTaskStatus(rc == 0 ? L.TaskRemoved(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
-            ReloadTasks();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                int rc = -1;
+                await RunAsync(() => rc = TaskSchedulerService.Delete(t.FullName, Log));
+                SetTaskStatus(rc == 0 ? L.TaskRemoved(t.Name) : L.TaskActionErr(t.Name, rc), rc == 0);
+                ReloadTasks();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnEditTask_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var t = ((FrameworkElement)sender).DataContext as ScheduledTaskInfo;
             if (t == null) return;
-            string xml = null;
-            await RunAsync(() => xml = TaskSchedulerService.GetXml(t.FullName));
-            if (string.IsNullOrWhiteSpace(xml)) { SetTaskStatus(L.TaskActionErr(t.Name, -1), false); return; }
-            var def = TaskXml.Parse(xml, t.Name);
-            var win = new NewTaskWindow(def, Log) { Owner = this };
-            if (win.ShowDialog() == true)
+            if (btn != null) btn.IsEnabled = false;
+            try
             {
-                SetTaskStatus(L.TaskUpdated(t.Name), true);
-                ReloadTasks();
+                string xml = null;
+                await RunAsync(() => xml = TaskSchedulerService.GetXml(t.FullName));
+                if (string.IsNullOrWhiteSpace(xml)) { SetTaskStatus(L.TaskActionErr(t.Name, -1), false); return; }
+                var def = TaskXml.Parse(xml, t.Name);
+                var win = new NewTaskWindow(def, Log) { Owner = this };
+                if (win.ShowDialog() == true)
+                {
+                    SetTaskStatus(L.TaskUpdated(t.Name), true);
+                    ReloadTasks();
+                }
             }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void BtnOpenTaskSched_Click(object sender, RoutedEventArgs e)
@@ -916,31 +1039,52 @@ namespace ShaiyaServerHub
         private void BtnRefreshServices_Click(object sender, RoutedEventArgs e) => RefreshServices();
         private void RefreshServices() => ServicesList.ItemsSource = ServiceMonitor.Query();
 
+        // Guardia anti-doppio-click: stesso bug reale trovato in Test Suite (due StartAll in
+        // parallelo romperebbero l'ordine di dipendenza tra i servizi, come già osservato — vedi
+        // ServiceMonitor.GameServiceStartOrder). Bottone disabilitato per la durata dell'operazione.
         private async void BtnStartServices_Click(object sender, RoutedEventArgs e)
         {
-            SelectLog();
-            await RunAsync(() => ServiceMonitor.StartAll(Log));
-            RefreshServices();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                SelectLog();
+                await RunAsync(() => ServiceMonitor.StartAll(Log));
+                RefreshServices();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnStartService_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var s = ((FrameworkElement)sender).DataContext as ServiceStatus;
             if (s == null) return;
-            SelectLog();
-            await RunAsync(() => ServiceMonitor.Start(s.ServiceName, Log));
-            RefreshServices();
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                SelectLog();
+                await RunAsync(() => ServiceMonitor.Start(s.ServiceName, Log));
+                RefreshServices();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnStopService_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var s = ((FrameworkElement)sender).DataContext as ServiceStatus;
             if (s == null) return;
             if (MessageBox.Show(L.ConfirmStop(s.ServiceName), "ShaiyaServerHub",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            await RunAsync(() => ServiceMonitor.Stop(s.ServiceName, Log));
-            RefreshServices();
-            RefreshWebServices();   // il servizio potrebbe essere web (Apache/mysql)
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                await RunAsync(() => ServiceMonitor.Stop(s.ServiceName, Log));
+                RefreshServices();
+                RefreshWebServices();   // il servizio potrebbe essere web (Apache/mysql)
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         // ── Web server (XAMPP/Apache · IIS) ───────────────────
@@ -986,13 +1130,19 @@ namespace ShaiyaServerHub
             string svc = _webServer.PrimaryService;
             if (MessageBox.Show(L.ConfirmRestartWeb(svc), "ShaiyaServerHub",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            SelectLog();
-            await RunAsync(() =>
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
             {
-                ServiceMonitor.Stop(svc, Log);
-                ServiceMonitor.Start(svc, Log);
-            });
-            RefreshWebServices();
+                SelectLog();
+                await RunAsync(() =>
+                {
+                    ServiceMonitor.Stop(svc, Log);
+                    ServiceMonitor.Start(svc, Log);
+                });
+                RefreshWebServices();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnWebSslGen_Click(object sender, RoutedEventArgs e)
@@ -1002,18 +1152,30 @@ namespace ShaiyaServerHub
             if (path == null) { Log(L.WebScriptMissing(_webServer.SslCertScript)); SelectLog(); return; }
             if (MessageBox.Show(L.ConfirmWebSslGen(_webServer.SslCertScript), "ShaiyaServerHub",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            SelectLog();
-            Log(L.RunningScript(System.IO.Path.GetFileName(path)));
-            await RunAsync(() => _runner.RunPowerShell(path, Log));
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                SelectLog();
+                Log(L.RunningScript(System.IO.Path.GetFileName(path)));
+                await RunAsync(() => _runner.RunPowerShell(path, Log));
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void BtnBackupWeb_Click(object sender, RoutedEventArgs e)
         {
             string path = FindMainScript("BackupFolderWEB.bat");
             if (path == null) { Log(L.WebScriptMissing("BackupFolderWEB.bat")); SelectLog(); return; }
-            SelectLog();
-            Log(L.RunningScript(System.IO.Path.GetFileName(path)));
-            await RunAsync(() => _runner.RunBatch(path, Log));
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                SelectLog();
+                Log(L.RunningScript(System.IO.Path.GetFileName(path)));
+                await RunAsync(() => _runner.RunBatch(path, Log));
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void BtnOpenWebRoot_Click(object sender, RoutedEventArgs e)

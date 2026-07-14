@@ -26,11 +26,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Solo framework: nessuna dipendenza NuGet/DLL esterna. -->
+    <!-- Reference di framework (nessuna DLL esterna). -->
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Security" />
     <!-- ADO.NET (System.Data.SqlClient) per gli editor PSM_Cmd: query parametrizzate. -->
     <Reference Include="System.Data" />
+    <!-- Client HTTP verso OpenRouter/Telegram/SearXNG (modulo AI). Solo lato server, mai nel client di gioco. -->
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Unico pacchetto NuGet del progetto: JSON per il modulo AI (chat/tool-calling OpenRouter,
+         Telegram Bot API, SearXNG). Microsoft-first party, nessuna dipendenza transitiva. -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
   <!-- La copia dei DefaultScripts nell'output è gestita da Build-And-Copy.ps1

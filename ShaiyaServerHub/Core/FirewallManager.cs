@@ -150,6 +150,46 @@ try {{
             return RunMut(ps, log);
         }
 
+        // Nome dell'UNICA regola usata dal tool AI "temp_block_ip" — MAI una regola per IP (a scala,
+        // centinaia/migliaia di regole individuali degradano New-NetFirewallRule/l'enumerazione via
+        // PowerShell, un limite noto del layer di management, non del filtro WFP a kernel in sé). Un
+        // solo -RemoteAddress con l'insieme dinamico degli IP bloccati costa O(1) regole indipendente
+        // da quanti IP contiene — stesso principio degli ipset su Linux.
+        public const string TempBlockRuleName = "Shaiya-AI-TempBlock";
+
+        /// <summary>
+        /// Crea/aggiorna l'UNICA regola di blocco IP temporaneo con l'insieme COMPLETO degli IP
+        /// attualmente attivi (chiamata con l'intero elenco ad ogni add/remove, non incrementale — più
+        /// semplice e senza rischio di drift tra stato in-memory e regola reale). Lista vuota → rimuove
+        /// la regola (nessun errore se già assente).
+        /// </summary>
+        public bool SyncTempBlockRule(IEnumerable<string> activeIps, Action<string> log)
+        {
+            var ips = (activeIps ?? Enumerable.Empty<string>()).Distinct().ToList();
+            if (ips.Count == 0)
+            {
+                string psRemove = $@"
+$ErrorActionPreference='SilentlyContinue'
+Get-NetFirewallRule -DisplayName {PsStr(TempBlockRuleName)} | Remove-NetFirewallRule
+'OK'";
+                return RunMut(psRemove, log);
+            }
+
+            string addrList = string.Join(",", ips.Select(PsStr));
+            string ps = $@"
+$ErrorActionPreference='Stop'
+try {{
+  $existing = Get-NetFirewallRule -DisplayName {PsStr(TempBlockRuleName)} -ErrorAction SilentlyContinue
+  if ($existing) {{
+    $existing | Set-NetFirewallRule -RemoteAddress @({addrList})
+  }} else {{
+    New-NetFirewallRule -DisplayName {PsStr(TempBlockRuleName)} -Direction Inbound -Action Block -Protocol TCP -RemoteAddress @({addrList}) -Profile Any | Out-Null
+  }}
+  'OK'
+}} catch {{ 'ERR '+$_.Exception.Message }}";
+            return RunMut(ps, log);
+        }
+
         /// <summary>
         /// Modifica una regola esistente (per DisplayName): protocollo, porte, azione, ambito.
         /// Il nome resta l'identità della regola e non cambia.

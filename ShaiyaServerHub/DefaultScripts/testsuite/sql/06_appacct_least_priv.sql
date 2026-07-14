@@ -6,12 +6,12 @@
 -- FAIL se uno di essi ha un ruolo elevato.
 SET NOCOUNT ON;
 
-IF OBJECT_ID('tempdb..##ap') IS NOT NULL DROP TABLE ##ap;
-CREATE TABLE ##ap (db sysname, login sysname, role sysname);
+IF OBJECT_ID('tempdb..#ap') IS NOT NULL DROP TABLE #ap;
+CREATE TABLE #ap (db sysname, login sysname, role sysname);
 
 EXEC sp_MSforeachdb '
   IF DB_ID(''?'') > 4
-  INSERT INTO ##ap (db, login, role)
+  INSERT INTO #ap (db, login, role)
   SELECT ''?'', m.name, r.name
   FROM [?].sys.database_role_members rm
   JOIN [?].sys.database_principals r ON rm.role_principal_id = r.principal_id
@@ -22,11 +22,11 @@ EXEC sp_MSforeachdb '
 
 PRINT 'Account app con ruoli elevati (dovrebbe essere VUOTO):';
 DECLARE @msg nvarchar(max) = '';
-SELECT @msg = @msg + CHAR(13) + CHAR(10) + '  ' + db + ' : ' + login + ' -> ' + role FROM ##ap;
+SELECT @msg = @msg + CHAR(13) + CHAR(10) + '  ' + db + ' : ' + login + ' -> ' + role FROM #ap;
 IF @msg = '' PRINT '  (nessuno - solo ruoli custom MioRuolo*)'; ELSE PRINT @msg;
 
-DECLARE @n int = (SELECT COUNT(*) FROM ##ap);
-DROP TABLE ##ap;
+DECLARE @n int = (SELECT COUNT(*) FROM #ap);
+DROP TABLE #ap;
 
 PRINT 'RESULT: ' + CASE WHEN @n > 0 THEN 'FAIL' ELSE 'PASS' END
     + ' - ' + CAST(@n AS varchar) + ' grant elevati su account app';

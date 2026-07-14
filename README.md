@@ -17,7 +17,7 @@ ShaiyaServerHub.exe
   functions\<scheda>\sql\   ← *.sql di una scheda "Funzioni" (es. functions\psm_cmd-scc\sql, PSM_Cmd 00→07)
   functions\<scheda>\ps1\   ← ogni scheda della vista "Funzioni" ha la sua sottocartella
   testsuite\sql\    ← *.sql della "Test Suite" (audit 01→19)
-  testsuite\ps1\    ← check *.ps1 (10→21)
+  testsuite\ps1\    ← check *.ps1 (10→22)
   keyrotation\ps1\  ← Rotate-ShaiyaKeys.ps1 (vista "Key Rotation"; chiama la CLI crypt dell'Hub)
   hub.settings.xml   (config; password SQL cifrata DPAPI LocalMachine)
   hub.log            (log persistente)   ·   hub-tasks.log (task headless)
@@ -88,6 +88,21 @@ Ogni area ha la sua cartella con dentro `sql\` e `ps1\`. Ogni apertura ricarica 
    `ps_game`+`ps_login`** (che rileggono `GMSecurity.ini`) → **nessun reboot del server**. **🕑 Installa task
    04:00** pianifica la rotazione notturna con la stessa logica. Le chiavi correnti sono mostrate come
    **fingerprint SHA-256** (mai in chiaro). Ha una card dedicata in Dashboard.
+9. **🧠 AI (Hub Brain)** — assistente AI (LLM via OpenRouter) che osserva il server e risponde in chat:
+   servizi, firewall, salute web, esiti Test Suite, task pianificati, comandi slash configurati
+   (`GmCommandAllowlist`), query SQL in sola lettura (login dedicato `ShaiyaAiReader`), ricerca web
+   (SearXNG) per mitigazioni/best-practice, connessioni/telemetria di sicurezza (`connection_census`/
+   `security_telemetry`) e i propri file (`read_hub_file`). **Stato attuale (P1+P2+P3)**: oltre
+   all'osservazione, agisce con guardrail nel codice (`PolicyGate`/`Invariants`/`EscalationEngine`) —
+   riavvia da sola servizi di gioco caduti (T1, auto-heal + sweep proattivo `WatchLoop`), espelle
+   giocatori (T2), blocca temporaneamente un IP (T2, `temp_block_ip`, si rimuove da solo alla scadenza),
+   rilancia un task pianificato (T3, sempre approvazione) e **banna un account** (T3, `ban_player`,
+   azione irreversibile — richiede SEMPRE approvazione manuale via Telegram, mai automatica). Può anche
+   scrivere e verificare nuovi controlli di sicurezza (`write_ai_test_script`/`run_ai_test_script`,
+   sempre in sola lettura, area separata dalla Test Suite di produzione). Impara nel tempo: annota da
+   sola pattern utili (falsi positivi confermati, account chiariti come di test) in note che rilegge
+   automaticamente nei turni futuri. Impostazioni (API key, Telegram, login SQL read-only + login ban
+   dedicato, SearXNG) nel dialog **⚙ Impostazioni**.
 
 > I "job del sito" (EXP notice, ecc.) sono normali script pianificati: mettili in `scripts\` e usa
 > **▶ Pianifica** / la vista **Pianificati** come qualsiasi altro task. Non c'è una vista dedicata separata.

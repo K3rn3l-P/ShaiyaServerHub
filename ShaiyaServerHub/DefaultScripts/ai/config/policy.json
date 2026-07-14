@@ -1,0 +1,37 @@
+{
+  "_comment": "Scheletro di configurazione per il PolicyGate/EscalationEngine (arrivano in P2 — vedi PLAN §Fasatura). In P1 questo file NON e' ancora letto dal codice: e' qui pronto/documentato per non dover ridisegnare il formato in P2. L'enforcement vero degli invarianti resta SEMPRE nel codice C# (Core/Ai/Invariants.cs), mai in questo file: un valore sbagliato qui non deve poter aprire una falla.",
+
+  "escalation": {
+    "_comment": "Formula: grace = clamp(Tbase / (C * w(H) * u(B)), Tmin, Tmax). Vedi PLAN §Escalation intelligente a punteggio.",
+    "confidenceMin": 0.8,
+    "graceBaseMinutes": 30,
+    "graceMinMinutes": 0,
+    "graceMaxMinutes": 60,
+    "damageWeight": { "nessuno": 0.25, "lento": 1, "veloce": 4, "critico": 16 },
+    "blastRadiusWeight": { "singolo": 1, "gruppo": 1.5, "servizio": 3, "serverWide": "SEMPRE_APPROVAZIONE" }
+  },
+
+  "rateCaps": {
+    "_comment": "Numero massimo di azioni per tier in una finestra, oltre il quale il circuit-breaker scatta.",
+    "t1PerHour": 5,
+    "t2PerHour": 10,
+    "t3PerDay": 3
+  },
+
+  "circuitBreaker": {
+    "maxActionsInWindow": 8,
+    "windowMinutes": 15
+  },
+
+  "killSwitch": {
+    "_comment": "Se il file ai\\STOP esiste, l'AI si ferma immediatamente (nessuna azione, nessun watch loop).",
+    "stopFile": "STOP"
+  },
+
+  "shadowMode": {
+    "_comment": "P2/P3: nuove categorie di incidente partono in sola-proposta finche' la precisione non supera la soglia.",
+    "enabled": true,
+    "precisionThreshold": 0.85,
+    "minSamples": 10
+  }
+}

@@ -233,6 +233,8 @@
                                      Tag="testsuite" Content="{DynamicResource NavTestSuite}" Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavKeyRotation" Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="keyrotation" Content="{DynamicResource NavKeyRotation}" Checked="Nav_Checked"/>
+                        <RadioButton x:Name="NavAi" Style="{StaticResource NavItem}" GroupName="nav"
+                                     Tag="ai" Content="{DynamicResource NavAi}" Checked="Nav_Checked"/>
                         <RadioButton x:Name="NavLog"      Style="{StaticResource NavItem}" GroupName="nav"
                                      Tag="log"      Content="{DynamicResource NavLog}"      Checked="Nav_Checked"/>
                     </StackPanel>
@@ -366,6 +368,8 @@
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="8"/>
                                         <RowDefinition Height="*"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="8"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
@@ -516,6 +520,35 @@
                                                     Style="{StaticResource MiniButton}"
                                                     Content="{DynamicResource DashOpenKeyRotation}"
                                                     Tag="keyrotation" Click="DashOpen_Click"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Card AI (riga 6, full-width): verdetto ●verde/giallo/rosso + ultimo alert -->
+                                    <Border Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource DashCard}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="#0EB07BE8" CornerRadius="7,0,0,7" Padding="12,7"
+                                                    VerticalAlignment="Stretch">
+                                                <TextBlock Text="{DynamicResource DashCardAi}" Foreground="#C6A8F0"
+                                                           FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Margin="12,7" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse x:Name="DashAiDot" Width="8" Height="8" VerticalAlignment="Center" Fill="#66707A"/>
+                                                    <TextBlock x:Name="TbDashAiState" Margin="6,0,0,0" Foreground="#E8C881"
+                                                               FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="TbDashAiSub" Margin="0,3,0,0" FontSize="10"
+                                                           Foreground="#88E0E0E0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2" VerticalAlignment="Center" Margin="8,0,8,0"
+                                                    Style="{StaticResource MiniButton}"
+                                                    Content="{DynamicResource DashOpenAi}"
+                                                    Tag="ai" Click="DashOpen_Click"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -802,19 +835,41 @@
 
                     <!-- Test Suite -->
                     <GroupBox x:Name="PanelTestSuite" Header="{DynamicResource GbTestSuite}" Visibility="Collapsed">
-                        <controls:ScriptAreaControl x:Name="TestArea">
-                            <controls:ScriptAreaControl.Actions>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Style="{StaticResource AccentButton}"
-                                            Content="{DynamicResource BtnRunTestSuite}" Click="BtnRunTestSuite_Click"/>
-                                </StackPanel>
-                            </controls:ScriptAreaControl.Actions>
-                        </controls:ScriptAreaControl>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="{DynamicResource GbExternalTools}" Foreground="#7BE8C881"
+                                           FontSize="10" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock x:Name="TbAutorunsStatus" Foreground="#AADDE0E0" FontSize="10"
+                                           VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <Button Content="{DynamicResource BtnDownloadTools}" Click="BtnDownloadTools_Click"
+                                        ToolTip="{DynamicResource TipDownloadTools}"/>
+                            </StackPanel>
+                            <controls:ScriptAreaControl x:Name="TestArea" Grid.Row="1">
+                                <controls:ScriptAreaControl.Actions>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource AccentButton}"
+                                                Content="{DynamicResource BtnRunTestSuite}" Click="BtnRunTestSuite_Click"/>
+                                        <Border Width="1" Background="#28E8C881" Margin="6,3"/>
+                                        <Button Content="{DynamicResource BtnInstallSqlAudit}" Click="BtnInstallSqlAudit_Click"
+                                                ToolTip="{DynamicResource TipInstallSqlAudit}"/>
+                                    </StackPanel>
+                                </controls:ScriptAreaControl.Actions>
+                            </controls:ScriptAreaControl>
+                        </Grid>
                     </GroupBox>
 
                     <!-- Key Rotation -->
                     <GroupBox x:Name="PanelKeyRotation" Header="{DynamicResource GbKeyRotation}" Visibility="Collapsed">
                         <controls:KeyRotationControl x:Name="KeyRotArea"/>
+                    </GroupBox>
+
+                    <!-- AI (Hub Brain) -->
+                    <GroupBox x:Name="PanelAi" Header="{DynamicResource GbAi}" Visibility="Collapsed">
+                        <controls:AiControl x:Name="AiArea"/>
                     </GroupBox>
 
                     <!-- Log -->

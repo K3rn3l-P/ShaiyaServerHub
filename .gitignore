@@ -29,6 +29,9 @@ hub-tasks.log
 /ShaiyaServerHub/functions/
 /ShaiyaServerHub/testsuite/
 
+# ── Strumenti esterni scaricati a runtime (binari Sysinternals, MAI nel repo) ─
+/ShaiyaServerHub/tools/
+
 # ── Varie ─────────────────────────────────────────────
 *.tmp
 Thumbs.db

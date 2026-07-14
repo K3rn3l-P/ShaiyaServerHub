@@ -15,7 +15,7 @@ $logDir = "C:\ShaiyaServer\PSM_Client\Bin\Log"
 # Percorso eseguibile di 7zip
 $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
 
-# ── Cartella del Task Scheduler in cui vivono i task del Hub ──
+# -- Cartella del Task Scheduler in cui vivono i task del Hub --
 $taskFolder = "\ShaiyaServerHub\"
 
 # Nomi dei task dipendenti da avviare (SENZA path: viene aggiunto $taskFolder sotto)
@@ -93,10 +93,10 @@ function Manage-LogFiles {
     Cleanup-ZippedFiles -sourceFolder $logDir
 }
 
-# ── 1) Manutenzione log ──
+# -- 1) Manutenzione log --
 Manage-LogFiles -logDir $logDir -sevenZipPath $sevenZipPath
 
-# ── 2) Attendi che il servizio ps_game sia UP, poi avvia i task dipendenti ──
+# -- 2) Attendi che il servizio ps_game sia UP, poi avvia i task dipendenti --
 $serviceName = "ps_game"
 $startTime = Get-Date
 $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue

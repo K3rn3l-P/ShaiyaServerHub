@@ -318,18 +318,18 @@ function Should-ExcludeZapFinding {
         return $true
     }
 
-    # Escludi CSP Wildcard Directive quando contiene nonce (è legittimo per CSP)
+    # Escludi CSP Wildcard Directive quando contiene nonce (e' legittimo per CSP)
     if ($AlertName -match 'CSP.*Wildcard Directive' -and $Evidence -match 'nonce-') {
         return $true
     }
 
-    # Escludi CSP unsafe-inline quando è per style-src (necessario per editor WYSIWYG)
+    # Escludi CSP unsafe-inline quando e' per style-src (necessario per editor WYSIWYG)
     if ($AlertName -match 'CSP.*style-src.*unsafe-inline' -and $Evidence -match 'style-src.*unsafe-inline') {
         return $true
     }
 
     # Escludi SRI (Sub Resource Integrity) come buona pratica opzionale
-    # Nota: SRI è importante ma non critico se il CSP permette i CDN.
+    # Nota: SRI e' importante ma non critico se il CSP permette i CDN.
     # Commentare questa riga per includere gli alert SRI.
     if ($AlertName -match 'Sub Resource Integrity.*Missing') {
         return $true

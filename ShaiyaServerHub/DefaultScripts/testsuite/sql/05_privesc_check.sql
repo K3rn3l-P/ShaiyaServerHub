@@ -4,12 +4,12 @@
 -- (se l'owner del DB e' sysadmin). FAIL se trova anche un solo principal sfruttabile.
 SET NOCOUNT ON;
 
-IF OBJECT_ID('tempdb..##pe') IS NOT NULL DROP TABLE ##pe;
-CREATE TABLE ##pe (db sysname, principal sysname, why varchar(100));
+IF OBJECT_ID('tempdb..#pe') IS NOT NULL DROP TABLE #pe;
+CREATE TABLE #pe (db sysname, principal sysname, why varchar(100));
 
 EXEC sp_MSforeachdb '
   IF DB_ID(''?'') > 4 AND (SELECT is_trustworthy_on FROM sys.databases WHERE name = ''?'') = 1
-  INSERT INTO ##pe (db, principal, why)
+  INSERT INTO #pe (db, principal, why)
   SELECT ''?'', m.name, ''role:'' + r.name
   FROM [?].sys.database_role_members rm
   JOIN [?].sys.database_principals r ON rm.role_principal_id = r.principal_id
@@ -21,11 +21,11 @@ EXEC sp_MSforeachdb '
 
 PRINT 'Login non-sysadmin con db_owner/ddladmin su DB TRUSTWORTHY (catena privesc):';
 DECLARE @msg nvarchar(max) = '';
-SELECT @msg = @msg + CHAR(13) + CHAR(10) + '  ' + db + ' : ' + principal + ' (' + why + ')' FROM ##pe;
+SELECT @msg = @msg + CHAR(13) + CHAR(10) + '  ' + db + ' : ' + principal + ' (' + why + ')' FROM #pe;
 IF @msg = '' PRINT '  (nessuno)'; ELSE PRINT @msg;
 
-DECLARE @n int = (SELECT COUNT(*) FROM ##pe);
-DROP TABLE ##pe;
+DECLARE @n int = (SELECT COUNT(*) FROM #pe);
+DROP TABLE #pe;
 
 PRINT 'RESULT: ' + CASE WHEN @n > 0 THEN 'FAIL' ELSE 'PASS' END
     + ' - ' + CAST(@n AS varchar) + ' principal sfruttabili';

@@ -88,10 +88,16 @@ namespace ShaiyaServerHub.Controls
                 MessageBoxButton.YesNo, turningOn ? MessageBoxImage.Question : MessageBoxImage.Warning)
                 != MessageBoxResult.Yes) return;
 
-            Log(turningOn ? "── Abilito firewall (tutti i profili) ──" : "── Disabilito firewall ──");
-            bool ok = await Task.Run(() => _fw.SetFirewallEnabled(turningOn, Log));
-            Log(ok ? L.FwDone : L.FwActionErr);
-            RefreshAll();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                Log(turningOn ? "── Abilito firewall (tutti i profili) ──" : "── Disabilito firewall ──");
+                bool ok = await Task.Run(() => _fw.SetFirewallEnabled(turningOn, Log));
+                Log(ok ? L.FwDone : L.FwActionErr);
+                RefreshAll();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void BtnOpenWf_Click(object sender, RoutedEventArgs e)
@@ -108,13 +114,19 @@ namespace ShaiyaServerHub.Controls
             if (MessageBox.Show(Window.GetWindow(this), L.FwConfirmPosture(lan), L.FwTitle,
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
 
-            _settings.FirewallLanCidr = lan;
-            _settings.Save();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                _settings.FirewallLanCidr = lan;
+                _settings.Save();
 
-            Log("── Applico posture consigliata (LAN " + lan + ") ──");
-            await Task.Run(() => _fw.ApplyPosture(_scriptPath, lan, Log));
-            Log(L.FwDone);
-            RefreshAll();
+                Log("── Applico posture consigliata (LAN " + lan + ") ──");
+                await Task.Run(() => _fw.ApplyPosture(_scriptPath, lan, Log));
+                Log(L.FwDone);
+                RefreshAll();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void BtnOpenAuditLog_Click(object sender, RoutedEventArgs e)
@@ -147,27 +159,39 @@ namespace ShaiyaServerHub.Controls
         {
             var dlg = new FirewallRuleDialog { Owner = Window.GetWindow(this) };
             if (dlg.ShowDialog() != true) return;
-            string lan = Lan;
-            Log($"── Aggiungo regola: {dlg.RuleName} ──");
-            bool ok = await Task.Run(() => _fw.AddRule(dlg.RuleName, dlg.Protocol, dlg.LocalPort,
-                                                       dlg.RuleAction, dlg.Scope, lan, Log));
-            Log(ok ? L.FwDone : L.FwActionErr);
-            await RefreshRules();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                string lan = Lan;
+                Log($"── Aggiungo regola: {dlg.RuleName} ──");
+                bool ok = await Task.Run(() => _fw.AddRule(dlg.RuleName, dlg.Protocol, dlg.LocalPort,
+                                                           dlg.RuleAction, dlg.Scope, lan, Log));
+                Log(ok ? L.FwDone : L.FwActionErr);
+                await RefreshRules();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void RuleEdit_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var row = ((FrameworkElement)sender).DataContext as FirewallRuleRow;
             if (row == null) return;
             string lan = Lan;
             var dlg = new FirewallRuleDialog { Owner = Window.GetWindow(this) };
             dlg.LoadForEdit(row, lan);
             if (dlg.ShowDialog() != true) return;
-            Log($"── Modifico regola: {dlg.EditDisplayName} ──");
-            bool ok = await Task.Run(() => _fw.UpdateRule(dlg.EditDisplayName, dlg.Protocol, dlg.LocalPort,
-                                                          dlg.RuleAction, dlg.Scope, lan, Log));
-            Log(ok ? L.FwDone : L.FwActionErr);
-            await RefreshRules();
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                Log($"── Modifico regola: {dlg.EditDisplayName} ──");
+                bool ok = await Task.Run(() => _fw.UpdateRule(dlg.EditDisplayName, dlg.Protocol, dlg.LocalPort,
+                                                              dlg.RuleAction, dlg.Scope, lan, Log));
+                Log(ok ? L.FwDone : L.FwActionErr);
+                await RefreshRules();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private async void RuleEnabled_Click(object sender, RoutedEventArgs e)
@@ -176,10 +200,15 @@ namespace ShaiyaServerHub.Controls
             var row = cb?.DataContext as FirewallRuleRow;
             if (row == null) return;
             bool target = cb.IsChecked == true;
-            Log($"── {(target ? "Abilito" : "Disabilito")}: {row.DisplayName} ──");
-            bool ok = await Task.Run(() => _fw.SetRuleEnabled(row.DisplayName, target, Log));
-            if (!ok) Log(L.FwActionErr);
-            await RefreshRules();
+            if (cb != null) cb.IsEnabled = false;
+            try
+            {
+                Log($"── {(target ? "Abilito" : "Disabilito")}: {row.DisplayName} ──");
+                bool ok = await Task.Run(() => _fw.SetRuleEnabled(row.DisplayName, target, Log));
+                if (!ok) Log(L.FwActionErr);
+                await RefreshRules();
+            }
+            finally { if (cb != null) cb.IsEnabled = true; }
         }
 
         private async void RuleRemove_Click(object sender, RoutedEventArgs e)
@@ -188,9 +217,15 @@ namespace ShaiyaServerHub.Controls
             if (row == null) return;
             if (MessageBox.Show(Window.GetWindow(this), L.FwConfirmRemove(row.DisplayName), L.FwTitle,
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            bool ok = await Task.Run(() => _fw.RemoveRule(row.DisplayName, Log));
-            Log(ok ? L.FwDone : L.FwActionErr);
-            await RefreshRules();
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                bool ok = await Task.Run(() => _fw.RemoveRule(row.DisplayName, Log));
+                Log(ok ? L.FwDone : L.FwActionErr);
+                await RefreshRules();
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         // ── Test di rete ─────────────────────────────────────

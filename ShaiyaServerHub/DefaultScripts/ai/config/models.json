@@ -1,0 +1,8 @@
+{
+  "_comment": "Slot modelli OpenRouter (vedi PLAN §OpenRouter/budget). Editabile a mano O dalle Impostazioni AI del Hub (stesso file). 'critical' = incidenti reali/mitigazioni/ragionamento sui fix (default openrouter/auto, consuma credito reale: usalo solo quando serve davvero). 'default' = uso ordinario/routine/controllo 'buchi': NON 'openrouter/free' (pesca a caso tra modelli free anche deboli/allucinanti) ma un modello free CONCRETO scelto per tool-calling affidabile e basso rischio di allucinazione (dati classifica OpenRouter luglio 2026). 'fallback' = usato in automatico se il modello scelto fallisce (crediti finiti, errore API, o rimosso da OpenRouter) — resta openrouter/free come rete di sicurezza. Puoi mettere qualsiasi modello supportato da OpenRouter: https://openrouter.ai/models",
+  "critical": "openrouter/auto",
+  "default": "tencent/hy3:free",
+  "fallback": "openrouter/free",
+  "maxRequestsPerDay": 1000,
+  "maxRequestsPerHour": 100
+}

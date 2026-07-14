@@ -44,38 +44,38 @@ foreach ($file in $backupFiles) {
     }
 }
 
-# Elimina i file più vecchi di 4 giorni nella cartella NEW
+# Elimina i file piu' vecchi di 4 giorni nella cartella NEW
 $oldBackupFiles = Get-ChildItem -Path (Join-Path -Path $BackupPath -ChildPath "NEW") -Filter *.bak
 foreach ($file in $oldBackupFiles) {
     if ($file.LastWriteTime -lt (Get-Date).AddDays(-4)) {
         Remove-Item $file.FullName -Force
-        "$([datetime]::Now) - Eliminati file .bak più vecchi di 4 giorni da NEW" | Out-File -FilePath $LogPath -Append
+        "$([datetime]::Now) - Eliminati file .bak piu' vecchi di 4 giorni da NEW" | Out-File -FilePath $LogPath -Append
     }
 }
 
-# Sposta i file compressi (.7z) più vecchi di 10 giorni da OLD a LAST30
+# Sposta i file compressi (.7z) piu' vecchi di 10 giorni da OLD a LAST30
 $oldCompressedFiles = Get-ChildItem -Path (Join-Path -Path $BackupPath -ChildPath "OLD") -Filter *.7z
 foreach ($file in $oldCompressedFiles) {
     if ($file.LastWriteTime -lt (Get-Date).AddDays(-10)) {
         Move-Item $file.FullName (Join-Path -Path $BackupPath -ChildPath "LAST30")
-        "$([datetime]::Now) - Spostati file .7z più vecchi di 10 giorni da OLD a LAST30" | Out-File -FilePath $LogPath -Append
+        "$([datetime]::Now) - Spostati file .7z piu' vecchi di 10 giorni da OLD a LAST30" | Out-File -FilePath $LogPath -Append
     }
 }
 
-# Elimina i file compressi (.7z) più vecchi di 11 giorni dalla cartella OLD
+# Elimina i file compressi (.7z) piu' vecchi di 11 giorni dalla cartella OLD
 foreach ($file in $oldCompressedFiles) {
     if ($file.LastWriteTime -lt (Get-Date).AddDays(-11)) {
         Remove-Item $file.FullName -Force
-        "$([datetime]::Now) - Eliminati file .7z più vecchi di 11 giorni da OLD" | Out-File -FilePath $LogPath -Append
+        "$([datetime]::Now) - Eliminati file .7z piu' vecchi di 11 giorni da OLD" | Out-File -FilePath $LogPath -Append
     }
 }
 
-# Elimina i file compressi (.7z) più vecchi di 30 giorni dalla cartella LAST30
+# Elimina i file compressi (.7z) piu' vecchi di 30 giorni dalla cartella LAST30
 $last30CompressedFiles = Get-ChildItem -Path (Join-Path -Path $BackupPath -ChildPath "LAST30") -Filter *.7z
 foreach ($file in $last30CompressedFiles) {
     if ($file.LastWriteTime -lt (Get-Date).AddDays(-30)) {
         Remove-Item $file.FullName -Force
-        "$([datetime]::Now) - Eliminati file .7z più vecchi di 30 giorni da LAST30" | Out-File -FilePath $LogPath -Append
+        "$([datetime]::Now) - Eliminati file .7z piu' vecchi di 30 giorni da LAST30" | Out-File -FilePath $LogPath -Append
     }
 }
 

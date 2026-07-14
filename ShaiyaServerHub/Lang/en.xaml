@@ -15,6 +15,7 @@
     <s:String x:Key="NavFunctions">🛠  Functions</s:String>
     <s:String x:Key="NavTestSuite">🛡  Test Suite</s:String>
     <s:String x:Key="NavKeyRotation">🔑  Key Rotation</s:String>
+    <s:String x:Key="NavAi">🧠  AI</s:String>
     <s:String x:Key="NavLog">📋  Log</s:String>
 
     <!-- Dashboard -->
@@ -37,6 +38,8 @@
     <s:String x:Key="DashOpenPsm">Open functions →</s:String>
     <s:String x:Key="DashOpenTestSuite">Open test suite →</s:String>
     <s:String x:Key="DashOpenKeyRotation">Open →</s:String>
+    <s:String x:Key="DashCardAi">🧠  AI</s:String>
+    <s:String x:Key="DashOpenAi">Open →</s:String>
     <s:String x:Key="DashQuickActions">QUICK ACTIONS</s:String>
     <s:String x:Key="DashActNewTask">＋ New task</s:String>
     <s:String x:Key="DashActTestSuite">🛡 Test Suite</s:String>
@@ -53,6 +56,11 @@
     <s:String x:Key="BtnPsmSettings">⚙ DB Settings</s:String>
     <s:String x:Key="BtnPsmLog">📋 DB Log</s:String>
     <s:String x:Key="BtnRunTestSuite">▶ Run all</s:String>
+    <s:String x:Key="BtnInstallSqlAudit">⚙ Install/Verify SQL Audit</s:String>
+    <s:String x:Key="TipInstallSqlAudit">Installs (or verifies/repairs) the native SQL Server Audit for failed SQL logins and schema changes — idempotent, safe to rerun. See script 23_sql_audit_install.sql.</s:String>
+    <s:String x:Key="GbExternalTools">🔧 External tools</s:String>
+    <s:String x:Key="BtnDownloadTools">⬇ Download/Update Autoruns</s:String>
+    <s:String x:Key="TipDownloadTools">Downloads autorunsc.exe (Sysinternals) from live.sysinternals.com — used by the 22_autoruns_baseline check to detect new autostart entries (persistence).</s:String>
     <s:String x:Key="BtnOpenLog">📋 Log</s:String>
     <s:String x:Key="TipScriptLog">Open this script's log</s:String>
     <s:String x:Key="AreaLogTitle">LOG</s:String>
@@ -200,6 +208,54 @@
     <s:String x:Key="SetGbChannel">COMMAND CHANNEL (PSM_Cmd)</s:String>
     <s:String x:Key="HintChannel">Under Windows auth (sysadmin) scripts using usp_RunCommand (/mmake, /exp2xenable) are denied (-3): sysadmin is not in GmCallerProfile. Register the current login with ECONOMY tier to make them work.</s:String>
     <s:String x:Key="BtnRegisterCaller">Enable this login in the command channel (ECONOMY)</s:String>
+
+    <!-- Settings window: tabs -->
+    <s:String x:Key="TabSetServer">Server</s:String>
+    <s:String x:Key="TabSetWeb">Web</s:String>
+    <s:String x:Key="TabSetChannel">Command channel</s:String>
+    <s:String x:Key="TabSetAi">AI</s:String>
+
+    <s:String x:Key="SetGbAi">AI (HUB BRAIN)</s:String>
+    <s:String x:Key="LblAiEnabled">Enable the AI (master switch)</s:String>
+    <s:String x:Key="SetGbAiConnection">OPENROUTER CONNECTION</s:String>
+    <s:String x:Key="LblOpenRouterKey">OpenRouter API key:</s:String>
+    <s:String x:Key="LblOpenRouterEndpoint">Endpoint:</s:String>
+    <s:String x:Key="SetGbAiModels">MODELS</s:String>
+    <s:String x:Key="HintAiModels">3 slots: "Critical" for real incidents/mitigations (default openrouter/auto, uses real credit — only when it truly matters); "Default" for ordinary/routine use and "gap" checks (normally a free model chosen for reliability — with auto-update below it re-checks itself against the real OpenRouter catalog instead of staying pinned to an ID that might disappear); "Fallback" used automatically if the chosen model fails (credits exhausted, API error, model removed) — normally openrouter/free as a safety net. You can put any model supported by OpenRouter (openrouter.ai/models).</s:String>
+    <s:String x:Key="LblAiModelCritical">Critical model:</s:String>
+    <s:String x:Key="LblAiModelDefault">Default model:</s:String>
+    <s:String x:Key="LblAiModelFallback">Fallback model:</s:String>
+    <s:String x:Key="LblAiMaxPerDay">Requests/day:</s:String>
+    <s:String x:Key="LblAiMaxPerHour">Requests/hour:</s:String>
+    <s:String x:Key="ChkAiModelAutoUpdate">Auto-update the Default model (recommended — checks every 24h against the OpenRouter catalog)</s:String>
+    <s:String x:Key="BtnAiModelRefresh">🔄 Check now</s:String>
+    <s:String x:Key="SetGbAiTelegram">TELEGRAM (NOTIFICATIONS)</s:String>
+    <s:String x:Key="HintTelegram">Notifications/approvals via a Telegram bot. To create one: open Telegram, search @BotFather, send /newbot and follow the prompts → copy the Token below. Then message your bot (e.g. /start) and click 🔎 Detect: the Chat ID fills in automatically.</s:String>
+    <s:String x:Key="LblTelegramToken">Bot token:</s:String>
+    <s:String x:Key="LblTelegramChatId">Chat ID:</s:String>
+    <s:String x:Key="BtnDetectChatId">🔎 Detect</s:String>
+    <s:String x:Key="SetGbAiSqlSearx">DATA (READ-ONLY SQL + WEB SEARCH)</s:String>
+    <s:String x:Key="HintAiSql">Dedicated SQL login, READ-ONLY (never the Hub's main credentials) — create it first with the script in the MSSQL install guide (ShaiyaAiReader).</s:String>
+    <s:String x:Key="LblAiSqlUser">User:</s:String>
+    <s:String x:Key="LblAiSqlPass">Password:</s:String>
+    <s:String x:Key="LblSearxMode">Mode:</s:String>
+    <s:String x:Key="SearxModeMcp">MCP server</s:String>
+    <s:String x:Key="SearxModeRest">REST endpoint</s:String>
+    <s:String x:Key="LblSearxUrl">URL:</s:String>
+    <s:String x:Key="HintSearxMcp">SearXNG MCP server (JSON-RPC protocol, e.g. http://host:port/mcp) — the same channel used for web search during development. Pre-filled with this environment's known instance; already works as-is.</s:String>
+    <s:String x:Key="HintSearxRest">REST endpoint of your own SearXNG instance (e.g. http://host:port, no /search). Requires search: formats: [html, json] enabled in settings.yml (SearXNG disables it by default → otherwise 403).</s:String>
+    <s:String x:Key="SetGbAiBan">BAN EXECUTOR (T3 — IRREVERSIBLE)</s:String>
+    <s:String x:Key="HintAiBan">Dedicated SQL login with ONLY EXECUTE permission on sp_BanUser (never the Hub's main credentials) — create it first with the 3.1.Login-BanExecutor-AI.sql script on the MSSQL install guide (ShaiyaAiBanExecutor). Without a password here, the ban_player tool always refuses explicitly.</s:String>
+    <s:String x:Key="LblAiBanUser">User:</s:String>
+    <s:String x:Key="LblAiBanPass">Password:</s:String>
+    <s:String x:Key="SetGbAiAutoruns">AUTORUN / PERSISTENCE (autorunsc)</s:String>
+    <s:String x:Key="LblAiAutorunsCheck">Wake-up check every (minutes):</s:String>
+    <s:String x:Key="LblAiAutorunsRunEvery">Full scan every (hours):</s:String>
+    <s:String x:Key="LblAiAutorunsGrace">Grace after Hub startup (minutes):</s:String>
+    <s:String x:Key="HintAiAutoruns">"Wake-up check" = how often the internal timer wakes up (a small value is fine). "Full scan every" = how many hours between actual autorunsc runs. "Grace" = wait after Hub startup before the first run (avoids false alarms from services still starting).</s:String>
+    <s:String x:Key="SetGbAiSafety">SAFETY — CIRCUIT BREAKER</s:String>
+    <s:String x:Key="HintCircuitBreaker">If too many T1+ actions trigger in a short time (possible loop/anomaly), the AI stops itself and stays stopped until you manually reset here — it never reopens on its own over time.</s:String>
+    <s:String x:Key="BtnResetCircuitBreaker">Reset</s:String>
     <s:String x:Key="BtnSave">Save</s:String>
     <s:String x:Key="BtnCancel">Cancel</s:String>
 
@@ -307,6 +363,19 @@
     <s:String x:Key="KrBtnOpenData">📂 Data folder</s:String>
     <s:String x:Key="KrRebootWarn">⚠ Keys rotated but services did not restart: restart ps_game/ps_login (or the server) to apply them.</s:String>
     <s:String x:Key="KrKeysTitle">CURRENT KEYS (SHA-256 fingerprint, never in cleartext)</s:String>
+
+    <!-- AI (Hub Brain) -->
+    <s:String x:Key="GbAi">AI — HUB BRAIN</s:String>
+    <s:String x:Key="AiBtnClear">🧹 Clear</s:String>
+    <s:String x:Key="AiBtnSettings">AI Settings</s:String>
+    <s:String x:Key="AiBtnSend">Send ▶</s:String>
+    <s:String x:Key="AiFeedTitle">TOOLS READ BY THE AI</s:String>
+    <s:String x:Key="AiBtnCopyChat">Copy chat</s:String>
+    <s:String x:Key="AiBtnCopyFeed">Copy</s:String>
+    <s:String x:Key="AiBtnStop">⏹ Stop</s:String>
+    <s:String x:Key="AiLblMode">Model:</s:String>
+    <s:String x:Key="AiModeDefault">Default (free)</s:String>
+    <s:String x:Key="AiModeCritical">Critical (auto)</s:String>
 
     <!-- Windows Firewall -->
     <s:String x:Key="FwEnableAll">🛡 Enable firewall</s:String>

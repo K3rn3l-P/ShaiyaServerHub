@@ -158,11 +158,45 @@ namespace ShaiyaServerHub.Controls
         // ── Esecuzione script ────────────────────────────────
         private async void BtnRunAreaScript_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
             var item = ((FrameworkElement)sender).DataContext as ScriptItem;
             if (item == null) return;
             if (_runner == null) { Log("Runner non inizializzato."); return; }
-            Log($"── Esecuzione: {item.Name} ──");
-            await RunAsync(() => RunOne(item));
+            if (btn != null) btn.IsEnabled = false;
+            try
+            {
+                Log($"── Esecuzione: {item.Name} ──");
+                string status = null;
+                await RunAsync(() => status = RunOne(item));
+                LogVerdict(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(item.Name, status) });
+            }
+            finally { if (btn != null) btn.IsEnabled = true; }
+        }
+
+        /// <summary>
+        /// Riepilogo TOTALE/VERDETTO — stesso formato usato da <see cref="RunListAsync"/> per "Esegui
+        /// tutto", ora anche per il run di un singolo script: senza, l'esito di uno script isolato (es.
+        /// 22_autoruns_baseline.ps1) si perdeva nel log grezzo, difficile da leggere a colpo d'occhio.
+        /// </summary>
+        private void LogVerdict(List<KeyValuePair<string, string>> results)
+        {
+            int p = 0, w = 0, f = 0, e = 0, i = 0;
+            foreach (var r in results)
+            {
+                switch (r.Value)
+                {
+                    case "PASS": p++; break;
+                    case "WARN": w++; break;
+                    case "FAIL": f++; break;
+                    case "ERRORE": e++; break;
+                    default: i++; break;
+                }
+            }
+            Log($"TOTALE: PASS={p}  WARN={w}  FAIL={f}  ERRORE={e}  INFO={i}  (su {results.Count})");
+            string verdict = (f > 0 || e > 0) ? "❌ AZIONE RICHIESTA (FAIL/errori)"
+                           : (w > 0) ? "⚠ REVISIONARE I WARNING"
+                           : "✓ TUTTO OK";
+            Log("VERDETTO: " + verdict);
         }
 
         /// <summary>
@@ -212,6 +246,21 @@ namespace ShaiyaServerHub.Controls
             return status;
         }
 
+        /// <summary>Esegue UN singolo script per nome file esatto (es. "23_sql_audit_install.sql") —
+        /// usato da pulsanti dedicati tipo "Installa/Verifica" che devono lanciare uno script specifico
+        /// senza passare dalla riga della lista. Stesso riepilogo TOTALE/VERDETTO del run per-riga.</summary>
+        public async Task RunByNameAsync(string fileName)
+        {
+            if (_repo == null || _runner == null) return;
+            if (_items == null) Reload();
+            var item = _items?.FirstOrDefault(s => string.Equals(s.Name, fileName, StringComparison.OrdinalIgnoreCase));
+            if (item == null) { Log($"Script '{fileName}' non trovato in {_repo.Root}."); return; }
+            Log($"── Esecuzione: {item.Name} ──");
+            string status = null;
+            await RunAsync(() => status = RunOne(item));
+            LogVerdict(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(item.Name, status) });
+        }
+
         /// <summary>Esegue SOLO gli SQL in ordine (usato dall'install PSM_Cmd).</summary>
         public Task RunAllSqlAsync()
         {
@@ -254,26 +303,13 @@ namespace ShaiyaServerHub.Controls
             // il riassunto compare sempre in fondo (sicurezza extra oltre l'attesa EOF).
             await Dispatcher.Yield(DispatcherPriority.Background);
 
-            // ── Riassunto totale ──
-            int p = 0, w = 0, f = 0, e = 0, i = 0;
+            // ── Riassunto totale ── solo le righe "macchiate" (non-PASS/INFO) elencate per nome: con
+            // 20+ script il PASS di ognuno è rumore, quello che serve vedere subito è cosa NON va.
             Log("═════════════ RIASSUNTO ═════════════");
             foreach (var r in results)
-            {
-                switch (r.Value)
-                {
-                    case "PASS": p++; break;
-                    case "WARN": w++; break;
-                    case "FAIL": f++; break;
-                    case "ERRORE": e++; break;
-                    default: i++; break;
-                }
-                Log($"  [{r.Value,-6}] {r.Key}");
-            }
-            Log($"TOTALE: PASS={p}  WARN={w}  FAIL={f}  ERRORE={e}  INFO={i}  (su {results.Count})");
-            string verdict = (f > 0 || e > 0) ? "❌ AZIONE RICHIESTA (FAIL/errori)"
-                           : (w > 0) ? "⚠ REVISIONARE I WARNING"
-                           : "✓ TUTTO OK";
-            Log("VERDETTO: " + verdict);
+                if (r.Value == "WARN" || r.Value == "FAIL" || r.Value == "ERRORE")
+                    Log($"  [{r.Value,-6}] {r.Key}");
+            LogVerdict(results);
             Log("═════════════════════════════════════");
         }
 

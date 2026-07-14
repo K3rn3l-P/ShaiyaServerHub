@@ -1,0 +1,77 @@
+<UserControl x:Class="ShaiyaServerHub.Controls.AiControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI" Foreground="#E0E0E0" FontSize="12">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- toolbar + stato -->
+            <RowDefinition Height="*"/>      <!-- conversazione -->
+            <RowDefinition Height="Auto"/>   <!-- input -->
+            <RowDefinition Height="140"/>    <!-- feed tool -->
+        </Grid.RowDefinitions>
+
+        <!-- ── Toolbar ── -->
+        <Border Grid.Row="0" CornerRadius="4" Background="#080810" BorderBrush="#18E8C881" BorderThickness="1" Padding="10,8" Margin="0,0,0,8">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="AiStatusDot" Width="10" Height="10" Fill="#888" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TbAiStatus" Margin="8,0,0,0" VerticalAlignment="Center"
+                               Foreground="#DDE0E0E0" FontWeight="SemiBold" Text="…"/>
+                    <TextBlock x:Name="TbAiModelInfo" Margin="14,0,0,0" VerticalAlignment="Center"
+                               Foreground="#77E0E0E0" FontSize="10" FontFamily="Consolas"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Label Content="{DynamicResource AiLblMode}" Padding="0,0,4,0" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CbAiMode" Width="110" SelectionChanged="CbAiMode_SelectionChanged" Margin="0,0,8,0">
+                        <ComboBoxItem Content="{DynamicResource AiModeDefault}" Tag="Default"/>
+                        <ComboBoxItem Content="{DynamicResource AiModeCritical}" Tag="Critical"/>
+                    </ComboBox>
+                    <Button Content="📋" ToolTip="{DynamicResource AiBtnCopyChat}" Click="BtnCopyChat_Click"/>
+                    <Button Content="{DynamicResource AiBtnClear}" Click="BtnClearChat_Click"/>
+                    <Button x:Name="BtnAiSettings" Content="⚙ " ToolTip="{DynamicResource AiBtnSettings}" Click="BtnSettings_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Conversazione (RichTextBox: markdown renderizzato, non testo grezzo) ── -->
+        <Border Grid.Row="1" CornerRadius="4" Background="#06060A" BorderBrush="#18E8C881" BorderThickness="1">
+            <RichTextBox x:Name="RtbChat" IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                         Foreground="#DDE0E0E0" FontFamily="Consolas" FontSize="12"
+                         VerticalScrollBarVisibility="Auto" Padding="10,8" IsReadOnlyCaretVisible="False"/>
+        </Border>
+
+        <!-- ── Input ── -->
+        <Grid Grid.Row="2" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="TbInput" MinHeight="30" VerticalContentAlignment="Center"
+                     KeyDown="TbInput_KeyDown"/>
+            <Button Grid.Column="1" x:Name="BtnSend" Style="{StaticResource AccentButton}" Margin="8,0,0,0"
+                    Content="{DynamicResource AiBtnSend}" Click="BtnSend_Click"/>
+            <Button Grid.Column="1" x:Name="BtnStop" Style="{StaticResource DangerButton}" Margin="8,0,0,0"
+                    Content="{DynamicResource AiBtnStop}" Click="BtnStop_Click" Visibility="Collapsed"/>
+        </Grid>
+
+        <!-- ── Feed tool (cosa ha letto/eseguito l'AI) ── -->
+        <Border Grid.Row="3" Margin="0,8,0,0" CornerRadius="4" Background="#06060A" BorderBrush="#18E8C881" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Background="#0F0F14">
+                    <TextBlock Text="{DynamicResource AiFeedTitle}" Foreground="#7BE8C881"
+                               FontSize="9" FontWeight="Bold" Margin="8,3" VerticalAlignment="Center"/>
+                    <Button HorizontalAlignment="Right" Style="{StaticResource MiniButton}" Content="📋"
+                            ToolTip="{DynamicResource AiBtnCopyFeed}" Click="BtnCopyFeed_Click" Margin="2"/>
+                </Grid>
+                <TextBox Grid.Row="1" x:Name="TbFeed" IsReadOnly="True"
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas" FontSize="10" TextWrapping="NoWrap"
+                         Background="#06060A" Foreground="#88DDE0E0" BorderThickness="0" Padding="6,4"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
